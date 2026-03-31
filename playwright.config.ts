@@ -13,7 +13,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'pnpm exec nx run admin-console:serve',
+    command: 'pnpm run start:all',
     url: 'http://localhost:4200',
     reuseExistingServer: true,
     cwd: workspaceRoot,

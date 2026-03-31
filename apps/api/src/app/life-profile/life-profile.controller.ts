@@ -6,7 +6,7 @@ import { CreateLifeProfileDto, UpdateLifeRolesDto, UpdateScheduleDto, SaveHabitA
 export class LifeProfileController {
 	constructor(private readonly service: LifeProfileService) {}
 
-	@Post('create')
+	@Post()
 	async create(@Body() dto: CreateLifeProfileDto) {
 		return this.service.createProfile(dto.userId, dto as any);
 	}

@@ -24,34 +24,33 @@ test.describe('Admin console end-to-end', () => {
   });
 
   test('login works and dashboard renders health status', async ({ page }) => {
-    await page.route('**/api/health', (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ status: 'ok', uptime: 9999 }),
-      }),
-    );
-
     await page.goto('/login');
     await page.click('button:has-text("Login")');
     await expect(page).toHaveURL('/dashboard');
 
     await expect(page.locator('h2', { hasText: 'Dashboard' })).toHaveCount(1);
     await expect(page.locator('button:has-text("Refresh status")')).toHaveCount(1);
-    await page.click('button:has-text("Refresh status")');
 
-    await expect(page.locator('p')).toContainText('API status: ok');
+    let healthOk = false;
+    let lastStatus = 0;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const healthResponse = page.waitForResponse('**/api/health');
+      await page.click('button:has-text("Refresh status")');
+      const response = await healthResponse;
+      lastStatus = response.status();
+      if (response.ok()) {
+        healthOk = true;
+        break;
+      }
+      await page.waitForTimeout(1000);
+    }
+
+    console.log('health status after attempts:', lastStatus);
+    expect(healthOk).toBe(true);
+    await expect(page.locator('p', { hasText: 'API status: ok' })).toHaveCount(1);
   });
 
   test('life-profile page loads and submits valid data', async ({ page }) => {
-    await page.route('**/api/life-profile', (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ firstName: 'Anne', lastName: 'Lee', age: 32, preferredRole: 'member' }),
-      }),
-    );
-
     await page.goto('/login');
     await page.click('button:has-text("Login")');
     await page.goto('/life-profile');

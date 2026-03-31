@@ -38,7 +38,7 @@ These targets are either [inferred automatically](https://nx.dev/concepts/inferr
 
 To version and release the library use
 
-```
+```bash
 npx nx release
 ```
 
