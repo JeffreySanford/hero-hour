@@ -1,9 +1,0 @@
-flowchart TD
-    A1[User (Avatar, Village, Quests)] --> A2[Flutter UI (Riverpod, Flame, Rive, Animations)]
-    A2 --> A3[Game State Mgmt (XP, Quests, Village)]
-    A3 --> A4[WebSocket Client (Real-time Timer)]
-    A3 --> A5[REST API Client (Dio)]
-    A4 --> B3[Node.js WebSocket (Time Tracking, Auditing)]
-    A5 --> B1[NestJS API (Game Layer, DTOs, XP, Badges)]
-    B1 --> B2[PostgreSQL (Game Data, Quests, Village)]
-    B3 --> B4[MongoDB (Legacy Time Logs)]
