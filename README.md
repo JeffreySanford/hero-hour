@@ -105,3 +105,53 @@ And join the Nx community:
 - [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
 - [Our Youtube channel](https://www.youtube.com/@nxdevtools)
 - [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+
+## Project Roadmap (updated)
+
+### Scrutiny summary
+- **Solid**: Nx monorepo structure, admin-console + api + e2e apps, test infrastructure
+- **Medium**: shared lib formalization, contract to domain alignment, integrated vertical API path
+- **Weak**: full product vertical slice (life-profile solved end-to-end), persistence, RBAC, production auth
+
+### Sprint 1: true integrated life-profile vertical slice
+1. enforce shared DTO/enum contract (api-interfaces/shared-types)
+2. complete Nest `life-profile` endpoints + in-memory repo
+3. complete Angular `life-profile` form + guard + API service
+4. add full Playwright happy path: login → life-profile submit → fetch
+5. add API integration/test coverage
+
+### Sprint 2: shared workspace normalization
+- decide and implement one of:
+  - Nx libs under `libs/` for `api-interfaces/domain/shared-types/util`
+  - package workspace libraries with consistent publishing path
+  - plus graph dependencies and docs
+- keep `workspace root` lib boundaries explicit
+
+### Sprint 3: stable script perimeter
+- replace `start:all` with explicit project list for long-term safety
+- add environment guide for local/CI (ports, proxy, baseURL)
+
+### Sprint 4: product-focused tests
+- **Unit**: guard, services/facades, life-profile form/validation, dashboard state
+- **E2E**: app load, auth redirect, dashboard health, life-profile submit
+- avoid coverage as primary metric
+
+### Mobile-Flutter planning
+- add `apps/mobile-flutter` (or sibling Flutter root)
+- maintain Angular admin vs Flutter player split
+- mobile-first edges:
+  - login/onboarding/life-profile
+  - auth contract + API endpoint alignment
+  - dashboard/home player UX
+
+### Milestone criteria
+A user can:
+- login
+- navigate to life-profile
+- submit through API
+- read back saved profile
+- pass API + e2e
+
+### Ops
+- `pnpm run start:all` should be replaced with explicit `build/app` run-many once next apps are added
+- `pnpm nx lint ...` and `pnpm nx test ...` are required on PRs
