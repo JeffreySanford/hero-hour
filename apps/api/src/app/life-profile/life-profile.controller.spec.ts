@@ -14,7 +14,7 @@ describe('LifeProfileController', () => {
         {
           provide: LifeProfileService,
           useValue: {
-            create: jest.fn(),
+            createProfile: jest.fn(),
             updateRoles: jest.fn(),
             updateSchedule: jest.fn(),
             saveHabitAnchors: jest.fn(),
@@ -30,30 +30,30 @@ describe('LifeProfileController', () => {
 
   it('should create a life profile', async () => {
     const dto: CreateLifeProfileDto = { userId: 'u1' };
-    (service.create as jest.Mock).mockResolvedValue('created');
+    (service.createProfile as jest.Mock).mockResolvedValue('created');
     expect(await controller.create(dto)).toBe('created');
-    expect(service.create).toHaveBeenCalledWith(dto);
+    expect(service.createProfile).toHaveBeenCalledWith('u1', dto);
   });
 
   it('should update roles', async () => {
     const dto: UpdateLifeRolesDto = { userId: 'u1', roles: ['hero'] };
     (service.updateRoles as jest.Mock).mockResolvedValue('roles updated');
     expect(await controller.updateRoles(dto)).toBe('roles updated');
-    expect(service.updateRoles).toHaveBeenCalledWith(dto);
+    expect(service.updateRoles).toHaveBeenCalledWith('u1', ['hero']);
   });
 
   it('should update schedule', async () => {
     const dto: UpdateScheduleDto = { userId: 'u1', schedule: { monday: 'work' } };
     (service.updateSchedule as jest.Mock).mockResolvedValue('schedule updated');
     expect(await controller.updateSchedule(dto)).toBe('schedule updated');
-    expect(service.updateSchedule).toHaveBeenCalledWith(dto);
+    expect(service.updateSchedule).toHaveBeenCalledWith('u1', { monday: 'work' });
   });
 
   it('should save habit anchors', async () => {
     const dto: SaveHabitAnchorsDto = { userId: 'u1', anchors: ['anchor1'] };
     (service.saveHabitAnchors as jest.Mock).mockResolvedValue('anchors saved');
     expect(await controller.saveHabitAnchors(dto)).toBe('anchors saved');
-    expect(service.saveHabitAnchors).toHaveBeenCalledWith(dto);
+    expect(service.saveHabitAnchors).toHaveBeenCalledWith('u1', ['anchor1']);
   });
 
   it('should get my profile', async () => {

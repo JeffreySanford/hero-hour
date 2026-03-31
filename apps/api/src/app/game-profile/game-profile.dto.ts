@@ -2,7 +2,7 @@ import { IsString, IsOptional } from 'class-validator';
 
 export class UpdateAvatarThemeDto {
   @IsString()
-  userId: string;
+  userId!: string;
 
   @IsString()
   @IsOptional()

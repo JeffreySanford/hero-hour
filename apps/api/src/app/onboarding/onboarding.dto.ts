@@ -2,10 +2,10 @@ import { IsString, IsOptional, IsObject } from 'class-validator';
 
 export class OnboardingStepDto {
   @IsString()
-  userId: string;
+  userId!: string;
 
   @IsString()
-  stepName: string;
+  stepName!: string;
 
   @IsObject()
   @IsOptional()
@@ -14,5 +14,5 @@ export class OnboardingStepDto {
 
 export class CompleteOnboardingDto {
   @IsString()
-  userId: string;
+  userId!: string;
 }

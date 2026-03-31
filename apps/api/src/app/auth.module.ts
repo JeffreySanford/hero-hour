@@ -1,4 +1,2 @@
-import { Module } from '@nestjs/common';
+// auth.module.ts is legacy stub; actual module is in src/app/auth/auth.module.ts
 
-@Module({})
-// ...moved to auth/auth.module.ts...

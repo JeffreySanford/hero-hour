@@ -1,27 +1,27 @@
-import { IsString, IsArray, IsOptional, IsObject } from 'class-validator';
+import { IsString, IsArray, IsObject } from 'class-validator';
 
 export class CreateLifeProfileDto {
   @IsString()
-  userId: string;
+  userId!: string;
 }
 
 export class UpdateLifeRolesDto {
   @IsString()
-  userId: string;
+  userId!: string;
   @IsArray()
-  roles: string[];
+  roles!: string[];
 }
 
 export class UpdateScheduleDto {
   @IsString()
-  userId: string;
+  userId!: string;
   @IsObject()
-  schedule: Record<string, any>;
+  schedule!: Record<string, any>;
 }
 
 export class SaveHabitAnchorsDto {
   @IsString()
-  userId: string;
+  userId!: string;
   @IsArray()
-  anchors: string[];
+  anchors!: string[];
 }

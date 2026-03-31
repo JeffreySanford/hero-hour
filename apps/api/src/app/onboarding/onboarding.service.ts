@@ -9,6 +9,7 @@ export interface OnboardingState {
   userId: string;
   steps: OnboardingStep[];
   completed: boolean;
+  starterProfileGenerated?: boolean;
 }
 
 @Injectable()
@@ -49,7 +50,7 @@ export class OnboardingService {
     return this.getOnboarding(userId);
   }
 
-  complete(userId: string): { completed: boolean; starterProfileGenerated: boolean } {
+  async complete(userId: string): Promise<{ completed: boolean; starterProfileGenerated: boolean }> {
     return this.completeOnboarding(userId);
   }
 
