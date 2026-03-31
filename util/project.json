@@ -1,0 +1,21 @@
+{
+  "name": "util",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "util/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/util",
+        "main": "util/src/index.ts",
+        "tsConfig": "util/tsconfig.lib.json",
+        "assets": ["util/*.md"],
+        "format": ["cjs"],
+        "generatePackageJson": true
+      }
+    }
+  }
+}
