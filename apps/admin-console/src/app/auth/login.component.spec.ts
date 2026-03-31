@@ -4,7 +4,7 @@ import { LoginComponent } from './login.component';
 import { AuthService } from '../services/auth.service';
 
 class MockRouter {
-  navigate = (commands: any[]) => Promise.resolve(true);
+  navigate = (_commands: any[]) => Promise.resolve(true);
 }
 
 describe('LoginComponent', () => {
@@ -30,9 +30,9 @@ describe('LoginComponent', () => {
     expect(authService.isAuthenticated()).toBe(false);
     let navigated = false;
     const routeCommands: any[] = [];
-    (router as any).navigate = (commands: any[]) => {
+    (router as any).navigate = (_commands: any[]) => {
       navigated = true;
-      routeCommands.push(commands);
+      routeCommands.push(_commands);
       return Promise.resolve(true);
     };
 

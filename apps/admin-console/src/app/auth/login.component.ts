@@ -5,10 +5,8 @@ import { AuthService } from '../services/auth.service';
 @Component({
   standalone: false,
   selector: 'app-login',
-  template: `
-    <h2>Login</h2>
-    <button (click)="login()">Login</button>
-  `,
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
   constructor(private authService: AuthService, private router: Router) {}

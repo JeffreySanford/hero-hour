@@ -4,12 +4,8 @@ import { HealthService, HealthStatus } from '../services/health.service';
 @Component({
   standalone: false,
   selector: 'app-dashboard',
-  template: `
-    <h2>Dashboard</h2>
-    <button (click)="refresh()">Refresh status</button>
-    <p *ngIf="status">API status: {{ status }}</p>
-    <p *ngIf="error" class="error">Failed to load health</p>
-  `,
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit {
   status?: string;

@@ -6,40 +6,8 @@ import { mapFormToLifeProfile, LifeProfileFormValue } from './life-profile.mappe
 @Component({
   standalone: false,
   selector: 'app-life-profile',
-  template: `
-    <h2>Life Profile</h2>
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <label>
-        First name
-        <input formControlName="firstName" />
-      </label>
-
-      <label>
-        Last name
-        <input formControlName="lastName" />
-      </label>
-
-      <label>
-        Age
-        <input type="number" formControlName="age" />
-      </label>
-
-      <label>
-        Role
-        <select formControlName="preferredRole">
-          <option value="leader">Leader</option>
-          <option value="member">Member</option>
-          <option value="observer">Observer</option>
-        </select>
-      </label>
-
-      <button type="submit">Save</button>
-    </form>
-
-    <div *ngIf="saved" class="success">Saved</div>
-    <div *ngIf="error" class="error">Failed to save</div>
-  `,
+  templateUrl: './life-profile.component.html',
+  styleUrls: ['./life-profile.component.scss'],
 })
 export class LifeProfileComponent {
   form: FormGroup;
