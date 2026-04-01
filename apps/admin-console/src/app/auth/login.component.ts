@@ -18,7 +18,11 @@ export class LoginComponent {
   login(): void {
     this.error = '';
     this.authService.login(this.email, this.password).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => {
+        const name = this.email.split('@')[0].replace('.', ' ');
+        this.authService.setCurrentUser({ fullName: name, email: this.email });
+        this.router.navigate(['/dashboard']);
+      },
       error: (err) => (this.error = err?.error?.message || 'Login failed'),
     });
   }

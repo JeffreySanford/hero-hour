@@ -21,9 +21,16 @@ class MockAuthService {
     return of<LoginResponse>({ accessToken: 'fake-token', refreshToken: 'fake-refresh' });
   };
   logout = () => {
+    localStorage.removeItem('hero-hour-token');
+    localStorage.removeItem('hero-hour-refresh-token');
+    localStorage.removeItem('hero-hour-user');
     return undefined;
   };
   isAuthenticated = () => !!localStorage.getItem('hero-hour-token');
+  setCurrentUser = (_user: { fullName: string; email?: string }) => {
+    localStorage.setItem('hero-hour-user', JSON.stringify(_user));
+    return undefined;
+  };
 }
 
 describe('LoginComponent', () => {

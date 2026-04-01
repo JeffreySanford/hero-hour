@@ -58,6 +58,18 @@ describe('DashboardComponent', () => {
 
     expect(component.status).toBeUndefined();
     expect(component.error).toBe(true);
-    expect(fixture.nativeElement.textContent).toContain('Failed to load health');
+    expect(fixture.nativeElement.textContent).toContain('Offline');
+  });
+
+  it('should toggle dark mode and persist preference', () => {
+    document.body.classList.remove('hero-hour-dark-mode');
+    localStorage.removeItem('hero-hour-dark-mode');
+
+    component.darkMode = false;
+    component.toggleDarkMode();
+
+    expect(component.darkMode).toBe(true);
+    expect(localStorage.getItem('hero-hour-dark-mode')).toBe('true');
+    expect(document.body.classList.contains('hero-hour-dark-mode')).toBe(true);
   });
 });

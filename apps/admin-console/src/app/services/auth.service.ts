@@ -36,6 +36,32 @@ export class AuthService {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.refreshTokenKey);
     localStorage.removeItem('hero-hour-authenticated');
+    localStorage.removeItem('hero-hour-user');
+  }
+
+  setCurrentUser(user: { fullName: string; email?: string }): void {
+    localStorage.setItem('hero-hour-user', JSON.stringify(user));
+  }
+
+  getCurrentUser(): { fullName: string; email?: string } | null {
+    const userJson = localStorage.getItem('hero-hour-user');
+    if (!userJson) return null;
+    try {
+      return JSON.parse(userJson);
+    } catch {
+      return null;
+    }
+  }
+
+  getCurrentUserInitials(): string {
+    const user = this.getCurrentUser();
+    if (!user?.fullName) return '';
+    const parts = user.fullName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0].toUpperCase());
+    return parts.join('').slice(0, 2);
   }
 
   isAuthenticated(): boolean {

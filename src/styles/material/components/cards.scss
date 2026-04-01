@@ -22,8 +22,7 @@
 }
 
 .hero-card__title {
-  @use './colors' as color;
-  color: color.$accent-gold;
+  color: #fbbf24;
   font-size: 1.15rem;
   font-weight: 700;
 }

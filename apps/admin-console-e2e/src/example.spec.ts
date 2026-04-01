@@ -218,6 +218,20 @@ test.describe('Admin console end-to-end', () => {
     await page.fill('input[placeholder="New quest title"]', 'Write unit tests');
     await page.selectOption('select', 'career');
     await page.click('button:has-text("Add Quest")');
+  });
+
+  test('dashboard visual snapshot for light/dark mode', async ({ page }) => {
+    await page.goto('/login');
+    await page.click('button:has-text("Login")');
+    await expect(page).toHaveURL('/dashboard');
+
+    await expect(page.locator('h2', { hasText: 'Dashboard' })).toBeVisible();
+    await expect(page).toHaveScreenshot('dashboard-light.png', { fullPage: true });
+
+    await page.click('button:has-text("Dark Mode")');
+    await expect(page.locator('body.hero-hour-dark-mode')).toHaveCount(1);
+    await expect(page).toHaveScreenshot('dashboard-dark.png', { fullPage: true });
+  });
 
     // Wait for the refreshed quest list from the backend.
     await page.waitForResponse('**/api/game-profile/demo-user/quests');

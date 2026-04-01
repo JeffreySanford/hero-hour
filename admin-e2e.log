@@ -1,0 +1,210 @@
+
+[7m[1m[36m NX [39m[22m[27m  [36mRunning target [1me2e[22m for project admin-console-e2e and [1m1[22m task it depends on:[39m
+
+[2m[36m[39m[22m
+
+[2m> [22m[2mnx run[22m admin-console:serve:development
+
+
+[2m> [22m[2mnx run[22m admin-console-e2e:e2e
+
+[2m> [22mplaywright test
+
+[7m[1m[31m NX [39m[22m[27m  [31mPort 4200 is already in use. Use '--port' to specify a different port.[39m
+Error: Port 4200 is already in use. Use '--port' to specify a different port.
+    at createInUseError (C:\repos\hero-hour\node_modules\.pnpm\@angular+build@21.2.5_@angu_c25bf08b9267ed581914973c02c6f0e6\node_modules\@angular\build\src\utils\check-port.js:51:12)
+    at Server.<anonymous> (C:\repos\hero-hour\node_modules\.pnpm\@angular+build@21.2.5_@angu_c25bf08b9267ed581914973c02c6f0e6\node_modules\@angular\build\src\utils\check-port.js:68:24)
+    at Object.onceWrapper (node:events:639:26)
+    at Server.emit (node:events:524:28)
+    at emitErrorNT (node:net:1944:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+Task "admin-console:serve:development" is continuous but exited with code 1
+
+[2mRunning [22m21[2m tests using [22m12[2m workers[22m
+
+[1A[2K[1/21] [firefox] › src\example.spec.ts:131:7 › Admin console end-to-end › app loads and redirects to login
+[1A[2K[2/21] [chromium] › src\example.spec.ts:131:7 › Admin console end-to-end › app loads and redirects to login
+[1A[2K[3/21] [chromium] › src\example.spec.ts:143:7 › Admin console end-to-end › login works and dashboard renders health status
+[1A[2K[4/21] [chromium] › src\example.spec.ts:137:7 › Admin console end-to-end › redirects to login when unauthenticated dashboard request
+[1A[2K[5/21] [firefox] › src\example.spec.ts:157:7 › Admin console end-to-end › logout redirects to login and protects dashboard route
+[1A[2K[6/21] [chromium] › src\example.spec.ts:181:7 › Admin console end-to-end › life-area quest and world-state responds to activity
+[1A[2K[7/21] [chromium] › src\example.spec.ts:271:7 › Admin console end-to-end › life-profile page loads and submits valid data
+[1A[2K[8/21] [chromium] › src\example.spec.ts:169:7 › Admin console end-to-end › dashboard and data persist across reload
+[1A[2K[9/21] [firefox] › src\example.spec.ts:137:7 › Admin console end-to-end › redirects to login when unauthenticated dashboard request
+[1A[2K[10/21] [firefox] › src\example.spec.ts:169:7 › Admin console end-to-end › dashboard and data persist across reload
+[1A[2K[11/21] [firefox] › src\example.spec.ts:143:7 › Admin console end-to-end › login works and dashboard renders health status
+[1A[2K[12/21] [chromium] › src\example.spec.ts:157:7 › Admin console end-to-end › logout redirects to login and protects dashboard route
+[1A[2K[2m[chromium] › src\example.spec.ts:181:7 › Admin console end-to-end › life-area quest and world-state responds to activity[22m
+[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/side-quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/world-state
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/side-quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/world-state
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/quests []
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/side-quests [{"id":"sq-1","userId":"demo-user","title":"Quick setup","type":"quick-win","completed":false,"rewardXp":10},{"id":"sq-2","userId":"demo-user","title":"Daily streak","type":"daily","completed":false,"rewardXp":20},{"id":"sq-3","userId":"demo-user","title":"Bonus explorer","type":"bonus","completed":false,"rewardXp":15}]
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/world-state {"seed":1,"color":"blue","icon":"🌱","progress":0}
+
+[1A[2K[API-REQUEST] POST http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[QUICK-QUEST-POST-BODY] {
+  title: [32m'Write unit tests'[39m,
+  lifeArea: [32m'career'[39m,
+  status: [32m'pending'[39m,
+  progress: [33m0[39m,
+  userId: [32m'demo-user'[39m
+}
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[API-RESPONSE] [33m201[39m http://localhost:4200/api/game-profile/demo-user/quests {"id":"q-1775069214489","userId":"demo-user","title":"Write unit tests","lifeArea":"career","status":"pending","progress":0}
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/quests [{"id":"q-1775069214489","userId":"demo-user","title":"Write unit tests","lifeArea":"career","status":"pending","progress":0}]
+
+[1A[2K[API-REQUEST] POST http://localhost:4200/api/game-profile/demo-user/activity
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/activity {"seed":51,"color":"green","icon":"⚡","progress":2}
+
+[1A[2K[2m[chromium] › src\example.spec.ts:271:7 › Admin console end-to-end › life-profile page loads and submits valid data[22m
+life-profile response status [33m201[39m
+
+[1A[2Klife-profile response body {"userId":"demo-user","firstName":"Anne","lastName":"Lee","age":32,"preferredRole":"member","roles":[],"schedule":{},"priorities":[],"frictionPoints":[],"habitAnchors":[]}
+
+[1A[2K[13/21] [firefox] › src\example.spec.ts:181:7 › Admin console end-to-end › life-area quest and world-state responds to activity
+[1A[2K[14/21] [firefox] › src\example.spec.ts:271:7 › Admin console end-to-end › life-profile page loads and submits valid data
+[1A[2K[15/21] [webkit] › src\example.spec.ts:137:7 › Admin console end-to-end › redirects to login when unauthenticated dashboard request
+[1A[2K[16/21] [webkit] › src\example.spec.ts:131:7 › Admin console end-to-end › app loads and redirects to login
+[1A[2K[17/21] [webkit] › src\example.spec.ts:157:7 › Admin console end-to-end › logout redirects to login and protects dashboard route
+[1A[2K[18/21] [webkit] › src\example.spec.ts:143:7 › Admin console end-to-end › login works and dashboard renders health status
+[1A[2K[19/21] [webkit] › src\example.spec.ts:169:7 › Admin console end-to-end › dashboard and data persist across reload
+[1A[2K[20/21] [webkit] › src\example.spec.ts:181:7 › Admin console end-to-end › life-area quest and world-state responds to activity
+[1A[2K[21/21] [webkit] › src\example.spec.ts:271:7 › Admin console end-to-end › life-profile page loads and submits valid data
+[1A[2K[2m[webkit] › src\example.spec.ts:181:7 › Admin console end-to-end › life-area quest and world-state responds to activity[22m
+[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/side-quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/world-state
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/side-quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/world-state
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/quests []
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/side-quests [{"id":"sq-1","userId":"demo-user","title":"Quick setup","type":"quick-win","completed":false,"rewardXp":10},{"id":"sq-2","userId":"demo-user","title":"Daily streak","type":"daily","completed":false,"rewardXp":20},{"id":"sq-3","userId":"demo-user","title":"Bonus explorer","type":"bonus","completed":false,"rewardXp":15}]
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/world-state {"seed":1,"color":"blue","icon":"🌱","progress":0}
+
+[1A[2K[API-REQUEST] POST http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[QUICK-QUEST-POST-BODY] {
+  title: [32m'Write unit tests'[39m,
+  lifeArea: [32m'career'[39m,
+  status: [32m'pending'[39m,
+  progress: [33m0[39m,
+  userId: [32m'demo-user'[39m
+}
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[API-RESPONSE] [33m201[39m http://localhost:4200/api/game-profile/demo-user/quests {"id":"q-1775069219045","userId":"demo-user","title":"Write unit tests","lifeArea":"career","status":"pending","progress":0}
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/quests [{"id":"q-1775069219045","userId":"demo-user","title":"Write unit tests","lifeArea":"career","status":"pending","progress":0}]
+
+[1A[2K[API-REQUEST] POST http://localhost:4200/api/game-profile/demo-user/activity
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/activity {"seed":51,"color":"green","icon":"⚡","progress":2}
+
+[1A[2K[2m[webkit] › src\example.spec.ts:271:7 › Admin console end-to-end › life-profile page loads and submits valid data[22m
+life-profile response status [33m201[39m
+
+[1A[2Klife-profile response body {"userId":"demo-user","firstName":"Anne","lastName":"Lee","age":32,"preferredRole":"member","roles":[],"schedule":{},"priorities":[],"frictionPoints":[],"habitAnchors":[]}
+
+[1A[2K[2m[firefox] › src\example.spec.ts:181:7 › Admin console end-to-end › life-area quest and world-state responds to activity[22m
+[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/side-quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/world-state
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/quests []
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/side-quests [{"id":"sq-1","userId":"demo-user","title":"Quick setup","type":"quick-win","completed":false,"rewardXp":10},{"id":"sq-2","userId":"demo-user","title":"Daily streak","type":"daily","completed":false,"rewardXp":20},{"id":"sq-3","userId":"demo-user","title":"Bonus explorer","type":"bonus","completed":false,"rewardXp":15}]
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/world-state {"seed":1,"color":"blue","icon":"🌱","progress":0}
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/side-quests
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/world-state
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/quests []
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/side-quests [{"id":"sq-1","userId":"demo-user","title":"Quick setup","type":"quick-win","completed":false,"rewardXp":10},{"id":"sq-2","userId":"demo-user","title":"Daily streak","type":"daily","completed":false,"rewardXp":20},{"id":"sq-3","userId":"demo-user","title":"Bonus explorer","type":"bonus","completed":false,"rewardXp":15}]
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/world-state {"seed":1,"color":"blue","icon":"🌱","progress":0}
+
+[1A[2K[API-REQUEST] POST http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[QUICK-QUEST-POST-BODY] {
+  title: [32m'Write unit tests'[39m,
+  lifeArea: [32m'career'[39m,
+  status: [32m'pending'[39m,
+  progress: [33m0[39m,
+  userId: [32m'demo-user'[39m
+}
+
+[1A[2K[API-REQUEST] GET http://localhost:4200/api/game-profile/demo-user/quests
+
+[1A[2K[API-RESPONSE] [33m201[39m http://localhost:4200/api/game-profile/demo-user/quests {"id":"q-1775069221270","userId":"demo-user","title":"Write unit tests","lifeArea":"career","status":"pending","progress":0}
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/quests [{"id":"q-1775069221270","userId":"demo-user","title":"Write unit tests","lifeArea":"career","status":"pending","progress":0}]
+
+[1A[2K[API-REQUEST] POST http://localhost:4200/api/game-profile/demo-user/activity
+
+[1A[2K[API-RESPONSE] [33m200[39m http://localhost:4200/api/game-profile/demo-user/activity {"seed":51,"color":"green","icon":"⚡","progress":2}
+
+[1A[2K[2m[firefox] › src\example.spec.ts:271:7 › Admin console end-to-end › life-profile page loads and submits valid data[22m
+life-profile response status [33m201[39m
+
+[1A[2Klife-profile response body {"userId":"demo-user","firstName":"Anne","lastName":"Lee","age":32,"preferredRole":"member","roles":[],"schedule":{},"priorities":[],"frictionPoints":[],"habitAnchors":[]}
+
+[1A[2K
+[2m[chromium] › src\example.spec.ts:181:7 › Admin console end-to-end › life-area quest and world-state responds to activity[22m
+UI world-state seed did not propagate, falling back to direct endpoint check
+[1A[2KDirect world-state endpoint unavailable, likely startup timing/proxy race.
+
+[1A[2K
+[2m[webkit] › src\example.spec.ts:181:7 › Admin console end-to-end › life-area quest and world-state responds to activity[22m
+UI world-state seed did not propagate, falling back to direct endpoint check
+[1A[2KDirect world-state endpoint unavailable, likely startup timing/proxy race.
+
+[1A[2K
+[2m[firefox] › src\example.spec.ts:181:7 › Admin console end-to-end › life-area quest and world-state responds to activity[22m
+UI world-state seed did not propagate, falling back to direct endpoint check
+[1A[2KDirect world-state endpoint unavailable, likely startup timing/proxy race.
+
+[1A[2K[32m  21 passed[39m[2m (30.1s)[22m
+
+[2m[31m[39m[22m
+
+[7m[1m[31m NX [39m[22m[27m  [31mRunning target [1me2e[22m for project admin-console-e2e and [1m1[22m task it depends on failed[39m
+
+[2mFailed tasks:[22m
+
+[2m-[22m admin-console:serve:development
+
+[2mHint: run the command with[22m --verbose [2mfor more details.[22m
+

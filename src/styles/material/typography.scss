@@ -1,12 +1,10 @@
-$hero-hour-typography: mat.define-typography-config(
-  $font-family: 'Inter', 'Roboto', 'Helvetica Neue', sans-serif,
-  $display-large: mat.define-typography-level(3rem, 3.5rem, 700),
-  $display-medium: mat.define-typography-level(2.125rem, 2.5rem, 700),
-  $headline-small: mat.define-typography-level(1.5rem, 2rem, 600),
-  $title-large: mat.define-typography-level(1.25rem, 1.75rem, 600),
-  $title-medium: mat.define-typography-level(1.125rem, 1.5rem, 600),
-  $body-large: mat.define-typography-level(1rem, 1.5rem, 400),
-  $body-medium: mat.define-typography-level(0.9375rem, 1.3rem, 400),
-  $label-large: mat.define-typography-level(0.875rem, 1.25rem, 600),
-  $label-small: mat.define-typography-level(0.75rem, 1rem, 500)
-);
+$hero-hour-font-family: 'Inter', 'Roboto', 'Helvetica Neue', sans-serif;
+$hero-hour-display-large: 3rem;
+$hero-hour-display-medium: 2.125rem;
+$hero-hour-headline: 1.5rem;
+$hero-hour-title-large: 1.25rem;
+$hero-hour-title-medium: 1.125rem;
+$hero-hour-body-large: 1rem;
+$hero-hour-body-medium: 0.9375rem;
+$hero-hour-label-large: 0.875rem;
+$hero-hour-label-small: 0.75rem;

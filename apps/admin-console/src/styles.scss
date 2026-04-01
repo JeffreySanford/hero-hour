@@ -1,6 +1,6 @@
-@use 'src/styles/material/theme' as *;
-@use 'src/styles/material/components/cards' as *;
-@use 'src/styles/material/components/buttons' as *;
+@use '../../../src/styles/material/theme' as *;
+@use '../../../src/styles/material/components/cards' as *;
+@use '../../../src/styles/material/components/buttons' as *;
 
 body {
   margin: 0;
@@ -8,6 +8,33 @@ body {
   background: linear-gradient(180deg, #0b1220 0%, #16243b 100%);
   color: #e2e8f0;
   min-height: 100vh;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+body.hero-hour-dark-mode {
+  background: linear-gradient(180deg, #04080f 0%, #0b1a33 100%);
+  color: #e2e8f0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.hero-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.hero-card__header {
+  transition: color 0.2s ease;
+}
+
+.hero-btn {
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .content-shell {

@@ -1,0 +1,61 @@
+
+> @org/source@0.0.0 lint:all C:\repos\hero-hour
+> nx run-many -t lint -p admin-console api --parallel=2
+
+
+[7m[1m[36m NX [39m[22m[27m  [36mRunning target [1mlint[22m for 2 projects:[39m
+
+[2m-[22m admin-console
+[2m-[22m api
+
+[2m[36m[39m[22m
+
+[2m> [22m[2mnx run[22m api:lint
+
+[2m> [22meslint .
+
+[0m[0m
+[0m[4mC:\repos\hero-hour\apps\api\src\app\auth\auth.controller.spec.ts[24m[0m
+[0m  [2m13:22[22m  [33mwarning[39m  'dto' is defined but never used. Allowed unused args must match /^_/u  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m14:24[22m  [33mwarning[39m  'dto' is defined but never used. Allowed unused args must match /^_/u  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\repos\hero-hour\apps\api\src\app\auth\jwt.guard.ts[24m[0m
+[0m  [2m26:14[22m  [33mwarning[39m  'err' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\repos\hero-hour\apps\api\src\app\game-profile\game-profile.service.ts[24m[0m
+[0m  [2m41:32[22m  [33mwarning[39m  'userId' is defined but never used. Allowed unused args must match /^_/u  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\repos\hero-hour\apps\api\src\app\life-profile.controller.spec.ts[24m[0m
+[0m  [2m1:10[22m  [33mwarning[39m  'Test' is defined but never used           [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m1:16[22m  [33mwarning[39m  'TestingModule' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\repos\hero-hour\apps\api\src\app\onboarding\onboarding.controller.spec.ts[24m[0m
+[0m  [2m4:29[22m  [33mwarning[39m  'CompleteOnboardingDto' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m6:10[22m  [33mwarning[39m  'plainToInstance' is defined but never used        [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m7:10[22m  [33mwarning[39m  'validate' is defined but never used               [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[33m[1m✖ 9 problems (0 errors, 9 warnings)[22m[39m[0m
+[0m[33m[1m[22m[39m[0m
+
+[2m> [22m[2mnx run[22m admin-console:lint
+
+
+Linting "admin-console"...
+[0m[0m
+[0m[4mC:\repos\hero-hour\apps\admin-console\src\app\life-profile\life-profile.component.ts[24m[0m
+[0m  [2m39:14[22m  [33mwarning[39m  'saved' is defined but never used. Allowed unused args must match /^_/u  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\repos\hero-hour\apps\admin-console\src\app\store\auth\auth.effects.spec.ts[24m[0m
+[0m  [2m9:19[22m  [33mwarning[39m  'email' is defined but never used. Allowed unused args must match /^_/u     [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m9:34[22m  [33mwarning[39m  'password' is defined but never used. Allowed unused args must match /^_/u  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[33m[1m✖ 3 problems (0 errors, 3 warnings)[22m[39m[0m
+[0m[33m[1m[22m[39m[0m
+✖ 3 problems (0 errors, 3 warnings)
+
+
+[2m[32m[39m[22m
+
+[7m[1m[32m NX [39m[22m[27m  [32mSuccessfully ran target [1mlint[22m for 2 projects[39m
+
+

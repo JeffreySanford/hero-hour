@@ -1,53 +1,142 @@
-<h2>Dashboard</h2>
-<button (click)="refresh()">Refresh status</button>
-<p *ngIf="status">API status: {{ status }}</p>
-<p *ngIf="error" class="error">Failed to load health</p>
-<p>Connection: <strong>{{ offlineStatus }}</strong></p>
-<button (click)="syncOffline()" [disabled]="offlineStatus !== 'online'">Sync queued actions</button>
+<div class="dashboard-shell content-shell">
+  <header class="dashboard-header">
+    <div class="dashboard-title">
+      <h2>Dashboard</h2>
+      <span class="brand-tag">Midnight Forge</span>
+    </div>
 
-<section class="world-state">
-  <h3>World Seed State</h3>
-  <p>Seed: {{ worldState.seed }}</p>
-  <p>Color: <span [style.color]="worldState.color">{{ worldState.color }}</span></p>
-  <p>Icon: {{ worldState.icon }}</p>
-  <p>Progress: {{ worldState.progress }}%</p>
-</section>
+    <div class="dashboard-actions">
+      <button class="hero-btn hero-btn-secondary" (click)="toggleDarkMode()">
+        {{ darkMode ? 'Light Mode' : 'Dark Mode' }}
+      </button>
 
-<section class="activity-controls">
-  <h3>Log Activity</h3>
-  <button (click)="logActivity('exercise')">Exercise</button>
-  <button (click)="logActivity('work')">Work</button>
-  <button (click)="logActivity('social')">Social</button>
-  <button (click)="logActivity('rest')">Rest</button>
-</section>
+      <div class="profile-menu-root">
+        <button class="hero-btn hero-btn-secondary profile-button" aria-label="Profile" (click)="toggleProfileMenu()">
+          <span class="profile-avatar">{{ userInitials }}</span>
+          <span class="profile-label">Me</span>
+        </button>
+        <div class="profile-menu" *ngIf="profileMenuOpen">
+          <button class="menu-item" (click)="logout()">Logout</button>
+          <button class="menu-item" (click)="profileMenuOpen = false">Settings</button>
+        </div>
+      </div>
+    </div>
+  </header>
 
-<section class="quest-management">
-  <h3>Quests (Life Area)</h3>
-  <div>
-    <input type="text" [(ngModel)]="newQuestTitle" placeholder="New quest title" />
-    <select [(ngModel)]="newQuestArea">
-      <option value="health">Health</option>
-      <option value="career">Career</option>
-      <option value="relationships">Relationships</option>
-      <option value="fun">Fun</option>
-    </select>
-    <button (click)="createQuest()">Add Quest</button>
-  </div>
+  <section class="dashboard-grid">
+    <article class="hero-card" aria-labelledby="api-status-title" role="region">
+      <div class="hero-card__header">
+        <h3 id="api-status-title" class="hero-card__title">API Status</h3>
+        <span class="status-chip" [ngClass]="{ 'status-success': status === 'ok', 'status-error': error }" aria-live="polite">
+          {{ error ? 'Offline' : status || 'Unknown' }}
+        </span>
+      </div>
+      <div class="hero-card__content">
+        <div *ngIf="isLoadingHealth" class="skeleton loading-line" role="status" aria-label="Loading API status"></div>
+        <div *ngIf="!isLoadingHealth">
+          <p *ngIf="status">API status: {{ status }}</p>
+          <p *ngIf="error" class="error">Failed to load health</p>
+          <p>Connection: <strong>{{ offlineStatus }}</strong></p>
+        </div>
+        <button class="hero-btn hero-btn-primary" (click)="refresh()" aria-label="Refresh API status">Refresh status</button>
+      </div>
+    </article>
 
-  <ul>
-    <li *ngFor="let quest of quests">
-      {{ quest.title }} ({{ quest.lifeArea }}) - {{ quest.status }} - {{ quest.progress }}% 
-      <button *ngIf="quest.status !== 'complete'" (click)="claimQuest(quest)">Complete</button>
-    </li>
-  </ul>
-</section>
+    <article class="hero-card" aria-labelledby="world-seed-title" role="region">
+      <div class="hero-card__header">
+        <h3 id="world-seed-title" class="hero-card__title">World Seed State</h3>
+        <span class="realm-chip" [style.background]="worldState.color" aria-label="Current realm color">{{ worldState.color }}</span>
+      </div>
+      <div class="hero-card__content world-state">
+        <div *ngIf="isLoadingWorldState" class="skeleton loading-block" role="status" aria-label="Loading world seed state"></div>
+        <div *ngIf="!isLoadingWorldState">
+          <p>Seed: {{ worldState.seed }}</p>
+          <p>Icon: {{ worldState.icon }}</p>
+          <div class="progress-container">
+            <div class="progress-track" aria-label="world progress">
+              <div class="progress-fill" [style.width.%]="worldState.progress"></div>
+            </div>
+            <span class="progress-label">{{ worldState.progress }}%</span>
+          </div>
+          <p>Progress: {{ worldState.progress }}%</p>
+        </div>
+      </div>
+    </article>
 
-<section class="side-quest-management">
-  <h3>Side Quests (Quick Wins)</h3>
-  <ul>
-    <li *ngFor="let side of sideQuests">
-      {{ side.title }} ({{ side.type }}) - {{ side.completed ? 'Claimed' : 'Available' }}
-      <button *ngIf="!side.completed" (click)="claimSideQuest(side.id)">Claim</button>
-    </li>
-  </ul>
-</section>
+    <article class="hero-card">
+      <div class="hero-card__header">
+        <h3 class="hero-card__title">Sync Status</h3>
+      </div>
+      <div class="hero-card__content">
+        <p>Connection: <strong>{{ offlineStatus }}</strong></p>
+        <button class="hero-btn hero-btn-secondary" (click)="syncOffline()" [disabled]="offlineStatus !== 'online'">Sync queued actions</button>
+      </div>
+    </article>
+
+    <article class="hero-card activity-controls">
+      <div class="hero-card__header">
+        <h3 class="hero-card__title">Realm Activity</h3>
+      </div>
+      <div class="hero-card__content realms">
+        <button class="hero-btn hero-btn-secondary" (click)="logActivity('exercise')">Exercise</button>
+        <button class="hero-btn hero-btn-secondary" (click)="logActivity('work')">Work</button>
+        <button class="hero-btn hero-btn-secondary" (click)="logActivity('social')">Social</button>
+        <button class="hero-btn hero-btn-secondary" (click)="logActivity('rest')">Rest</button>
+      </div>
+    </article>
+
+    <article class="hero-card quest-management" aria-labelledby="quests-title" role="region">
+      <div class="hero-card__header">
+        <h3 id="quests-title" class="hero-card__title">Quests (Life Area)</h3>
+      </div>
+      <div class="hero-card__content">
+        <div class="quest-add">
+          <input class="hero-input" type="text" [(ngModel)]="newQuestTitle" placeholder="New quest title" aria-label="New quest title" />
+          <select class="hero-select" [(ngModel)]="newQuestArea" aria-label="Quest life area">
+            <option value="health">Health</option>
+            <option value="career">Career</option>
+            <option value="relationships">Relationships</option>
+            <option value="fun">Fun</option>
+          </select>
+          <button class="hero-btn hero-btn-primary" (click)="createQuest()" aria-label="Add quest">Add Quest</button>
+        </div>
+
+        <div *ngIf="isLoadingQuests" class="skeleton loading-block" role="status" aria-label="Loading quests"></div>
+
+        <div *ngIf="!isLoadingQuests && quests.length === 0" class="empty-state" role="status" aria-live="polite">
+          <h4>No quests yet</h4>
+          <p>Start by adding your first quest for life progress tracking.</p>
+        </div>
+
+        <ul class="quest-list" *ngIf="!isLoadingQuests && quests.length > 0">
+          <li *ngFor="let quest of quests" class="quest-item">
+            <span>{{ quest.title }} ({{ quest.lifeArea }}) - {{ quest.status }} - {{ quest.progress }}%</span>
+            <button class="hero-btn hero-btn-secondary" *ngIf="quest.status !== 'complete'" (click)="claimQuest(quest)" aria-label="Complete quest">Complete</button>
+          </li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="hero-card side-quest-management" aria-labelledby="side-quests-title" role="region">
+      <div class="hero-card__header">
+        <h3 id="side-quests-title" class="hero-card__title">Side Quests (Quick Wins)</h3>
+      </div>
+      <div class="hero-card__content">
+        <div *ngIf="isLoadingSideQuests" class="skeleton loading-block" role="status" aria-label="Loading side quests"></div>
+
+        <div *ngIf="!isLoadingSideQuests && sideQuests.length === 0" class="empty-state" role="status" aria-live="polite">
+          <h4>No side quests available</h4>
+          <p>Rest, exercise, and progress at your own pace; side quests will appear when available.</p>
+        </div>
+
+        <ul class="side-quest-list" *ngIf="!isLoadingSideQuests && sideQuests.length > 0">
+          <li *ngFor="let side of sideQuests" class="side-quest-item">
+            <span>{{ side.title }} ({{ side.type }}) - {{ side.completed ? 'Claimed' : 'Available' }}</span>
+            <button class="hero-btn hero-btn-secondary" *ngIf="!side.completed" (click)="claimSideQuest(side.id)" aria-label="Claim side quest">Claim</button>
+          </li>
+        </ul>
+      </div>
+    </article>
+
+  </section>
+</div>
