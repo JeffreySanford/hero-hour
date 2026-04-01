@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { HealthService, HealthStatus } from '../services/health.service';
+import { HealthService } from '../services/health.service';
+import type { HealthResponse } from '@org/api-interfaces';
 import { QuestService, Quest, LifeArea, WorldState, SideQuest } from '../services/quest.service';
 import { OfflineService } from '../services/offline.service';
 
@@ -43,7 +44,7 @@ export class DashboardComponent implements OnInit {
     this.error = false;
 
     this.healthService.getHealth().subscribe({
-      next: (payload: HealthStatus) => {
+      next: (payload: HealthResponse) => {
         this.status = payload.status;
       },
       error: () => {

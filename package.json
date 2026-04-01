@@ -5,8 +5,7 @@
   "scripts": {
     "start:admin": "nx serve admin-console",
     "start:api": "nx serve api",
-    "start:mobile": "cd apps/mobile_flutter && flutter run",
-    "mobile:start": "cd apps/mobile_flutter && flutter run",
+    "start:mobile": "cd apps/mobile_flutter && flutter run -d chrome",
     "start:all": "concurrently -k -n frontend,api,mobile \"pnpm start:admin\" \"pnpm start:api\" \"pnpm start:mobile\"",
     "build:all": "nx run-many -t build -p admin-console api",
     "test:all": "nx run-many -t test -p admin-console api --parallel=2",
@@ -18,7 +17,8 @@
     "test:mobile": "cd apps/mobile_flutter && flutter test",
     "test:mobile:integration": "cd apps/mobile_flutter && flutter test --dart-define=ENABLE_FLUTTER_API_INTEGRATION=true",
     "test:ci:life-profile": "pnpm exec nx test api && pnpm exec nx test admin-console && pnpm exec nx e2e admin-console-e2e --verbose",
-    "test:ci:flutter": "npm run test:mobile && npm run test:mobile:integration"
+    "test:ci:flutter": "npm run test:mobile && npm run test:mobile:integration",
+    "ci:smoke": "pnpm run test:ci:life-profile && pnpm run lint:all"
   },
   "private": true,
   "devDependencies": {

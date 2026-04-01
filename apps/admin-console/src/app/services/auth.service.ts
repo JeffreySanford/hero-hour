@@ -1,11 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-}
+import type { LoginResponse } from '@org/api-interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -29,8 +25,12 @@ export class AuthService {
     const token = this.getToken();
     if (token) {
       this.http.post('/api/auth/logout', {}).subscribe({
-        next: () => {},
-        error: () => {},
+        next: () => {
+          // no-op: logout request acknowledgements are not needed in client-side flow
+        },
+        error: () => {
+          // no-op: ignore logout errors (best effort cleanup)
+        },
       });
     }
     localStorage.removeItem(this.tokenKey);

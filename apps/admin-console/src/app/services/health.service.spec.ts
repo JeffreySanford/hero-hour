@@ -1,6 +1,7 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { HealthService, HealthStatus } from './health.service';
+import { HealthService } from './health.service';
+import type { HealthResponse } from '@org/api-interfaces';
 
 describe('HealthService', () => {
   let service: HealthService;
@@ -19,7 +20,7 @@ describe('HealthService', () => {
   afterEach(() => http.verify());
 
   it('should request /api/health and return payload', () => {
-    const mock: HealthStatus = { status: 'ok', uptime: 1234 };
+    const mock: HealthResponse = { status: 'ok', uptime: 1234 };
 
     service.getHealth().subscribe((result) => {
       expect(result).toEqual(mock);

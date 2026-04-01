@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { RegisterDto, LoginDto, RefreshTokenDto } from './dto/auth.dto';
+import type { LoginResponse } from '@org/api-interfaces';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { createClient, RedisClientType } from 'redis';
@@ -29,6 +30,21 @@ export class AuthService {
       this.redisClient = createClient({ url: redisUrl });
       this.redisClient.connect().catch((err) => console.error('Redis connect failed', err));
     }
+
+    // Seed a local developer user for quick login during PI1 local run.
+    if (this.users.length === 0) {
+      const devPassword = 'password';
+      const hashed = bcrypt.hashSync(devPassword, 10);
+      this.users.push({
+        id: this.idSeq++,
+        email: 'admin@example.com',
+        username: 'admin',
+        password: hashed,
+        verified: true,
+        roles: ['user'],
+      });
+      console.log('[AuthService] seeded dev user admin@example.com / password');
+    }
   }
 
   getJwtSecret(): string {
@@ -56,7 +72,7 @@ export class AuthService {
     return { ...user, password: 'hashed' };
   }
 
-  async login(dto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
+  async login(dto: LoginDto): Promise<LoginResponse> {
     const user = this.users.find(u => u.email === dto.email);
     if (!user) throw new UnauthorizedException('Invalid credentials');
     const valid = await bcrypt.compare(dto.password, user.password);
@@ -65,7 +81,7 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
-  async refresh(dto: RefreshTokenDto): Promise<{ accessToken: string; refreshToken: string }> {
+  async refresh(dto: RefreshTokenDto): Promise<LoginResponse> {
     if (this.revokedTokens.has(dto.refreshToken)) {
       throw new UnauthorizedException('Refresh token revoked');
     }
@@ -89,7 +105,7 @@ export class AuthService {
     }
   }
 
-  private issueTokens(user: User) {
+  private issueTokens(user: User): LoginResponse {
     const nonce = Math.random().toString(36).slice(2);
     const accessToken = jwt.sign(
       { sub: user.id, email: user.email, roles: user.roles, nonce },

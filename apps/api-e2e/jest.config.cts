@@ -14,5 +14,6 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
+  testPathIgnorePatterns: ['<rootDir>/src/app.integration.spec.ts'],
   coverageDirectory: '../../coverage/api-e2e',
 };

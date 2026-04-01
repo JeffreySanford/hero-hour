@@ -49,10 +49,23 @@ describe('AuthService', () => {
       const loginResult = await service.login({ email: dto.email, password: dto.password });
       expect(loginResult).toHaveProperty('accessToken');
       expect(loginResult).toHaveProperty('refreshToken');
+      expect(loginResult).toEqual(
+        expect.objectContaining({
+          accessToken: expect.any(String),
+          refreshToken: expect.any(String),
+        })
+      );
       // Optionally decode and check claims
       const decoded = require('jsonwebtoken').decode(loginResult.accessToken) as { email: string; roles: string[] };
       expect(decoded.email).toBe(dto.email);
       expect(decoded.roles).toContain('user');
+    });
+
+    it('should match shared LoginResponse shape', async () => {
+      const dto: RegisterDto = { email: 'shape@example.com', password: 'pw', username: 'shape' };
+      await service.register(dto);
+      const loginResult = await service.login({ email: dto.email, password: dto.password });
+      expect(loginResult).toMatchObject({ accessToken: expect.any(String), refreshToken: expect.any(String) });
     });
 
     it('should reject login for unverified user when verification is required', async () => {

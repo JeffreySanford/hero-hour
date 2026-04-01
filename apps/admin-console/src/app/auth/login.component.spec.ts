@@ -3,7 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { LoginComponent } from './login.component';
-import { AuthService, LoginResponse } from '../services/auth.service';
+import { AuthService } from '../services/auth.service';
+import type { LoginResponse } from '@org/api-interfaces';
 
 class MockRouter {
   public navigations: any[] = [];
@@ -19,7 +20,9 @@ class MockAuthService {
     localStorage.setItem('hero-hour-refresh-token', 'fake-refresh');
     return of<LoginResponse>({ accessToken: 'fake-token', refreshToken: 'fake-refresh' });
   };
-  logout = () => undefined;
+  logout = () => {
+    return undefined;
+  };
   isAuthenticated = () => !!localStorage.getItem('hero-hour-token');
 }
 

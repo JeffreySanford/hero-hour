@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
+import type { HealthResponse } from '@org/api-interfaces';
 
 @Controller()
 export class AppController {
@@ -11,7 +12,7 @@ export class AppController {
   }
 
   @Get('health')
-  getHealth() {
+  getHealth(): HealthResponse {
     return { status: 'ok', uptime: Date.now() };
   }
 }
