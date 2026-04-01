@@ -1,0 +1,26 @@
+.hero-btn {
+  border-radius: var(--hero-hour-radius-sm);
+  border: none;
+  background: linear-gradient(90deg, #fbbf24 0%, #fef08a 100%);
+  color: #0f172a;
+  font-weight: 700;
+  padding: 0.75rem 1.1rem;
+  letter-spacing: 0.03em;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.hero-btn:hover,
+.hero-btn:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(251, 191, 36, 0.26);
+}
+
+.hero-btn-primary {
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+  color: #03111f;
+}
+
+.hero-btn-secondary {
+  background: rgba(59, 130, 246, 0.18);
+  color: #e2e8f0;
+}
