@@ -16,7 +16,7 @@ Complete final testing, exit criteria, and documentation for Life-Profile API + 
 - [x] Run real API against Flutter integration test:
   - `npm run start:api`
   - `npm run test:mobile:integration`
-- [ ] Add CI gating note to include this path in `ci-flutter`
+- [x] Add CI gating note to include this path in `ci-flutter`
 
 ## Exit Criteria
 

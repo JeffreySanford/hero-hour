@@ -22,3 +22,9 @@ Implement offline queue/sync for reliable tracking while disconnected.
 - [ ] Implemented
 - [ ] Test coverage added
 - [ ] Docs updated
+
+## Notes
+
+- PI-1 is up to date with current life-profile flow and e2e coverage.
+- Sprint 1.7 is now in planning; next step is to implement offline queue and reconnect sync in admin-console.
+- Coordinate with Flutter side to ensure offline actions map to the `api/game-profile` sync contract.

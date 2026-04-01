@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HealthService, HealthStatus } from '../services/health.service';
 import { QuestService, Quest, LifeArea, WorldState, SideQuest } from '../services/quest.service';
+import { OfflineService } from '../services/offline.service';
 
 @Component({
   standalone: false,
@@ -13,19 +14,29 @@ export class DashboardComponent implements OnInit {
   error = false;
   readonly userId = 'demo-user';
 
+  offlineStatus: 'online' | 'offline' | 'syncing' = 'online';
+
   quests: Quest[] = [];
   sideQuests: SideQuest[] = [];
   newQuestTitle = '';
   newQuestArea: LifeArea = 'health';
   worldState: WorldState = { seed: 0, color: 'gray', icon: '⏳', progress: 0 };
 
-  constructor(private readonly healthService: HealthService, private readonly questService: QuestService) {}
+  constructor(
+    private readonly healthService: HealthService,
+    private readonly questService: QuestService,
+    private readonly offlineService: OfflineService
+  ) {}
 
   ngOnInit(): void {
     this.refresh();
     this.loadQuests();
     this.loadSideQuests();
     this.loadWorldState();
+
+    this.offlineStatus = this.offlineService.getStatus();
+    this.offlineService.online$.subscribe(() => (this.offlineStatus = this.offlineService.getStatus()));
+    this.offlineService.syncing$.subscribe(() => (this.offlineStatus = this.offlineService.getStatus()));
   }
 
   refresh(): void {
@@ -90,6 +101,13 @@ export class DashboardComponent implements OnInit {
   claimSideQuest(sideQuestId: string): void {
     this.questService.claimSideQuest(this.userId, sideQuestId).subscribe({
       next: () => this.loadSideQuests(),
+    });
+  }
+
+  syncOffline(): void {
+    this.offlineService.syncQueue().subscribe({
+      next: () => this.loadWorldState(),
+      error: () => console.warn('Failed to sync offline queue'),
     });
   }
 

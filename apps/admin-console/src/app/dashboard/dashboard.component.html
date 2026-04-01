@@ -2,6 +2,8 @@
 <button (click)="refresh()">Refresh status</button>
 <p *ngIf="status">API status: {{ status }}</p>
 <p *ngIf="error" class="error">Failed to load health</p>
+<p>Connection: <strong>{{ offlineStatus }}</strong></p>
+<button (click)="syncOffline()" [disabled]="offlineStatus !== 'online'">Sync queued actions</button>
 
 <section class="world-state">
   <h3>World Seed State</h3>

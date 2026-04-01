@@ -52,3 +52,10 @@ Deliver the first full integrated product flow from UI through API to in-memory 
 - PR created and merged with this sprint implementation
 - new `documentation/planning/stories/sprint-1.md` tracked
 - CI passes for tests and e2e
+
+## Sprint board status
+
+- PI-1 done: life-profile full flow + e2e
+- Sprint 1.7: pending offline reliability (implementation in progress)
+- Sprint 1.8: completed finalization
+
