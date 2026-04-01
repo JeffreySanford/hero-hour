@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
@@ -10,7 +10,7 @@ export class AuthEffects {
   login$: any;
   logout$: any;
 
-  constructor(private actions$: Actions, private authService: AuthService) {
+  constructor(@Inject(Actions) private actions$: Actions, private authService: AuthService) {
     this.login$ = createEffect(() =>
       this.actions$.pipe(
         ofType(AuthActions.login),

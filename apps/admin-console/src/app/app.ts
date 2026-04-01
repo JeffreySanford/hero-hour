@@ -5,7 +5,7 @@ import { ModeService } from './services/mode.service';
   selector: 'app-root',
   standalone: false,
   templateUrl: './app.html',
-  styleUrl: './app.scss',
+  styleUrls: ['./app.scss'],
 })
 export class App {
   constructor(public readonly modeService: ModeService) {}

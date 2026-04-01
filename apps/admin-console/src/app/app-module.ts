@@ -1,5 +1,6 @@
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -11,8 +12,8 @@ import { appRoutes } from './app.routes';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { LifeProfileComponent } from './life-profile/life-profile.component';
 import { LoginComponent } from './auth/login.component';
-import { HeaderComponent } from './layout/header.component';
-import { FooterComponent } from './layout/footer.component';
+import { HeaderModule } from './layout/header/header.module';
+import { FooterModule } from './layout/footer/footer.module';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { reducer as authReducer } from './store/auth/auth.reducer';
 import { AuthEffects } from './store/auth/auth.effects';
@@ -21,12 +22,13 @@ import { AuthEffects } from './store/auth/auth.effects';
   declarations: [App, DashboardComponent, LifeProfileComponent, LoginComponent],
   imports: [
     BrowserModule,
+    CommonModule,
     RouterModule.forRoot(appRoutes),
     HttpClientModule,
     ReactiveFormsModule,
     FormsModule,
-    HeaderComponent,
-    FooterComponent,
+    HeaderModule,
+    FooterModule,
     StoreModule.forRoot({ auth: authReducer }),
     EffectsModule.forRoot([AuthEffects]),
     StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: false }),
