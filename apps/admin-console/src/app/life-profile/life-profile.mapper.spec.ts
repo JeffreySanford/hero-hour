@@ -12,6 +12,7 @@ describe('mapFormToLifeProfile', () => {
     const mapped = mapFormToLifeProfile(formValue);
 
     expect(mapped).toEqual({
+      userId: 'demo-user',
       firstName: 'Alex',
       lastName: 'Doe',
       age: 42,

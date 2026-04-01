@@ -13,6 +13,7 @@ export class LifeProfileComponent {
   form: FormGroup;
   saved = false;
   error = false;
+  private readonly userId = 'demo-user';
 
   constructor(private fb: FormBuilder, private profileService: LifeProfileService) {
     this.form = this.fb.group({
@@ -32,11 +33,26 @@ export class LifeProfileComponent {
     }
 
     const value = this.form.value as LifeProfileFormValue;
-    const payload = mapFormToLifeProfile(value);
+    const payload = mapFormToLifeProfile(value, this.userId);
 
     this.profileService.save(payload).subscribe({
-      next: () => {
+      next: (saved) => {
         this.saved = true;
+        if (payload.userId && this.profileService.get) {
+          this.profileService.get(payload.userId).subscribe({
+            next: (retrieved) => {
+              this.form.patchValue({
+                firstName: retrieved.firstName,
+                lastName: retrieved.lastName,
+                age: retrieved.age,
+                preferredRole: retrieved.preferredRole,
+              });
+            },
+            error: () => {
+              // ignore retrieval error but keep success state
+            },
+          });
+        }
       },
       error: () => {
         this.error = true;

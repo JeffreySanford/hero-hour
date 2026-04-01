@@ -2,7 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 import { nxE2EPreset } from '@nx/playwright/preset';
 import { workspaceRoot } from '@nx/devkit';
 
-const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
+const webPort = process.env['WEB_PORT'] || '4200';
+const apiPort = process.env['API_PORT'] || '3000';
+const baseURL = process.env['BASE_URL'] || `http://localhost:${webPort}`;
 
 export default defineConfig({
   ...nxE2EPreset(__filename, { testDir: 'apps/admin-console-e2e/src' }),
@@ -13,8 +15,8 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'pnpm run start:all',
-    url: 'http://localhost:4200',
+    command: `pnpm nx run-many --target=serve --projects=api,admin-console --parallel -- --port ${webPort}`,
+    url: `http://localhost:${webPort}`,
     reuseExistingServer: true,
     cwd: workspaceRoot,
   },

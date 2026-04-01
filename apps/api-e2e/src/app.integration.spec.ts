@@ -69,4 +69,24 @@ pwTest.describe('Vertical Slice Integration (Playwright)', () => {
     pwExpect(resBody).toHaveProperty('level');
     pwExpect(resBody).toHaveProperty('displayName');
   });
+
+  pwTest('creates quest and updates world seed', async () => {
+    // create a quest in a life area
+    const questDto = { userId: 'integrationUser', title: 'Read docs', lifeArea: 'career', status: 'pending', progress: 10 };
+    const questRes = await apiContext.post('/game-profile/integrationUser/quests', { data: questDto });
+    pwExpect(questRes.status()).toBe(201);
+
+    const listRes = await apiContext.get('/game-profile/integrationUser/quests');
+    pwExpect(listRes.status()).toBe(200);
+    const quests = await listRes.json();
+    pwExpect(quests).toEqual(expect.arrayContaining([expect.objectContaining({ title: 'Read docs', lifeArea: 'career' })]));
+
+    const activityRes = await apiContext.post('/game-profile/integrationUser/activity', { data: { userId: 'integrationUser', activityType: 'exercise', intensity: 5 } });
+    pwExpect(activityRes.status()).toBe(200);
+    const worldState = await activityRes.json();
+    pwExpect(worldState).toHaveProperty('seed');
+    pwExpect(worldState).toHaveProperty('color');
+    pwExpect(worldState).toHaveProperty('icon');
+    pwExpect(worldState).toHaveProperty('progress');
+  });
 });

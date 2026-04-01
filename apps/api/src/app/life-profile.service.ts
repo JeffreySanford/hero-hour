@@ -1,58 +1,124 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+
+export interface LifeProfile {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  age: number;
+  preferredRole: 'leader' | 'member' | 'observer';
+  roles: string[];
+  schedule: Record<string, any>;
+  priorities: string[];
+  frictionPoints: string[];
+  habitAnchors: string[];
+}
 
 @Injectable()
 export class LifeProfileService {
-	private profiles: Map<string, any> = new Map();
+  private profiles: Map<string, LifeProfile> = new Map();
 
-	create(userId: string, data: any) {
-		if (this.profiles.has(userId)) {
-			throw new Error('Profile already exists');
-		}
-		const profile = {
-			userId,
-			roles: data.roles || [],
-			schedule: data.schedule || {},
-			priorities: data.priorities || [],
-			frictionPoints: data.frictionPoints || [],
-			habitAnchors: data.habitAnchors || [],
-		};
-		this.profiles.set(userId, profile);
-		return profile;
-	}
+  createProfile(userId: string, data: any): LifeProfile {
+    if (this.profiles.has(userId)) {
+      throw new Error('Profile already exists');
+    }
 
-	updateRoles(userId: string, roles: string[]) {
-		const profile = this.getProfile(userId);
-		profile.roles = roles;
-		return profile;
-	}
+    const profile: LifeProfile = {
+      userId,
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      age: data.age || 0,
+      preferredRole: data.preferredRole || 'member',
+      roles: data.roles || [],
+      schedule: data.schedule || {},
+      priorities: data.priorities || [],
+      frictionPoints: data.frictionPoints || [],
+      habitAnchors: data.habitAnchors || [],
+    };
 
-	updateSchedule(userId: string, schedule: any) {
-		const profile = this.getProfile(userId);
-		profile.schedule = schedule;
-		return profile;
-	}
+    this.profiles.set(userId, profile);
+    return profile;
+  }
 
-	updatePriorities(userId: string, priorities: string[]) {
-		const profile = this.getProfile(userId);
-		profile.priorities = priorities;
-		return profile;
-	}
+  updateProfile(userId: string, data: any): LifeProfile {
+    const existing = this.getProfile(userId);
+    if (!existing) {
+      throw new NotFoundException('Profile not found');
+    }
 
-	updateFrictionPoints(userId: string, frictionPoints: string[]) {
-		const profile = this.getProfile(userId);
-		profile.frictionPoints = frictionPoints;
-		return profile;
-	}
+    const updated: LifeProfile = {
+      ...existing,
+      firstName: data.firstName ?? existing.firstName,
+      lastName: data.lastName ?? existing.lastName,
+      age: data.age ?? existing.age,
+      preferredRole: data.preferredRole ?? existing.preferredRole,
+      roles: data.roles ?? existing.roles,
+      schedule: data.schedule ? { ...existing.schedule, ...data.schedule } : existing.schedule,
+      priorities: data.priorities ?? existing.priorities,
+      frictionPoints: data.frictionPoints ?? existing.frictionPoints,
+      habitAnchors: data.habitAnchors ?? existing.habitAnchors,
+      userId,
+    };
 
-	saveHabitAnchors(userId: string, anchors: string[]) {
-		const profile = this.getProfile(userId);
-		profile.habitAnchors = anchors;
-		return profile;
-	}
+    this.profiles.set(userId, updated);
+    return updated;
+  }
 
-	getProfile(userId: string) {
-		const profile = this.profiles.get(userId);
-		if (!profile) throw new Error('Profile not found');
-		return profile;
-	}
+  updateRoles(userId: string, roles: string[]): LifeProfile {
+    const profile = this.getProfile(userId);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+    profile.roles = roles;
+    this.profiles.set(userId, profile);
+    return profile;
+  }
+
+  updateSchedule(userId: string, schedule: any): LifeProfile {
+    const profile = this.getProfile(userId);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+    profile.schedule = { ...profile.schedule, ...schedule };
+    this.profiles.set(userId, profile);
+    return profile;
+  }
+
+  updatePriorities(userId: string, priorities: string[]): LifeProfile {
+    const profile = this.getProfile(userId);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+    profile.priorities = priorities;
+    this.profiles.set(userId, profile);
+    return profile;
+  }
+
+  updateFrictionPoints(userId: string, frictionPoints: string[]): LifeProfile {
+    const profile = this.getProfile(userId);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+    profile.frictionPoints = frictionPoints;
+    this.profiles.set(userId, profile);
+    return profile;
+  }
+
+  saveHabitAnchors(userId: string, anchors: string[]): LifeProfile {
+    const profile = this.getProfile(userId);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+    profile.habitAnchors = anchors;
+    this.profiles.set(userId, profile);
+    return profile;
+  }
+
+  getProfile(userId: string): LifeProfile {
+    const profile = this.profiles.get(userId);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+    return profile;
+  }
 }
+

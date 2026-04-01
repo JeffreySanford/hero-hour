@@ -5,14 +5,17 @@
   "scripts": {
     "start:admin": "nx serve admin-console",
     "start:api": "nx serve api",
-    "start:all": "pnpm nx run-many --target=serve --all",
+    "start:mobile": "cd apps/mobile_flutter && flutter run",
+    "start:all": "pnpm nx run-many --target=serve --all & cd apps/mobile_flutter && flutter run",
     "build:all": "nx run-many -t build -p admin-console api",
     "test:all": "nx run-many -t test -p admin-console api --parallel=2",
     "test:e2e": "nx run api-e2e:e2e",
     "test:e2e:playwright": "pnpm exec playwright test --config=playwright.config.ts",
     "lint:all": "nx run-many -t lint -p admin-console api --parallel=2",
     "graph": "nx graph",
-    "projects": "nx show projects"
+    "projects": "nx show projects",
+    "test:mobile": "cd apps/mobile_flutter && flutter test",
+    "test:mobile:integration": "cd apps/mobile_flutter && flutter test --dart-define=ENABLE_FLUTTER_API_INTEGRATION=true"
   },
   "private": true,
   "devDependencies": {

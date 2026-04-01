@@ -7,11 +7,12 @@ import { LifeProfileService } from './life-profile.service';
 describe('LifeProfileComponent', () => {
   let component: LifeProfileComponent;
   let fixture: ComponentFixture<LifeProfileComponent>;
-  let service: { save: (profile: any) => any };
+  let service: { save: (profile: any) => any; get?: (userId: string) => any };
 
   beforeEach(async () => {
     service = {
-      save: () => of({ firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' }),
+      save: () => of({ userId: 'demo-user', firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' }),
+      get: () => of({ userId: 'demo-user', firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' }),
     };
 
     await TestBed.configureTestingModule({
@@ -37,8 +38,11 @@ describe('LifeProfileComponent', () => {
     let callCount = 0;
     service.save = () => {
       callCount++;
-      return of({ firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' });
+      return of({ userId: 'demo-user', firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' });
     };
+    if (!service.get) {
+      service.get = () => of({ userId: 'demo-user', firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' });
+    }
 
     component.form.setValue({ firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' });
     component.onSubmit();

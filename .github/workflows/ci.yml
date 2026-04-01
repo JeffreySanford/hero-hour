@@ -32,9 +32,34 @@ jobs:
 
       - run: npm ci
 
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.10.5'
+
+      - run: cd apps/mobile_flutter && flutter pub get
+      - run: cd apps/mobile_flutter && flutter test
+      - run: cd apps/mobile_flutter && flutter test --dart-define=ENABLE_FLUTTER_API_INTEGRATION=true
+
       # Prepend any command with "nx record --" to record its logs to Nx Cloud
       - run: npx nx record -- npx nx format:check  --base="remotes/origin/main"
       - run: npx nx run-many -t lint test build typecheck e2e-ci
       # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
       - run: npx nx fix-ci
         if: always()
+
+  ci-flutter:
+    runs-on: ubuntu-latest
+    needs: []
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: tree:0
+          fetch-depth: 0
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.10.5'
+
+      - run: cd apps/mobile_flutter && flutter pub get
+      - run: cd apps/mobile_flutter && flutter test
+      - run: cd apps/mobile_flutter && flutter test --dart-define=ENABLE_FLUTTER_API_INTEGRATION=true

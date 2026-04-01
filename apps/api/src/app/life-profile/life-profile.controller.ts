@@ -1,14 +1,33 @@
-import { Controller, Body, Post, Put } from '@nestjs/common';
+import { Controller, Body, Get, Param, Post, Put, Patch, HttpCode, HttpStatus, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { LifeProfileService } from './life-profile.service';
 import { CreateLifeProfileDto, UpdateLifeRolesDto, UpdateScheduleDto, SaveHabitAnchorsDto } from './life-profile.dto';
-
 @Controller('life-profile')
 export class LifeProfileController {
 	constructor(private readonly service: LifeProfileService) {}
 
 	@Post()
+	@HttpCode(HttpStatus.CREATED)
 	async create(@Body() dto: CreateLifeProfileDto) {
-		return this.service.createProfile(dto.userId, dto as any);
+		try {
+			return this.service.createProfile(dto.userId, dto as any);
+		} catch (err: any) {
+			if (err.message.includes('Missing')) {
+				throw new BadRequestException(err.message);
+			}
+			if (err.message.includes('exists')) {
+				throw new ConflictException(err.message);
+			}
+			throw err;
+		}
+	}
+
+	@Get(':userId')
+	async get(@Param('userId') userId: string) {
+		const profile = this.service.getProfile(userId);
+		if (!profile) {
+			throw new NotFoundException('Life profile not found');
+		}
+		return profile;
 	}
 
 	@Put('roles')
@@ -24,6 +43,11 @@ export class LifeProfileController {
 	@Put('habit-anchors')
 	async saveHabitAnchors(@Body() dto: SaveHabitAnchorsDto) {
 		return this.service.saveHabitAnchors(dto.userId, dto.anchors);
+	}
+
+	@Patch()
+	async patch(@Body() dto: CreateLifeProfileDto) {
+		return this.service.updateProfile(dto.userId, dto as any);
 	}
 
 	@Post('me')

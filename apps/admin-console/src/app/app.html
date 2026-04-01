@@ -1,1 +1,8 @@
-<router-outlet></router-outlet>
+<div [ngClass]="modeService.getMode()">
+  <header class="mode-header">
+    <button (click)="toggleMode()">Switch to {{ modeLabel }}</button>
+    <span class="current-mode">Current mode: {{ modeService.getMode() | titlecase }}</span>
+  </header>
+
+  <router-outlet></router-outlet>
+</div>

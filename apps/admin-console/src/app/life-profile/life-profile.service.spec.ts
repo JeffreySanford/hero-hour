@@ -19,7 +19,7 @@ describe('LifeProfileService', () => {
   afterEach(() => http.verify());
 
   it('should post profile and return value', () => {
-    const profile = { firstName: 'Sam', lastName: 'Go', age: 30, preferredRole: 'leader' as const };
+    const profile = { userId: 'demo-user', firstName: 'Sam', lastName: 'Go', age: 30, preferredRole: 'leader' as const };
 
     service.save(profile).subscribe((result) => {
       expect(result).toEqual(profile);

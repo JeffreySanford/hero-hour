@@ -2,3 +2,50 @@
 <button (click)="refresh()">Refresh status</button>
 <p *ngIf="status">API status: {{ status }}</p>
 <p *ngIf="error" class="error">Failed to load health</p>
+
+<section class="world-state">
+  <h3>World Seed State</h3>
+  <p>Seed: {{ worldState.seed }}</p>
+  <p>Color: <span [style.color]="worldState.color">{{ worldState.color }}</span></p>
+  <p>Icon: {{ worldState.icon }}</p>
+  <p>Progress: {{ worldState.progress }}%</p>
+</section>
+
+<section class="activity-controls">
+  <h3>Log Activity</h3>
+  <button (click)="logActivity('exercise')">Exercise</button>
+  <button (click)="logActivity('work')">Work</button>
+  <button (click)="logActivity('social')">Social</button>
+  <button (click)="logActivity('rest')">Rest</button>
+</section>
+
+<section class="quest-management">
+  <h3>Quests (Life Area)</h3>
+  <div>
+    <input type="text" [(ngModel)]="newQuestTitle" placeholder="New quest title" />
+    <select [(ngModel)]="newQuestArea">
+      <option value="health">Health</option>
+      <option value="career">Career</option>
+      <option value="relationships">Relationships</option>
+      <option value="fun">Fun</option>
+    </select>
+    <button (click)="createQuest()">Add Quest</button>
+  </div>
+
+  <ul>
+    <li *ngFor="let quest of quests">
+      {{ quest.title }} ({{ quest.lifeArea }}) - {{ quest.status }} - {{ quest.progress }}% 
+      <button *ngIf="quest.status !== 'complete'" (click)="claimQuest(quest)">Complete</button>
+    </li>
+  </ul>
+</section>
+
+<section class="side-quest-management">
+  <h3>Side Quests (Quick Wins)</h3>
+  <ul>
+    <li *ngFor="let side of sideQuests">
+      {{ side.title }} ({{ side.type }}) - {{ side.completed ? 'Claimed' : 'Available' }}
+      <button *ngIf="!side.completed" (click)="claimSideQuest(side.id)">Claim</button>
+    </li>
+  </ul>
+</section>

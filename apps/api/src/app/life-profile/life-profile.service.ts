@@ -1,15 +1,33 @@
 import { Injectable } from '@nestjs/common';
 
+export interface LifeProfile {
+  userId: string;
+  firstName?: string;
+  lastName?: string;
+  age?: number;
+  preferredRole?: 'leader' | 'member' | 'observer';
+  roles: string[];
+  schedule: Record<string, any>;
+  priorities: string[];
+  frictionPoints: string[];
+  habitAnchors: string[];
+}
+
 @Injectable()
 export class LifeProfileService {
-  private profiles: Map<string, any> = new Map();
+  private profiles: Map<string, LifeProfile> = new Map();
 
-  async createProfile(userId: string, data: any) {
+  async createProfile(userId: string, data: any): Promise<LifeProfile> {
     if (this.profiles.has(userId)) {
       throw new Error('Profile already exists');
     }
-    const profile = {
+
+    const profile: LifeProfile = {
       userId,
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      age: data.age || 0,
+      preferredRole: data.preferredRole || 'member',
       roles: data.roles || [],
       schedule: data.schedule || {},
       priorities: data.priorities || [],
@@ -20,8 +38,8 @@ export class LifeProfileService {
     return profile;
   }
 
-  async updateProfile(userId: string, data: any) {
-    const validRoles = ['parent', 'worker', 'student', 'athlete'];
+  async updateProfile(userId: string, data: any): Promise<LifeProfile> {
+    const validRoles = ['leader', 'member', 'observer', 'parent', 'worker', 'student', 'athlete'];
     if (data.roles && data.roles.some((role: string) => !validRoles.includes(role))) {
       throw new Error('Invalid role enum');
     }
@@ -31,9 +49,14 @@ export class LifeProfileService {
       throw new Error('Profile not found');
     }
 
-    Object.assign(profile, data);
-    this.profiles.set(userId, profile);
-    return profile;
+    const updated = {
+      ...profile,
+      ...data,
+      userId,
+    };
+
+    this.profiles.set(userId, updated);
+    return updated;
   }
 
   async updateRoles(userId: string, roles: string[]) {
@@ -86,8 +109,7 @@ export class LifeProfileService {
     return profile;
   }
 
-  getProfile(userId: string) {
-    const profile = this.profiles.get(userId);
-    return profile || undefined;
+  getProfile(userId: string): LifeProfile | undefined {
+    return this.profiles.get(userId);
   }
 }

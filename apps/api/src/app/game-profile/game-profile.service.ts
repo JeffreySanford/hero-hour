@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Quest, WorldState, SideQuest, SideQuestType } from './game-profile.types';
 
 export interface GameProfile {
   userId: string;
@@ -13,6 +14,9 @@ export interface GameProfile {
 @Injectable()
 export class GameProfileService {
   private profiles: Map<string, GameProfile> = new Map();
+  private quests: Map<string, Quest[]> = new Map();
+  private sideQuests: Map<string, SideQuest[]> = new Map();
+  private worldStates: Map<string, WorldState> = new Map();
 
   async initProfile(userId: string): Promise<GameProfile> {
     let profile = this.profiles.get(userId);
@@ -28,7 +32,19 @@ export class GameProfileService {
       };
       this.profiles.set(userId, profile);
     }
+    if (!this.worldStates.has(userId)) {
+      this.worldStates.set(userId, this.getDefaultWorldState(userId));
+    }
     return profile;
+  }
+
+  private getDefaultWorldState(userId: string): WorldState {
+    return {
+      seed: 1,
+      color: 'blue',
+      icon: '🌱',
+      progress: 0,
+    };
   }
 
   async updateProfile(userId: string, updates: Partial<Omit<GameProfile, 'userId'>>): Promise<GameProfile> {
@@ -55,5 +71,106 @@ export class GameProfileService {
     if (dto.theme !== undefined) profile.theme = dto.theme;
     this.profiles.set(dto.userId, profile);
     return profile;
+  }
+
+  async getQuests(userId: string): Promise<Quest[]> {
+    this.initProfile(userId);
+    return this.quests.get(userId) ?? [];
+  }
+
+  async createQuest(userId: string, questData: Omit<Quest, 'id' | 'userId'>): Promise<Quest> {
+    await this.initProfile(userId);
+    const newQuest: Quest = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      userId,
+      title: questData.title,
+      lifeArea: questData.lifeArea,
+      status: questData.status,
+      progress: questData.progress,
+    };
+    const userQuests = this.quests.get(userId) ?? [];
+    userQuests.push(newQuest);
+    this.quests.set(userId, userQuests);
+    return newQuest;
+  }
+
+  async getSideQuests(userId: string): Promise<SideQuest[]> {
+    await this.initProfile(userId);
+    if (!this.sideQuests.has(userId)) {
+      this.sideQuests.set(userId, [
+        { id: 'sq-1', userId, title: 'Quick setup', type: SideQuestType.QUICK_WIN, completed: false, rewardXp: 10 },
+        { id: 'sq-2', userId, title: 'Daily streak quick win', type: SideQuestType.DAILY, completed: false, rewardXp: 20 },
+        { id: 'sq-3', userId, title: 'Bonus explorer', type: SideQuestType.BONUS, completed: false, rewardXp: 15 },
+      ]);
+    }
+    return this.sideQuests.get(userId) ?? [];
+  }
+
+  async claimSideQuest(userId: string, sideQuestId: string): Promise<SideQuest> {
+    const existing = await this.getSideQuests(userId);
+    const sideQuest = existing.find((s) => s.id === sideQuestId);
+    if (!sideQuest) {
+      throw new Error('Side quest not found');
+    }
+
+    if (sideQuest.completed) {
+      return sideQuest; // idempotent
+    }
+
+    sideQuest.completed = true;
+
+    const profile = await this.initProfile(userId);
+    profile.xp += sideQuest.rewardXp;
+    this.profiles.set(userId, profile);
+
+    const world = await this.getWorldState(userId);
+    world.progress = Math.min(100, world.progress + 5);
+    world.seed += sideQuest.rewardXp;
+    this.worldStates.set(userId, world);
+
+    return sideQuest;
+  }
+
+  async updateQuest(userId: string, questId: string, updates: Partial<Omit<Quest, 'id' | 'userId'>>): Promise<Quest> {
+    const userQuests = this.quests.get(userId) ?? [];
+    const index = userQuests.findIndex((q) => q.id === questId);
+    if (index < 0) throw new Error('Quest not found');
+    const quest = userQuests[index];
+    const updated: Quest = {
+      ...quest,
+      ...updates,
+    };
+    userQuests[index] = updated;
+    this.quests.set(userId, userQuests);
+    return updated;
+  }
+
+  async logActivity(userId: string, activityType: string, intensity: number): Promise<WorldState> {
+    await this.initProfile(userId);
+    const world = this.worldStates.get(userId) ?? this.getDefaultWorldState(userId);
+
+    const weightMap: Record<string, number> = {
+      exercise: 10,
+      work: 6,
+      rest: 4,
+      social: 8,
+    };
+    const weight = (weightMap[activityType] ?? 2) * intensity;
+    world.seed = world.seed + weight;
+
+    const colors = ['blue', 'green', 'gold', 'purple'];
+    const icons = ['🌱', '⚡', '🔥', '🌟'];
+    world.color = colors[world.seed % colors.length];
+    world.icon = icons[world.seed % icons.length];
+
+    world.progress = Math.min(100, (world.seed % 101));
+
+    this.worldStates.set(userId, world);
+    return world;
+  }
+
+  async getWorldState(userId: string): Promise<WorldState> {
+    await this.initProfile(userId);
+    return this.worldStates.get(userId) ?? this.getDefaultWorldState(userId);
   }
 }

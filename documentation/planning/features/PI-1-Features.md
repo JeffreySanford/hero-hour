@@ -58,11 +58,11 @@ Benefit Hypothesis: If users can choose between a playful surface and a structur
 Acceptance Criteria:
 
 - mode selection persists
-[ ] mode selection persists
+[x] mode selection persists
 - data remains intact across modes
-[ ] data remains intact across modes
+[x] data remains intact across modes
 - UI changes presentation, not data truth
-[ ] UI changes presentation, not data truth
+[x] UI changes presentation, not data truth
 Stories:
 - As a user, I want to switch between Casual and Pro mode so that I can use the app my way.
 - As a user, I want my preferred mode remembered so that I do not reselect it every session.
@@ -73,11 +73,11 @@ Benefit Hypothesis: If tracked time is categorized into meaningful life areas an
 Acceptance Criteria:
 
 - quests can be assigned to life areas
-[ ] quests can be assigned to life areas
+[x] quests can be assigned to life areas
 - village/world updates from logged activity
-[ ] village/world updates from logged activity
+[x] village/world updates from logged activity
 - at least 3 world elements visibly respond
-[ ] at least 3 world elements visibly respond
+[x] at least 3 world elements visibly respond
 Stories:
 - As a user, I want to assign quests to life areas so that my time means something.
 - As a user, I want my village to grow from activity so that my progress is tangible.
@@ -89,11 +89,11 @@ Benefit Hypothesis: If users can complete small optional objectives, they will s
 Acceptance Criteria:
 
 - at least 3 side quest types exist
-[ ] at least 3 side quest types exist
+[x] at least 3 side quest types available
 - side quest completion grants valid rewards
-[ ] side quest completion grants valid rewards
+[x] side quest completion grants valid rewards
 - claims are idempotent and clear
-[ ] claims are idempotent and clear
+[x] claims are idempotent and clear
 Stories:
 - As a user, I want simple side quests so that I can earn quick wins.
 - As a user, I want side quest rewards to be visible so that optional effort feels worth it.
@@ -113,3 +113,19 @@ Stories:
 - As a user, I want to keep tracking while offline so that the app stays useful anywhere.
 - As a user, I want offline work to sync later so that I do not lose progress.
 - As a user, I want to know sync status so that the app feels trustworthy.
+
+### Feature 1.8 – Life-Profile API + Flutter Client
+
+Benefit Hypothesis: If life-profile can work end-to-end across Angular and Flutter with shared API contract, we can support cross-platform onboarding and persistence in sprint 1.
+Acceptance Criteria:
+
+- api life-profile endpoints are implemented and tested
+[x] api life-profile endpoints are implemented and tested
+- Angular life-profile form + e2e flow is complete
+[x] Angular life-profile form + e2e flow is complete
+- Flutter life-profile form + API integration test is complete
+[x] Flutter life-profile form + API integration test is complete
+Stories:
+- As a user, I can submit life-profile in Angular and see profile data saved.
+- As a user, I can submit life-profile in Flutter and verify via API that data persists.
+- As a developer, I can run `flutter test --dart-define=ENABLE_FLUTTER_API_INTEGRATION=true` against live API.

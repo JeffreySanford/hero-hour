@@ -13,14 +13,26 @@ describe('LifeProfileService', () => {
 
   it('should create life profile for user', async () => {
     const userId = 'user1';
-    const profile = await service.createProfile(userId, { roles: ['parent'] });
+    const profile = await service.createProfile(userId, {
+      firstName: 'Sam',
+      lastName: 'Go',
+      age: 30,
+      preferredRole: 'member',
+      roles: ['parent'],
+    });
     expect(profile.userId).toBe(userId);
     expect(profile.roles).toContain('parent');
   });
 
   it('should update life roles', async () => {
     const userId = 'user2';
-    await service.createProfile(userId, { roles: ['student'] });
+    await service.createProfile(userId, {
+      firstName: 'Sam',
+      lastName: 'Go',
+      age: 30,
+      preferredRole: 'member',
+      roles: ['student'],
+    });
     const updated = await service.updateProfile(userId, { roles: ['student', 'athlete'] });
     expect(updated.roles).toContain('athlete');
   });

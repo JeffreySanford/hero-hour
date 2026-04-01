@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { ModeService } from './services/mode.service';
 
 @Component({
   selector: 'app-root',
@@ -7,5 +8,14 @@ import { Component } from '@angular/core';
   styleUrl: './app.scss',
 })
 export class App {
-  protected title = 'admin-console';
+  constructor(public readonly modeService: ModeService) {}
+
+  toggleMode(): void {
+    this.modeService.toggleMode();
+  }
+
+  get modeLabel(): string {
+    return this.modeService.getMode() === 'casual' ? 'Pro' : 'Casual';
+  }
 }
+

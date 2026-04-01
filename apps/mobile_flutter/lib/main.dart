@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
@@ -7,31 +10,174 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'HeroHour Life Profile',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const LifeProfilePage(),
     );
+  }
+}
+
+class LifeProfilePage extends StatefulWidget {
+  const LifeProfilePage({super.key, this.client});
+
+  final http.Client? client;
+
+  @override
+  State<LifeProfilePage> createState() => _LifeProfilePageState();
+}
+
+class _LifeProfilePageState extends State<LifeProfilePage> {
+  final _formKey = GlobalKey<FormState>();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _ageController = TextEditingController();
+  String _preferredRole = 'member';
+  String _statusMessage = '';
+  bool _isLoading = false;
+
+  static const _userId = 'demo-user';
+  static const _baseUrl = String.fromEnvironment('API_BASE', defaultValue: 'http://localhost:3000/api');
+
+  http.Client get _client => widget.client ?? http.Client();
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final payload = {
+      'userId': _userId,
+      'firstName': _firstNameController.text.trim(),
+      'lastName': _lastNameController.text.trim(),
+      'age': int.tryParse(_ageController.text) ?? 0,
+      'preferredRole': _preferredRole,
+    };
+
+    setState(() {
+      _isLoading = true;
+      _statusMessage = 'Saving...';
+    });
+
+    try {
+      final createResp = await _client.post(
+        Uri.parse('$_baseUrl/life-profile'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      if (createResp.statusCode != 201 && createResp.statusCode != 200) {
+        throw Exception('Create failed: ${createResp.statusCode} ${createResp.body}');
+      }
+
+      final getResp = await _client.get(Uri.parse('$_baseUrl/life-profile/$_userId'));
+      if (getResp.statusCode != 200) {
+        throw Exception('Fetch failed: ${getResp.statusCode} ${getResp.body}');
+      }
+
+      final body = jsonDecode(getResp.body) as Map<String, dynamic>;
+
+      setState(() {
+        _statusMessage = 'Saved and fetched profile for ${body['firstName'] ?? 'user'}';
+        _firstNameController.text = '${body['firstName'] ?? ''}';
+        _lastNameController.text = '${body['lastName'] ?? ''}';
+        _ageController.text = '${body['age'] ?? ''}';
+        _preferredRole = '${body['preferredRole'] ?? 'member'}';
+      });
+    } catch (e) {
+      setState(() {
+        _statusMessage = 'Error: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Life Profile')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _firstNameController,
+                      decoration: const InputDecoration(labelText: 'First name'),
+                      validator: (value) => value == null || value.trim().isEmpty ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _lastNameController,
+                      decoration: const InputDecoration(labelText: 'Last name'),
+                      validator: (value) => value == null || value.trim().isEmpty ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _ageController,
+                      decoration: const InputDecoration(labelText: 'Age'),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        final number = int.tryParse(value ?? '');
+                        if (number == null || number < 1 || number > 120) {
+                          return 'Age must be 1-120';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      value: _preferredRole,
+                      decoration: const InputDecoration(labelText: 'Preferred role'),
+                      items: const [
+                        DropdownMenuItem(value: 'leader', child: Text('Leader')),
+                        DropdownMenuItem(value: 'member', child: Text('Member')),
+                        DropdownMenuItem(value: 'observer', child: Text('Observer')),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() {
+                            _preferredRole = v;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _submit,
+                        child: Text(_isLoading ? 'Saving...' : 'Save Life Profile'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(_statusMessage),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _ageController.dispose();
+    super.dispose();
   }
 }
 

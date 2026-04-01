@@ -17,6 +17,11 @@ describe('GameProfileController', () => {
           useValue: {
             getProfile: jest.fn(),
             updateAvatarTheme: jest.fn(),
+            createQuest: jest.fn(),
+            getQuests: jest.fn(),
+            updateQuest: jest.fn(),
+            logActivity: jest.fn(),
+            getWorldState: jest.fn(),
           },
         },
       ],
@@ -84,5 +89,45 @@ describe('GameProfileController', () => {
     await controller.updateAvatarTheme(dto);
     expect(service.updateAvatarTheme).toHaveBeenCalledWith(dto);
   });
+
+  it('should create and list quests for a user', async () => {
+    (service.createQuest as jest.Mock).mockResolvedValue({ id: 'q1', userId: 'u1', title: 'Test', lifeArea: 'health', status: 'pending', progress: 0 });
+    (service.getQuests as jest.Mock).mockResolvedValue([{ id: 'q1', userId: 'u1', title: 'Test', lifeArea: 'health', status: 'pending', progress: 0 }]);
+
+    const created = await controller.createQuest('u1', {
+      userId: 'u1',
+      title: 'Test',
+      lifeArea: 'health',
+      status: 'pending',
+      progress: 0,
+    } as any);
+    expect(created).toMatchObject({ id: 'q1', title: 'Test' });
+
+    const list = await controller.getQuests('u1');
+    expect(list).toHaveLength(1);
+    expect(list[0].lifeArea).toBe('health');
   });
+
+  it('should update a quest', async () => {
+    (service.updateQuest as jest.Mock).mockResolvedValue({ id: 'q1', userId: 'u1', title: 'Test', lifeArea: 'health', status: 'complete', progress: 100 });
+    const updated = await controller.updateQuest('u1', 'q1', { status: 'complete', progress: 100 } as any);
+    expect(updated.status).toBe('complete');
+    expect(service.updateQuest).toHaveBeenCalledWith('u1', 'q1', { status: 'complete', progress: 100 });
+  });
+
+  it('should log activity and return world state', async () => {
+    const mockState = { seed: 42, color: 'green', icon: '⚡', progress: 42 };
+    (service.logActivity as jest.Mock).mockResolvedValue(mockState);
+    const state = await controller.logActivity('u1', { userId: 'u1', activityType: 'exercise', intensity: 5 } as any);
+    expect(state).toEqual(mockState);
+    expect(service.logActivity).toHaveBeenCalledWith('u1', 'exercise', 5);
+  });
+
+  it('should get world state', async () => {
+    const mockState = { seed: 10, color: 'blue', icon: '🌟', progress: 10 };
+    (service.getWorldState as jest.Mock).mockResolvedValue(mockState);
+    const state = await controller.getWorldState('u1');
+    expect(state).toEqual(mockState);
+  });
+});
 // ...existing code...
