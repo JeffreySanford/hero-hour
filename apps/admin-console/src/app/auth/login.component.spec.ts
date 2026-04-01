@@ -1,10 +1,26 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { of } from 'rxjs';
 import { LoginComponent } from './login.component';
-import { AuthService } from '../services/auth.service';
+import { AuthService, LoginResponse } from '../services/auth.service';
 
 class MockRouter {
-  navigate = (_commands: any[]) => Promise.resolve(true);
+  public navigations: any[] = [];
+  navigate(commands: any[]) {
+    this.navigations.push(commands);
+    return Promise.resolve(true);
+  }
+}
+
+class MockAuthService {
+  login = (_email: string, _password: string) => {
+    localStorage.setItem('hero-hour-token', 'fake-token');
+    localStorage.setItem('hero-hour-refresh-token', 'fake-refresh');
+    return of<LoginResponse>({ accessToken: 'fake-token', refreshToken: 'fake-refresh' });
+  };
+  logout = () => undefined;
+  isAuthenticated = () => !!localStorage.getItem('hero-hour-token');
 }
 
 describe('LoginComponent', () => {
@@ -14,11 +30,16 @@ describe('LoginComponent', () => {
   let router: MockRouter;
 
   beforeEach(async () => {
+    localStorage.clear();
     router = new MockRouter();
 
     await TestBed.configureTestingModule({
       declarations: [LoginComponent],
-      providers: [AuthService, { provide: Router, useValue: router }],
+      imports: [FormsModule],
+      providers: [
+        { provide: AuthService, useClass: MockAuthService },
+        { provide: Router, useValue: router },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginComponent);
@@ -26,20 +47,18 @@ describe('LoginComponent', () => {
     authService = TestBed.inject(AuthService);
   });
 
-  it('logs in and navigates to dashboard', () => {
-    expect(authService.isAuthenticated()).toBe(false);
-    let navigated = false;
-    const routeCommands: any[] = [];
-    (router as any).navigate = (_commands: any[]) => {
-      navigated = true;
-      routeCommands.push(_commands);
-      return Promise.resolve(true);
-    };
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  it('logs in and navigates to dashboard', async () => {
+    component.email = 'test@example.com';
+    component.password = 'secret';
 
     component.login();
+    await fixture.whenStable();
 
+    expect(router.navigations[0]).toEqual(['/dashboard']);
     expect(authService.isAuthenticated()).toBe(true);
-    expect(navigated).toBe(true);
-    expect(routeCommands[0]).toEqual(['/dashboard']);
   });
 });

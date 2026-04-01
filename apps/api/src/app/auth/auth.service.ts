@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/
 import { RegisterDto, LoginDto, RefreshTokenDto } from './dto/auth.dto';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
+import { createClient, RedisClientType } from 'redis';
 
 interface User {
   id: number;
@@ -16,7 +17,27 @@ interface User {
 export class AuthService {
   private users: User[] = [];
   private idSeq = 1;
-  private jwtSecret = 'testsecret';
+  private jwtSecret = process.env.JWT_SECRET || 'testsecret';
+  private revokedTokens = new Set<string>();
+  private redisClient: RedisClientType | null = null;
+
+  constructor() {
+    const redisUrl = process.env.REDIS_URL;
+    const isTestEnv = process.env.NODE_ENV === 'test';
+
+    if (redisUrl && !isTestEnv) {
+      this.redisClient = createClient({ url: redisUrl });
+      this.redisClient.connect().catch((err) => console.error('Redis connect failed', err));
+    }
+  }
+
+  getJwtSecret(): string {
+    return this.jwtSecret;
+  }
+
+  isTokenRevoked(token: string): boolean {
+    return this.revokedTokens.has(token);
+  }
 
   async register(dto: RegisterDto): Promise<User> {
     if (this.users.find(u => u.email === dto.email)) {
@@ -45,14 +66,23 @@ export class AuthService {
   }
 
   async refresh(dto: RefreshTokenDto): Promise<{ accessToken: string; refreshToken: string }> {
+    if (this.revokedTokens.has(dto.refreshToken)) {
+      throw new UnauthorizedException('Refresh token revoked');
+    }
+
     try {
       const payload = jwt.verify(dto.refreshToken, this.jwtSecret) as { sub: number };
       const user = this.users.find(u => u.id === payload.sub);
       if (!user) throw new UnauthorizedException('Invalid refresh token');
-      let newTokens = this.issueTokens(user);
-      while (dto.refreshToken === newTokens.refreshToken || dto.refreshToken === newTokens.accessToken) {
-        newTokens = this.issueTokens(user);
+
+      const active = await this.getSession(user.id, dto.refreshToken);
+      if (!active) {
+        throw new UnauthorizedException('Refresh token not recognised');
       }
+
+      const newTokens = this.issueTokens(user);
+      this.revokedTokens.add(dto.refreshToken);
+      await this.revokeSession(dto.refreshToken);
       return newTokens;
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
@@ -64,19 +94,61 @@ export class AuthService {
     const accessToken = jwt.sign(
       { sub: user.id, email: user.email, roles: user.roles, nonce },
       this.jwtSecret,
-      { expiresIn: '15m' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
     );
     const refreshToken = jwt.sign(
       { sub: user.id, nonce },
       this.jwtSecret,
-      { expiresIn: '7d' }
+      { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
     );
+
+    void this.saveSession(user.id, refreshToken);
+
     return { accessToken, refreshToken };
+  }
+
+  private async saveSession(userId: number, refreshToken: string): Promise<void> {
+    if (!this.redisClient) return;
+    try {
+      await this.redisClient.set(`session:${refreshToken}`, JSON.stringify({ userId }), {
+        EX: parseInt(process.env.SESSION_TTL_SEC ?? '604800', 10),
+      });
+    } catch (e) {
+      console.error('Failed to store session in Redis', e);
+    }
+  }
+
+  private async revokeSession(refreshToken: string): Promise<void> {
+    if (!this.redisClient) return;
+    try {
+      await this.redisClient.del(`session:${refreshToken}`);
+    } catch (e) {
+      console.error('Failed to revoke session in Redis', e);
+    }
+  }
+
+  private async getSession(userId: number, refreshToken: string): Promise<boolean> {
+    if (!this.redisClient) return true;
+    try {
+      const value = await this.redisClient.get(`session:${refreshToken}`);
+      if (!value) return false;
+      const payload = JSON.parse(value);
+      return payload.userId === userId;
+    } catch (e) {
+      console.error('Failed to read session from Redis', e);
+      return false;
+    }
   }
 
   async validateCredentials(email: string, password: string): Promise<boolean> {
     const user = this.users.find(u => u.email === email);
     if (!user) return false;
     return bcrypt.compare(password, user.password);
+  }
+
+  async logout(token: string): Promise<void> {
+    if (!token) return;
+    this.revokedTokens.add(token);
+    await this.revokeSession(token);
   }
 }

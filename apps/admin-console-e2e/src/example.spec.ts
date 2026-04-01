@@ -97,6 +97,22 @@ test.describe('Admin console end-to-end', () => {
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(quest) });
     });
 
+    await page.route('**/api/auth/login', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ accessToken: 'fake-token', refreshToken: 'fake-refresh' }),
+      }),
+    );
+
+    await page.route('**/api/auth/logout', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      }),
+    );
+
     await page.route('**/api/game-profile/demo-user/activity', async (route) => {
       const payload = await route.request().postDataJSON();
       const weights: Record<string, number> = { exercise: 10, work: 6, social: 8, rest: 4 };
@@ -136,6 +152,18 @@ test.describe('Admin console end-to-end', () => {
 
     await page.click('button:has-text("Refresh status")');
     await expect(page.locator('p', { hasText: 'API status: ok' })).toBeVisible({ timeout: 20000 });
+  });
+
+  test('logout redirects to login and protects dashboard route', async ({ page }) => {
+    await page.goto('/login');
+    await page.click('button:has-text("Login")');
+    await expect(page).toHaveURL('/dashboard');
+
+    await page.click('button:has-text("Logout")');
+    await expect(page).toHaveURL('/login');
+
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL('/login');
   });
 
   test('mode switch persists across reload', async ({ page }) => {

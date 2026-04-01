@@ -16,6 +16,7 @@ import { LifeProfileService } from './life-profile/life-profile.service';
 import { LifeProfileController } from './life-profile/life-profile.controller';
 import { GameProfileService } from './game-profile/game-profile.service';
 import { GameProfileController } from './game-profile/game-profile.controller';
+import { JwtGuard } from './auth/jwt.guard';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { GameProfileController } from './game-profile/game-profile.controller';
     OnboardingService,
     LifeProfileService,
     GameProfileService,
+    JwtGuard,
   ],
 })
 export class AppModule {}

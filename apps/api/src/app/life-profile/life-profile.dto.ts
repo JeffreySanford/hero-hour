@@ -1,48 +1,25 @@
-import { IsString, IsInt, IsOptional, Min, Max, IsArray, IsObject, IsEnum } from 'class-validator';
+import { IsString, IsArray, IsObject, IsNumber, IsIn, IsNotEmpty } from 'class-validator';
 
-export enum LifeRole {
-  LEADER = 'leader',
-  MEMBER = 'member',
-  OBSERVER = 'observer',
-}
+const roleValues = ['leader', 'member', 'observer'] as const;
 
 export class CreateLifeProfileDto {
   @IsString()
   userId!: string;
 
   @IsString()
+  @IsNotEmpty()
   firstName!: string;
 
   @IsString()
+  @IsNotEmpty()
   lastName!: string;
 
-  @IsInt()
-  @Min(1)
-  @Max(120)
+  @IsNumber()
   age!: number;
 
-  @IsEnum(LifeRole)
-  preferredRole!: LifeRole;
-
-  @IsArray()
-  @IsOptional()
-  roles?: string[];
-
-  @IsObject()
-  @IsOptional()
-  schedule?: Record<string, any>;
-
-  @IsArray()
-  @IsOptional()
-  priorities?: string[];
-
-  @IsArray()
-  @IsOptional()
-  frictionPoints?: string[];
-
-  @IsArray()
-  @IsOptional()
-  habitAnchors?: string[];
+  @IsString()
+  @IsIn(roleValues)
+  preferredRole!: typeof roleValues[number];
 }
 
 export class UpdateLifeRolesDto {

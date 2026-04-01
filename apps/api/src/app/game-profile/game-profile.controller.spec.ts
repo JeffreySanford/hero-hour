@@ -3,6 +3,8 @@ import { GameProfileController } from './game-profile.controller';
 import { GameProfileService } from './game-profile.service';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { UpdateAvatarThemeDto } from './game-profile.dto';
+import { AuthService } from '../auth/auth.service';
+import { JwtGuard } from '../auth/jwt.guard';
 
 describe('GameProfileController', () => {
   let controller: GameProfileController;
@@ -22,6 +24,19 @@ describe('GameProfileController', () => {
             updateQuest: jest.fn(),
             logActivity: jest.fn(),
             getWorldState: jest.fn(),
+          },
+        },
+        {
+          provide: AuthService,
+          useValue: {
+            getJwtSecret: () => 'testsecret',
+            isTokenRevoked: () => false,
+          },
+        },
+        {
+          provide: JwtGuard,
+          useValue: {
+            canActivate: () => true,
           },
         },
       ],

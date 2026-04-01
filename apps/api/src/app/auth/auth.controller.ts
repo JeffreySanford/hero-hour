@@ -24,4 +24,14 @@ export class AuthController {
 	async refresh(@Body() dto: RefreshTokenDto) {
 		return this.authService.refresh(dto);
 	}
+
+	@Post('logout')
+	@HttpCode(HttpStatus.OK)
+	async logout(@Body() req: { headers?: { authorization?: string } }) {
+		const token = req?.headers?.authorization?.split(' ')[1];
+		if (token) {
+			await this.authService.logout(token);
+		}
+		return { success: true };
+	}
 }

@@ -12,6 +12,7 @@ describe('AuthController', () => {
       register: jest.fn(dto => ({ id: 1, ...dto, password: 'hashed' })),
       login: jest.fn(dto => ({ accessToken: 'token', refreshToken: 'refresh' })),
       refresh: jest.fn(dto => ({ accessToken: 'newtoken', refreshToken: 'newrefresh' })),
+      logout: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -44,6 +45,15 @@ describe('AuthController', () => {
     expect(service.refresh).toHaveBeenCalledWith(dto);
     expect(result).toHaveProperty('accessToken');
     expect(result).toHaveProperty('refreshToken');
+  });
+
+  it('should logout with or without token header', async () => {
+    const noTokenResult = await controller.logout({ headers: {} });
+    expect(noTokenResult).toEqual({ success: true });
+
+    const withToken = await controller.logout({ headers: { authorization: 'Bearer example' } });
+    expect(service.logout).toHaveBeenCalledWith('example');
+    expect(withToken).toEqual({ success: true });
   });
 
   it('should throw BadRequestException on register error', async () => {

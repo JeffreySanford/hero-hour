@@ -9,10 +9,17 @@ import { AuthService } from '../services/auth.service';
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
+  email = '';
+  password = '';
+  error = '';
+
   constructor(private authService: AuthService, private router: Router) {}
 
   login(): void {
-    this.authService.login();
-    void this.router.navigate(['/dashboard']);
+    this.error = '';
+    this.authService.login(this.email, this.password).subscribe({
+      next: () => this.router.navigate(['/dashboard']),
+      error: (err) => (this.error = err?.error?.message || 'Login failed'),
+    });
   }
 }

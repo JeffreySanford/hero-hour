@@ -1,13 +1,12 @@
 # New Nx Repository
 
-[![Nx logo](https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png "Nx logo")](https://nx.dev)
+<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 
 ✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
 
 [Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
 
 ## Try the full Nx platform
-
 🚀 If you haven't connected to Nx Cloud yet, [complete your setup here](https://cloud.nx.app/setup/connect-workspace/guide). Get faster builds with remote caching, distributed task execution, and self-healing CI. [See how your workspace can benefit](#nx-cloud).
 
 ## Generate a library
@@ -30,21 +29,6 @@ To run any task with Nx use:
 npx nx <target> <project-name>
 ```
 
-### Recommended E2E workflow
-
-For end-to-end verification, run:
-
-```sh
-pnpm exec nx e2e admin-console-e2e --verbose
-```
-
-If your environment requires dependency gating first (strongly recommended in CI):
-
-```sh
-pnpm exec nx build api admin-console
-pnpm exec nx e2e admin-console-e2e --verbose
-```
-
 These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
 
 [More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
@@ -53,7 +37,7 @@ These targets are either [inferred automatically](https://nx.dev/concepts/inferr
 
 To version and release the library use
 
-```bash
+```
 npx nx release
 ```
 
@@ -125,13 +109,11 @@ And join the Nx community:
 ## Project Roadmap (updated)
 
 ### Scrutiny summary
-
 - **Solid**: Nx monorepo structure, admin-console + api + e2e apps, test infrastructure
 - **Medium**: shared lib formalization, contract to domain alignment, integrated vertical API path
 - **Weak**: full product vertical slice (life-profile solved end-to-end), persistence, RBAC, production auth
 
 ### Sprint 1: true integrated life-profile vertical slice
-
 1. enforce shared DTO/enum contract (api-interfaces/shared-types)
 2. complete Nest `life-profile` endpoints + in-memory repo
 3. complete Angular `life-profile` form + guard + API service
@@ -139,7 +121,6 @@ And join the Nx community:
 5. add API integration/test coverage
 
 ### Sprint 2: shared workspace normalization
-
 - decide and implement one of:
   - Nx libs under `libs/` for `api-interfaces/domain/shared-types/util`
   - package workspace libraries with consistent publishing path
@@ -147,18 +128,15 @@ And join the Nx community:
 - keep `workspace root` lib boundaries explicit
 
 ### Sprint 3: stable script perimeter
-
 - replace `start:all` with explicit project list for long-term safety
 - add environment guide for local/CI (ports, proxy, baseURL)
 
 ### Sprint 4: product-focused tests
-
 - **Unit**: guard, services/facades, life-profile form/validation, dashboard state
 - **E2E**: app load, auth redirect, dashboard health, life-profile submit
 - avoid coverage as primary metric
 
 ### Mobile-Flutter planning
-
 - add `apps/mobile-flutter` (or sibling Flutter root)
 - maintain Angular admin vs Flutter player split
 - mobile-first edges:
@@ -167,9 +145,7 @@ And join the Nx community:
   - dashboard/home player UX
 
 ### Milestone criteria
-
 A user can:
-
 - login
 - navigate to life-profile
 - submit through API
@@ -177,6 +153,5 @@ A user can:
 - pass API + e2e
 
 ### Ops
-
 - `pnpm run start:all` should be replaced with explicit `build/app` run-many once next apps are added
 - `pnpm nx lint ...` and `pnpm nx test ...` are required on PRs

@@ -1,9 +1,11 @@
-import { Controller, Get, Patch, Post, Put, Body, Param, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Put, Body, Param, BadRequestException, NotFoundException, UseGuards } from '@nestjs/common';
+import { JwtGuard } from '../auth/jwt.guard';
 import { GameProfileService } from './game-profile.service';
 import { UpdateAvatarThemeDto, CreateQuestDto, UpdateQuestDto, ActivityDto } from './game-profile.dto';
 import { Quest, SideQuest } from './game-profile.types';
 
 @Controller('game-profile')
+@UseGuards(JwtGuard)
 export class GameProfileController {
   constructor(private readonly service: GameProfileService) {}
 

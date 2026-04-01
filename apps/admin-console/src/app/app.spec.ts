@@ -1,13 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
-import { NxWelcome } from './nx-welcome';
 import { RouterModule } from '@angular/router';
+
+import { HeaderComponent } from './layout/header.component';
+import { FooterComponent } from './layout/footer.component';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RouterModule.forRoot([])],
-      declarations: [App, NxWelcome],
+      imports: [RouterModule.forRoot([]), HeaderComponent, FooterComponent],
+      declarations: [App],
     }).compileComponents();
   });
 

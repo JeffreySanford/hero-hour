@@ -29,10 +29,15 @@ describe('LifeProfileController', () => {
   });
 
   it('should create a life profile', async () => {
-    const dto: CreateLifeProfileDto = { userId: 'u1' };
+    const dto: CreateLifeProfileDto = { userId: 'u1', firstName: 'John', lastName: 'Doe', age: 30, preferredRole: 'leader' };
     (service.createProfile as jest.Mock).mockResolvedValue('created');
     expect(await controller.create(dto)).toBe('created');
-    expect(service.createProfile).toHaveBeenCalledWith('u1', dto);
+    expect(service.createProfile).toHaveBeenCalledWith('u1', {
+      firstName: 'John',
+      lastName: 'Doe',
+      age: 30,
+      preferredRole: 'leader',
+    });
   });
 
   it('should update roles', async () => {

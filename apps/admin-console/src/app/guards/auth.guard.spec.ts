@@ -23,7 +23,7 @@ describe('AuthGuard', () => {
   });
 
   it('should allow activate when authenticated', () => {
-    authService.login();
+    authService.setToken('abc');
     expect(guard.canActivate()).toBe(true);
   });
 

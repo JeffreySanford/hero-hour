@@ -30,3 +30,9 @@ Complete final testing, exit criteria, and documentation for Life-Profile API + 
 ## Notes
 
 Feature 1.8 is complete and currently test-verified; this story tracks the final confirmation and CI ready state.
+
+- JWT auth flow added: `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`.
+- `game-profile` endpoints now protected with JWT guard.
+- JWT secret stored in `.env`, with access and refresh expiry.
+- Backend token revocation in progress storage with in-memory blacklist; can be extended to Redis in 1.9.
+

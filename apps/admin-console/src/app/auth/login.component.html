@@ -1,2 +1,16 @@
 <h2>Login</h2>
-<button (click)="login()">Login</button>
+<div class="login-form">
+  <label>
+    Email
+    <input [(ngModel)]="email" type="email" />
+  </label>
+
+  <label>
+    Password
+    <input [(ngModel)]="password" type="password" />
+  </label>
+
+  <button (click)="login()">Login</button>
+
+  <p class="error" *ngIf="error">{{ error }}</p>
+</div>
