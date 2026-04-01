@@ -15,7 +15,9 @@
     "graph": "nx graph",
     "projects": "nx show projects",
     "test:mobile": "cd apps/mobile_flutter && flutter test",
-    "test:mobile:integration": "cd apps/mobile_flutter && flutter test --dart-define=ENABLE_FLUTTER_API_INTEGRATION=true"
+    "test:mobile:integration": "cd apps/mobile_flutter && flutter test --dart-define=ENABLE_FLUTTER_API_INTEGRATION=true",
+    "test:ci:life-profile": "pnpm exec nx test api && pnpm exec nx test admin-console && pnpm exec nx e2e admin-console-e2e --verbose",
+    "test:ci:flutter": "npm run test:mobile && npm run test:mobile:integration"
   },
   "private": true,
   "devDependencies": {
