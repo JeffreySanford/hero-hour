@@ -65,4 +65,27 @@ docker compose "${compose_files[@]}" up -d --no-recreate hero-redis hero-teklif
 ensure_service hero-redis hero-redis
 ensure_service hero-teklif hero-teklif
 
-echo "Docker setup confirmed: hero-redis and hero-teklif healthy."
+# Seed Redis with known signal data before relying on it.
+# This is a soft initialization, not overriding existing keys unless empty.
+if docker exec hero-redis redis-cli -n 0 EXISTS "teklif:ready" | grep -q "0"; then
+  echo "Seeding hero-redis with teklif readiness key"
+  docker exec hero-redis redis-cli -n 0 SET "teklif:ready" "1"
+  docker exec hero-redis redis-cli -n 0 SET "teklif:version" "1"
+  docker exec hero-redis redis-cli -n 0 SET "teklif:last-start" "$(date --utc +%Y-%m-%dT%H:%M:%SZ)"
+else
+  echo "teklif:ready key already set"
+fi
+
+# Also seed app configuration if missing
+if docker exec hero-redis redis-cli -n 0 EXISTS "app:settings" | grep -q "0"; then
+  docker exec hero-redis redis-cli -n 0 HSET "app:settings" "feature.teklif" "on" "session.ttl" "604800"
+fi
+
+# Verify seed values
+redis_status="$(docker exec hero-redis redis-cli -n 0 GET "teklif:ready")"
+if [ "$redis_status" != "1" ]; then
+  echo "Failed to seed hero-redis with teklif key" >&2
+  exit 1
+fi
+
+echo "Docker setup confirmed: hero-redis and hero-teklif healthy and seeded."
