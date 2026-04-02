@@ -1,10 +1,3 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -12,13 +5,86 @@ import 'package:http/testing.dart';
 
 import 'package:mobile_flutter/main.dart';
 
+HeroHourApp _buildApp({
+  http.Client? client,
+  HeroHourAppState? state,
+}) {
+  return HeroHourApp(
+    profileClient: client,
+    initialAppState: state,
+  );
+}
+
 void main() {
-  testWidgets('fill form, click Save, assert success message appears', (WidgetTester tester) async {
+  testWidgets('no token renders login screen', (WidgetTester tester) async {
+    await tester.pumpWidget(_buildApp());
+
+    expect(find.widgetWithText(FilledButton, 'Login'), findsOneWidget);
+    expect(find.text('Dashboard'), findsNothing);
+  });
+
+  testWidgets('token and completed profile render dashboard', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildApp(
+        state: HeroHourAppState(
+          accessToken: 'token',
+          currentUser: HeroUser(fullName: 'Anne Lee', email: 'admin@example.com'),
+          profileCompleted: true,
+          profile: const LifeProfileFormValue(
+            firstName: 'Anne',
+            lastName: 'Lee',
+            age: 32,
+            preferredRole: 'member',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('New Profile'), findsOneWidget);
+    expect(find.text('Life Profile'), findsNothing);
+  });
+
+  testWidgets('failed login shows error', (WidgetTester tester) async {
+    await tester.pumpWidget(_buildApp());
+
+    await tester.enterText(find.byType(TextField).at(0), 'bad-email');
+    await tester.enterText(find.byType(TextField).at(1), 'short');
+    await tester.tap(find.widgetWithText(FilledButton, 'Login'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Use a valid email and an 8+ character password.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('completed-profile login sets token and lands on dashboard', (
+    WidgetTester tester,
+  ) async {
+    final state = HeroHourAppState(profileCompleted: true);
+    await tester.pumpWidget(_buildApp(state: state));
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Login'));
+    await tester.pumpAndSettle();
+
+    expect(state.accessToken, 'hero-hour-demo-token');
+    expect(find.text('New Profile'), findsOneWidget);
+    expect(find.text('Life Profile'), findsNothing);
+  });
+
+  testWidgets('first-run login lands on life profile and save returns to dashboard', (
+    WidgetTester tester,
+  ) async {
     final mockClient = MockClient((request) async {
-      if (request.method == 'POST' && request.url.path.endsWith('/life-profile')) {
+      if (request.method == 'POST' &&
+          request.url.path.endsWith('/life-profile')) {
         return http.Response('{}', 201);
       }
-      if (request.method == 'GET' && request.url.path.endsWith('/life-profile/demo-user')) {
+      if (request.method == 'GET' &&
+          request.url.path.endsWith('/life-profile/demo-user')) {
         return http.Response(
           '{"userId":"demo-user","firstName":"Anne","lastName":"Lee","age":32,"preferredRole":"member"}',
           200,
@@ -27,23 +93,71 @@ void main() {
       return http.Response('Not found', 404);
     });
 
-    await tester.pumpWidget(MaterialApp(home: LifeProfilePage(client: mockClient)));
+    await tester.pumpWidget(_buildApp(client: mockClient));
 
-    final firstNameField = find.byType(TextFormField).at(0);
-    final lastNameField = find.byType(TextFormField).at(1);
-    final ageField = find.byType(TextFormField).at(2);
+    await tester.tap(find.widgetWithText(FilledButton, 'Login'));
+    await tester.pumpAndSettle();
 
-    await tester.enterText(firstNameField, 'Anne');
-    await tester.enterText(lastNameField, 'Lee');
-    await tester.enterText(ageField, '32');
+    expect(find.text('Life Profile'), findsOneWidget);
+    expect(find.text('New Profile'), findsNothing);
+
+    await tester.enterText(find.byType(TextFormField).at(0), 'Anne');
+    await tester.enterText(find.byType(TextFormField).at(1), 'Lee');
+    await tester.enterText(find.byType(TextFormField).at(2), '32');
 
     await tester.tap(find.text('Save Life Profile'));
     await tester.pumpAndSettle();
 
+    expect(find.text('New Profile'), findsOneWidget);
+    expect(find.text('Life Profile'), findsNothing);
+  });
+
+  testWidgets('helper text and form validation hints are visible', (
+    WidgetTester tester,
+  ) async {
+    final mockClient = MockClient((request) async {
+      if (request.method == 'POST' &&
+          request.url.path.endsWith('/life-profile')) {
+        return http.Response('{}', 201);
+      }
+      if (request.method == 'GET' &&
+          request.url.path.endsWith('/life-profile/demo-user')) {
+        return http.Response(
+          '{"userId":"demo-user","firstName":"Anne","lastName":"Lee","age":32,"preferredRole":"member"}',
+          200,
+        );
+      }
+      return http.Response('Not found', 404);
+    });
+
+    await tester.pumpWidget(_buildApp(client: mockClient));
+
+    expect(
+      find.text('Use your corporate or personal login address.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Must be 8+ characters and include a number.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byType(TextField).first);
+    await tester.pump();
+    expect(tester.testTextInput.isVisible, isTrue);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Login'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Life Profile'), findsOneWidget);
+
+    await tester.tap(find.byType(TextFormField).first);
+    await tester.pump();
+    expect(tester.testTextInput.isVisible, isTrue);
+
     await tester.tap(find.text('Save Life Profile'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Saved and fetched profile for Anne'), findsOneWidget);
+    expect(find.text('Required'), findsNWidgets(2));
+    expect(find.text('Age must be 1-120'), findsOneWidget);
   });
 }
-

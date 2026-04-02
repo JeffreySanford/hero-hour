@@ -13,8 +13,7 @@
         "main": "util/src/index.ts",
         "tsConfig": "util/tsconfig.lib.json",
         "assets": ["util/*.md"],
-        "format": ["cjs"],
-        "generatePackageJson": true
+        "format": ["cjs"]
       }
     }
   }

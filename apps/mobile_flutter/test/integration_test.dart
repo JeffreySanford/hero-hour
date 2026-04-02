@@ -4,8 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
-  const apiBase = String.fromEnvironment('LIFE_PROFILE_API_BASE', defaultValue: 'http://localhost:3333/api');
-  const enabled = bool.fromEnvironment('ENABLE_FLUTTER_API_INTEGRATION', defaultValue: false);
+  const apiBase = String.fromEnvironment(
+    'LIFE_PROFILE_API_BASE',
+    defaultValue: 'http://localhost:3333/api',
+  );
+  const enabled = bool.fromEnvironment(
+    'ENABLE_FLUTTER_API_INTEGRATION',
+    defaultValue: false,
+  );
 
   test('live life-profile API path', () async {
     if (!enabled) {

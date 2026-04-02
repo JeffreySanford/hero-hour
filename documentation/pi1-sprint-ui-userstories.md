@@ -83,34 +83,38 @@ To make this PI1 implementation repeatable and maintainable, we will base on Ang
 ## 6. Realm Filters + Activity Controls
 
 - As a user, I want realm controls that feel meaningful and tappable.
-  - [ ] convert realm buttons into chips/pills with colors and states
-  - [ ] selected / hover / active styling
+  - [x] convert realm buttons into chips/pills with colors and states
+  - [x] selected / hover / active styling
 
 ---
 
 ## 7. Quest Quick-Add Form
 
 - As a user, I want a polished quest entry card so quick input feels good.
-  - [ ] use Material form fields
-  - [ ] clear labels/helper text
-  - [ ] primary CTA style
-  - [ ] valid spacing / inline validation
+  - [x] use Material form fields (styled form-like UX)
+  - [x] clear labels/helper text
+  - [x] primary CTA style
+  - [x] valid spacing / inline validation
+
+- optional: implement "sticky selection state" for selected activity (done)
+- optional: add keyboard nav test (Tab + Enter on chips) (added)
+- optional: update team QA checklist with new selection persistence + dark mode/storybook (done)
 
 ---
 
 ## 8. Side Quests Presentation
 
 - As a user, I want side quests displayed as cards with status, not bullets.
-  - [ ] row cards with title, tag, state, reward indicator
-  - [ ] hover and condensed visuals
+  - [x] row cards with title, tag, state, reward indicator
+  - [x] hover and condensed visuals
 
 ---
 
 ## 9. Content Hierarchy
 
 - As a user, I want content priority in dashboard.
-  - [ ] product shell > top status > world seed > actions > secondary
-  - [ ] visual hierarchy through font/spacing/card weight
+  - [x] product shell > top status > world seed > actions > secondary
+  - [x] visual hierarchy through font/spacing/card weight
 
 ---
 
@@ -126,11 +130,11 @@ To make this PI1 implementation repeatable and maintainable, we will base on Ang
 ## 11. Forms & Controls Consistency
 
 - As a user, I want forms that feel uniform and delightful.
-  - [ ] consistent Material fields, labels, validation, button hierarchy
-  - [ ] subtle focus/hover states with color transitions
-  - [ ] consistent spacing, line-height, and helper text behavior
-  - [ ] field border radius and shadows aligned with card system
-  - [ ] invalid state messages and iconography are accessible and clear
+  - [x] consistent Material fields, labels, validation, button hierarchy
+  - [x] subtle focus/hover states with color transitions
+  - [x] consistent spacing, line-height, and helper text behavior
+  - [x] field border radius and shadows aligned with card system
+  - [x] invalid state messages and iconography are accessible and clear
 
 ---
 

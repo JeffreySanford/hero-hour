@@ -1,9 +1,9 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger, UnauthorizedException } from '@nestjs/common';
 import { RegisterDto, LoginDto, RefreshTokenDto } from './dto/auth.dto';
 import type { LoginResponse } from '@org/api-interfaces';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { createClient, RedisClientType } from 'redis';
+import { createClient } from 'redis';
 
 interface User {
   id: number;
@@ -16,19 +16,19 @@ interface User {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private users: User[] = [];
   private idSeq = 1;
   private jwtSecret = process.env.JWT_SECRET || 'testsecret';
   private revokedTokens = new Set<string>();
-  private redisClient: RedisClientType | null = null;
+  private redisClient: ReturnType<typeof createClient> | null = null;
 
   constructor() {
     const redisUrl = process.env.REDIS_URL;
     const isTestEnv = process.env.NODE_ENV === 'test';
 
     if (redisUrl && !isTestEnv) {
-      this.redisClient = createClient({ url: redisUrl });
-      this.redisClient.connect().catch((err) => console.error('Redis connect failed', err));
+      this.initializeRedis(redisUrl);
     }
 
     // Seed a local developer user for quick login during PI1 local run.
@@ -43,8 +43,41 @@ export class AuthService {
         verified: true,
         roles: ['user'],
       });
-      console.log('[AuthService] seeded dev user admin@example.com / password');
+      this.logger.log('Seeded dev user admin@example.com / password');
     }
+  }
+
+  private initializeRedis(redisUrl: string): void {
+    let redisUnavailableLogged = false;
+    const logRedisUnavailable = (reason?: unknown) => {
+      if (redisUnavailableLogged) return;
+      redisUnavailableLogged = true;
+      const detail = reason instanceof Error ? reason.message : 'connection unavailable';
+      this.logger.warn(`Redis unavailable at ${redisUrl}; using in-memory session fallback. ${detail}`);
+    };
+
+    const client = createClient({
+      url: redisUrl,
+      socket: {
+        reconnectStrategy: false,
+      },
+    });
+
+    client.on('error', (error) => {
+      logRedisUnavailable(error);
+      this.redisClient = null;
+    });
+
+    client
+      .connect()
+      .then(() => {
+        this.redisClient = client;
+        this.logger.log(`Redis session store connected at ${redisUrl}`);
+      })
+      .catch((error) => {
+        logRedisUnavailable(error);
+        this.redisClient = null;
+      });
   }
 
   getJwtSecret(): string {
@@ -124,35 +157,35 @@ export class AuthService {
   }
 
   private async saveSession(userId: number, refreshToken: string): Promise<void> {
-    if (!this.redisClient) return;
+    if (!this.redisClient?.isReady) return;
     try {
       await this.redisClient.set(`session:${refreshToken}`, JSON.stringify({ userId }), {
         EX: parseInt(process.env.SESSION_TTL_SEC ?? '604800', 10),
       });
-    } catch (e) {
-      console.error('Failed to store session in Redis', e);
+    } catch {
+      this.logger.warn('Failed to store session in Redis; continuing with in-memory fallback.');
     }
   }
 
   private async revokeSession(refreshToken: string): Promise<void> {
-    if (!this.redisClient) return;
+    if (!this.redisClient?.isReady) return;
     try {
       await this.redisClient.del(`session:${refreshToken}`);
-    } catch (e) {
-      console.error('Failed to revoke session in Redis', e);
+    } catch {
+      this.logger.warn('Failed to revoke session in Redis; continuing with in-memory fallback.');
     }
   }
 
   private async getSession(userId: number, refreshToken: string): Promise<boolean> {
-    if (!this.redisClient) return true;
+    if (!this.redisClient?.isReady) return true;
     try {
       const value = await this.redisClient.get(`session:${refreshToken}`);
       if (!value) return false;
       const payload = JSON.parse(value);
       return payload.userId === userId;
-    } catch (e) {
-      console.error('Failed to read session from Redis', e);
-      return false;
+    } catch {
+      this.logger.warn('Failed to read session from Redis; allowing fallback session handling.');
+      return true;
     }
   }
 

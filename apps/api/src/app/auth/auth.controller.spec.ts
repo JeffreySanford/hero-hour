@@ -9,9 +9,9 @@ describe('AuthController', () => {
 
   beforeEach(async () => {
     const mockService = {
-      register: jest.fn(dto => ({ id: 1, ...dto, password: 'hashed' })),
-      login: jest.fn(dto => ({ accessToken: 'token', refreshToken: 'refresh' })),
-      refresh: jest.fn(dto => ({ accessToken: 'newtoken', refreshToken: 'newrefresh' })),
+      register: jest.fn((dto) => ({ id: 1, ...dto, password: 'hashed' })),
+      login: jest.fn(() => ({ accessToken: 'token', refreshToken: 'refresh' })),
+      refresh: jest.fn(() => ({ accessToken: 'newtoken', refreshToken: 'newrefresh' })),
       logout: jest.fn(),
     };
 
