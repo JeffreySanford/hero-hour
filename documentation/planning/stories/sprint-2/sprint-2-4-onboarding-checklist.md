@@ -14,9 +14,12 @@ Document a repeatable, inspectable approval flow for PI2 and future increments.
 - [ ] Add release notes template and content guide in `documentation/README.md`.
 - [ ] Add signoff checklist with exit criteria to `documentation/planning/README.md` or `pi-1-closeout.md`.
 - [ ] Update `documentation/pi-1-closeout.md` with PI2 door and next steps section.
+- [ ] добавте e2e release checklist item so `admin-console-e2e` contains a gated release test that validates Finish criteria for contract update + onboarding flows.
+- [ ] Add a cross-link from `documentation/planning/stories/sprint-2` to `documentation/planning/epics` / `features` for PI2 accountability.
 
 ## Acceptance Criteria
 
 - New onboarding cadence doc created showing milestones and handoff criteria.
 - Release notes template exists and is referenced in sprint docs.
 - Signoff checklist is included and optionally used in sprint closure.
+- E2E gating in CI includes smoke to verify onboarding / signoff pipeline (redirect login flow, onboarding complete, life-profile complete, auth health checks).
