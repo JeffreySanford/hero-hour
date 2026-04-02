@@ -158,7 +158,8 @@ test.describe('Admin console end-to-end', () => {
 
     await page.click('button:has-text("Refresh status")');
     await expect(page.locator('span.status-chip')).toHaveText('ok', { timeout: 30000 });
-    await expect(page.locator('p', { hasText: 'Connection:' })).toBeVisible({ timeout: 30000 });
+    // ensure we check one match only to avoid strict locator ambiguity
+    await expect(page.locator('p', { hasText: 'Connection:' }).first()).toBeVisible({ timeout: 30000 });
   });
 
   test('logout redirects to login and protects dashboard route', async ({ page }) => {
