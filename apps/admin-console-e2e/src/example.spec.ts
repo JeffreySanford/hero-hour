@@ -23,11 +23,15 @@ test.describe('Admin console end-to-end', () => {
             lastName: payload.lastName ?? '',
             age: payload.age ?? 0,
             preferredRole: payload.preferredRole ?? 'member',
-            roles: [],
-            schedule: {},
-            priorities: [],
-            frictionPoints: [],
-            habitAnchors: [],
+            roles: payload.roles ? payload.roles : [payload.preferredRole ?? 'member'],
+            schedule: payload.schedule ?? {},
+            priorities: payload.priorities ?? [],
+            frictionPoints: payload.frictionPoints ?? [],
+            habitAnchors: payload.habitAnchors ?? [],
+            status: 'active',
+            privacy: 'private',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           }),
         });
       } else {
@@ -45,6 +49,10 @@ test.describe('Admin console end-to-end', () => {
             priorities: [],
             frictionPoints: [],
             habitAnchors: [],
+            status: 'active',
+            privacy: 'private',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           }),
         });
       }
@@ -358,7 +366,56 @@ test.describe('Admin console end-to-end', () => {
     expect(response.status()).toBeLessThan(500);
     expect(response.ok()).toBe(true);
 
+    const body = await response.json();
+    expect(body).toEqual(
+      expect.objectContaining({
+        userId: 'demo-user',
+        firstName: 'Anne',
+        lastName: 'Lee',
+        age: 32,
+        preferredRole: 'member',
+        status: 'active',
+        privacy: 'private',
+      }),
+    );
+
     // Ensure UI does not show an error state after submit.
     await expect(page.locator('.error')).toHaveCount(0);
+  });
+
+  test('life-profile contract includes status/privacy and role enums', async ({ page }) => {
+    await page.goto('/login');
+    await page.evaluate(() => {
+      localStorage.setItem('hero-hour-token', 'fake-token');
+      localStorage.setItem('hero-hour-refresh-token', 'fake-refresh');
+      localStorage.setItem('hero-hour-authenticated', 'true');
+    });
+
+    await page.goto('/life-profile');
+    await expect(page).toHaveURL('/life-profile');
+
+    await page.fill('input[formcontrolname="firstName"]', 'Alex');
+    await page.fill('input[formcontrolname="lastName"]', 'Doe');
+    await page.fill('input[formcontrolname="age"]', '30');
+    await page.selectOption('select[formcontrolname="preferredRole"]', 'member');
+
+    const [request, response] = await Promise.all([
+      page.waitForRequest('**/api/life-profile'),
+      page.waitForResponse('**/api/life-profile'),
+      page.click('button:has-text("Save")'),
+    ]);
+
+    expect(request.method()).toBe('POST');
+    const profile = await response.json();
+    expect(response.status()).toBe(201);
+    expect(profile).toEqual(
+      expect.objectContaining({
+        status: 'active',
+        privacy: 'private',
+        roles: expect.arrayContaining(['member']),
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      }),
+    );
   });
 });
