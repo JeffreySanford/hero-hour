@@ -40,6 +40,18 @@ describe('LifeProfileController', () => {
     });
   });
 
+  it('should create a life profile on the root endpoint alias', async () => {
+    const dto: CreateLifeProfileDto = { userId: 'u1', firstName: 'John', lastName: 'Doe', age: 30, preferredRole: 'leader' };
+    (service.createProfile as jest.Mock).mockResolvedValue('created');
+    expect(await controller.createRoot(dto)).toBe('created');
+  });
+
+  it('should get a life profile by user id', async () => {
+    (service.getProfile as jest.Mock).mockReturnValue({ userId: 'u1', firstName: 'John' });
+    await expect(controller.get('u1')).resolves.toEqual({ userId: 'u1', firstName: 'John' });
+    expect(service.getProfile).toHaveBeenCalledWith('u1');
+  });
+
   it('should update roles', async () => {
     const dto: UpdateLifeRolesDto = { userId: 'u1', roles: ['hero'] };
     (service.updateRoles as jest.Mock).mockResolvedValue('roles updated');

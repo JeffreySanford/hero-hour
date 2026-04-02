@@ -1,6 +1,6 @@
-@use '../../../src/styles/material/theme' as *;
-@use '../../../src/styles/material/components/cards' as *;
-@use '../../../src/styles/material/components/buttons' as *;
+@use './material/theme' as *;
+@use './material/components/cards' as *;
+@use './material/components/buttons' as *;
 
 body {
   margin: 0;

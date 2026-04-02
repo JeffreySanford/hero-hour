@@ -1,10 +1,15 @@
-import { Controller, Body, Post, Put } from '@nestjs/common';
+import { Controller, Body, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
 import { LifeProfileService } from './life-profile.service';
 import { CreateLifeProfileDto, UpdateLifeRolesDto, UpdateScheduleDto, SaveHabitAnchorsDto } from './life-profile.dto';
 
 @Controller('life-profile')
 export class LifeProfileController {
 	constructor(private readonly service: LifeProfileService) {}
+
+	@Post()
+	async createRoot(@Body() dto: CreateLifeProfileDto) {
+		return this.create(dto);
+	}
 
 	@Post('create')
 	async create(@Body() dto: CreateLifeProfileDto) {
@@ -17,6 +22,15 @@ export class LifeProfileController {
 			age: dto.age,
 			preferredRole: dto.preferredRole,
 		});
+	}
+
+	@Get(':userId')
+	async get(@Param('userId') userId: string) {
+		const profile = this.service.getProfile(userId);
+		if (!profile) {
+			throw new NotFoundException('Life profile not found');
+		}
+		return profile;
 	}
 
 	@Put('roles')
