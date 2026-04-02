@@ -1,10 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OnboardingController } from './onboarding.controller';
 import { OnboardingService } from './onboarding.service';
-import { OnboardingStepDto, CompleteOnboardingDto } from './onboarding.dto';
+import { OnboardingStepDto } from './onboarding.dto';
 import { ValidationPipe, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
 
 describe('OnboardingController', () => {
   let controller: OnboardingController;
@@ -28,7 +26,6 @@ describe('OnboardingController', () => {
     controller = module.get<OnboardingController>(OnboardingController);
     service = module.get<OnboardingService>(OnboardingService);
   });
-
 
   it('should save onboarding step', async () => {
     const dto: OnboardingStepDto = { userId: 'u1', stepName: 'role', payload: { role: 'hero' } };

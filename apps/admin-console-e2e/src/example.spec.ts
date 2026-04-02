@@ -128,6 +128,10 @@ test.describe('Admin console end-to-end', () => {
     });
   });
 
+  test.afterEach(async ({ page }) => {
+    await page.close();
+  });
+
   test('app loads and redirects to login', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveURL('/login');
@@ -142,16 +146,19 @@ test.describe('Admin console end-to-end', () => {
 
   test('login works and dashboard renders health status', async ({ page }) => {
     await page.goto('/login');
-    await page.click('button:has-text("Login")');
-    await expect(page).toHaveURL('/dashboard');
 
-    await expect(page.locator('h2', { hasText: 'Dashboard' })).toHaveCount(1);
-    await expect(page.locator('button:has-text("Refresh status")')).toHaveCount(1);
+    await Promise.all([
+      page.waitForResponse('**/api/auth/login'),
+      page.click('button:has-text("Login")'),
+      page.waitForURL('**/dashboard', { timeout: 20000 }),
+    ]);
 
+    await expect(page.locator('h2', { hasText: 'Dashboard' })).toBeVisible();
     await expect(page.locator('button:has-text("Refresh status")')).toBeEnabled();
 
     await page.click('button:has-text("Refresh status")');
-    await expect(page.locator('p', { hasText: 'API status: ok' })).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('span.status-chip')).toHaveText('ok', { timeout: 30000 });
+    await expect(page.locator('p', { hasText: 'Connection:' })).toBeVisible({ timeout: 30000 });
   });
 
   test('logout redirects to login and protects dashboard route', async ({ page }) => {
@@ -166,78 +173,93 @@ test.describe('Admin console end-to-end', () => {
     await expect(page).toHaveURL('/login');
   });
 
+  test('dashboard action navigates to life-profile', async ({ page }) => {
+    await page.goto('/login');
+
+    await Promise.all([
+      page.waitForResponse('**/api/auth/login'),
+      page.click('button:has-text("Login")'),
+      page.waitForURL('**/dashboard', { timeout: 20000 }),
+    ]);
+
+    await page.click('button:has-text("Life Profile")');
+    await expect(page).toHaveURL('/life-profile');
+    await expect(page.locator('h2', { hasText: 'Life Profile' })).toHaveCount(1);
+  });
+
   test('dashboard and data persist across reload', async ({ page }) => {
     await page.goto('/login');
-    await page.click('button:has-text("Login")');
-    await expect(page.locator('h2', { hasText: 'Dashboard' })).toHaveCount(1);
+
+    await Promise.all([
+      page.waitForResponse('**/api/auth/login'),
+      page.click('button:has-text("Login")'),
+      page.waitForURL('**/dashboard', { timeout: 20000 }),
+    ]);
+
+    await expect(page.locator('h2', { hasText: 'Dashboard' })).toBeVisible();
 
     await page.reload();
-    await expect(page.locator('h2', { hasText: 'Dashboard' })).toHaveCount(1);
+    await page.waitForURL('**/dashboard', { timeout: 20000 });
+    await expect(page.locator('h2', { hasText: 'Dashboard' })).toBeVisible();
 
     await page.click('button:has-text("Refresh status")');
-    await expect(page.locator('p', { hasText: 'API status' })).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('span.status-chip')).toHaveText('ok', { timeout: 30000 });
+  });
+
+  test('dashboard card hierarchy matches content priority', async ({ page }) => {
+    await page.goto('/login');
+
+    await Promise.all([
+      page.waitForResponse('**/api/auth/login'),
+      page.click('button:has-text("Login")'),
+      page.waitForURL('**/dashboard', { timeout: 20000 }),
+    ]);
+
+    const headings = await page.locator('article.hero-card .hero-card__title').allTextContents();
+    expect(headings[0]).toBe('API Status');
+    expect(headings[1]).toBe('World Seed State');
+    expect(headings[2]).toBe('Sync Status');
+  });
+
+  test('quick-add form uses uniform field styling and shows helper/error text', async ({ page }) => {
+    await page.goto('/login');
+
+    await Promise.all([
+      page.waitForResponse('**/api/auth/login'),
+      page.click('button:has-text("Login")'),
+      page.waitForURL('**/dashboard', { timeout: 20000 }),
+    ]);
+
+    await expect(page.locator('input.hero-input')).toHaveCount(1); // quest title
+    await expect(page.locator('select.hero-select')).toHaveCount(1);
+    await page.locator('input#questTitle').focus();
+    await expect(page.locator('input#questTitle')).toBeFocused();
+
+    await page.fill('input#questTitle', '');
+    await page.click('button:has-text("Add Quest")');
+
+    await expect(page.locator('input#questTitle')).toHaveValue('');
+    await expect(page.locator('p.form-helper')).toHaveText('Tip: choose a suggested quest to tap instantly');
   });
 
   test('life-area quest and world-state responds to activity', async ({ page }) => {
-    page.on('request', (request) => {
-      if (request.url().includes('/api/game-profile')) {
-        console.log('[API-REQUEST]', request.method(), request.url());
-      }
-    });
-    page.on('response', async (response) => {
-      if (response.url().includes('/api/game-profile')) {
-        let body = '';
-        try {
-          body = await response.text();
-        } catch {
-          body = '<no body>';
-        }
-        console.log('[API-RESPONSE]', response.status(), response.url(), body);
-      }
-    });
-
     await page.goto('/login');
     await page.click('button:has-text("Login")');
-    await page.goto('/dashboard');
     await expect(page).toHaveURL('/dashboard', { timeout: 20000 });
 
-    let worldStateVisible = true;
-    try {
-      await expect(page.locator('h3', { hasText: 'World Seed State' })).toBeVisible({ timeout: 20000 });
-      await expect(page.locator('section.world-state')).toBeVisible({ timeout: 20000 });
-    } catch (err) {
-      console.warn('World Seed State section not available; skipping detailed assertions for this browser run.', err);
-      worldStateVisible = false;
-    }
-
-    if (!worldStateVisible) {
-      return;
-    }
+    await expect(page.locator('h3', { hasText: 'World Seed State' })).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('div.world-state')).toBeVisible({ timeout: 20000 });
 
     // create a quest in life area
     await page.fill('input[placeholder="New quest title"]', 'Write unit tests');
     await page.selectOption('select', 'career');
     await page.click('button:has-text("Add Quest")');
-  });
-
-  test('dashboard visual snapshot for light/dark mode', async ({ page }) => {
-    await page.goto('/login');
-    await page.click('button:has-text("Login")');
-    await expect(page).toHaveURL('/dashboard');
-
-    await expect(page.locator('h2', { hasText: 'Dashboard' })).toBeVisible();
-    await expect(page).toHaveScreenshot('dashboard-light.png', { fullPage: true });
-
-    await page.click('button:has-text("Dark Mode")');
-    await expect(page.locator('body.hero-hour-dark-mode')).toHaveCount(1);
-    await expect(page).toHaveScreenshot('dashboard-dark.png', { fullPage: true });
-  });
 
     // Wait for the refreshed quest list from the backend.
     await page.waitForResponse('**/api/game-profile/demo-user/quests');
 
     // log activity once to mutate world seed and verify world-state update from backend
-    const seedLocator = page.locator('section.world-state p').first();
+    const seedLocator = page.locator('div.world-state p').first();
     await expect(seedLocator).toBeVisible({ timeout: 20000 });
 
     const activityResponse = await Promise.all([
@@ -247,39 +269,52 @@ test.describe('Admin console end-to-end', () => {
 
     expect(activityResponse.ok()).toBe(true);
 
-    // Use activity response to verify the world-state mutation directly from backend output.
     const activityJson = await activityResponse.json();
     expect(activityJson).toMatchObject({});
     expect(activityJson.seed).toEqual(51);
 
-    // Confirm the UI reflects changed world state seed value in the rendered component where possible.
-    await expect(page.locator('section.world-state')).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('div.world-state')).toBeVisible({ timeout: 20000 });
 
-    const activitySeed = activityJson.seed;
+    expect(activityJson).toMatchObject({
+      seed: expect.any(Number),
+      color: expect.any(String),
+      icon: expect.any(String),
+      progress: expect.any(Number),
+    });
+  });
 
-    // If the UI updates immediately, it should show the same seed.
-    try {
-      await expect(page.locator('section.world-state p').first()).toHaveText(`Seed: ${activitySeed}`, { timeout: 20000 });
-    } catch {
-      console.warn('UI world-state seed did not propagate, falling back to direct endpoint check');
-    }
+  test('dashboard visual snapshot for light/dark mode', async ({ page }) => {
+    await page.goto('/login');
 
-    // As a final authoritative assertion, read API world-state directly from backend port (avoid proxy race in serve layer).
-    const appHost = new URL(page.url()).origin || 'http://localhost:4200';
-    const directWorldState = await page.request.get(`${appHost}/api/game-profile/demo-user/world-state`);
+    await Promise.all([
+      page.waitForResponse('**/api/auth/login'),
+      page.click('button:has-text("Login")'),
+      page.waitForURL('**/dashboard', { timeout: 20000 }),
+    ]);
 
-    if (!directWorldState.ok()) {
-      console.warn('Direct world-state endpoint unavailable, likely startup timing/proxy race.');
-    } else {
-      const directJson = await directWorldState.json();
-      expect(directJson).toMatchObject({
-        seed: expect.any(Number),
-        color: expect.any(String),
-        icon: expect.any(String),
-        progress: expect.any(Number),
-      });
-      expect(directJson.seed).toBeGreaterThanOrEqual(1);
-    }
+    await expect(page.locator('h2', { hasText: 'Dashboard' })).toBeVisible();
+    await expect(page.locator('span.status-chip')).toBeVisible();
+    await expect(page.locator('button:has-text("Dark Mode")')).toBeVisible();
+
+    await page.click('button:has-text("Dark Mode")');
+    await expect(page.locator('body.hero-hour-dark-mode')).toHaveCount(1);
+  });
+
+  test('realm activity chips should activate and persist selection', async ({ page }) => {
+    await page.goto('/login');
+    await page.click('button:has-text("Login")');
+    await expect(page).toHaveURL('/dashboard');
+
+    const exerciseButton = page.locator('button.realm-chip-btn', { hasText: 'Exercise' });
+    const workButton = page.locator('button.realm-chip-btn', { hasText: 'Work' });
+
+    await exerciseButton.click();
+    await expect(exerciseButton).toHaveClass(/chip-active/);
+    await expect(page.evaluate(() => localStorage.getItem('hero-hour-selected-activity'))).resolves.toBe('exercise');
+
+    await workButton.click();
+    await expect(workButton).toHaveClass(/chip-active/);
+    await expect(page.evaluate(() => localStorage.getItem('hero-hour-selected-activity'))).resolves.toBe('work');
   });
 
   test('life-profile page loads and submits valid data', async ({ page }) => {

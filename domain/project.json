@@ -13,8 +13,7 @@
         "main": "domain/src/index.ts",
         "tsConfig": "domain/tsconfig.lib.json",
         "assets": ["domain/*.md"],
-        "format": ["cjs"],
-        "generatePackageJson": true
+        "format": ["cjs"]
       }
     }
   }

@@ -1,16 +1,18 @@
 <h2>Login</h2>
-<form class="login-form" (ngSubmit)="login()" autocomplete="on">
-  <label>
-    Email
-    <input [(ngModel)]="email" name="email" type="email" required autocomplete="email" />
-  </label>
+<form class="login-form" (ngSubmit)="login()" autocomplete="on" novalidate>
+  <div class="form-field">
+    <label class="form-label" for="email">Email</label>
+    <input id="email" class="hero-input" [(ngModel)]="email" name="email" type="email" required autocomplete="email" aria-describedby="email-helper" />
+    <p id="email-helper" class="helper">Use your corporate or personal login address.</p>
+  </div>
 
-  <label>
-    Password
-    <input [(ngModel)]="password" name="password" type="password" required autocomplete="current-password" />
-  </label>
+  <div class="form-field">
+    <label class="form-label" for="password">Password</label>
+    <input id="password" class="hero-input" [(ngModel)]="password" name="password" type="password" required autocomplete="current-password" aria-describedby="password-helper" />
+    <p id="password-helper" class="helper">Must be 8+ characters and include a number.</p>
+  </div>
 
-  <button type="submit">Login</button>
+  <button class="hero-btn hero-btn-primary" type="submit">Login</button>
 
-  <p class="error" *ngIf="error">{{ error }}</p>
+  <p class="error" *ngIf="error" role="alert">{{ error }}</p>
 </form>

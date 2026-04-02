@@ -4,34 +4,56 @@ import { of, throwError } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
 import { HealthService } from '../services/health.service';
 import { QuestService } from '../services/quest.service';
+import { Router } from '@angular/router';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
   let healthService: { getHealth: () => any };
+  let questService: any;
+  let router: { navigate: (commands: string[]) => Promise<boolean> };
+  let claimSideQuestCalled = false;
+  let sideQuestsState: Array<{ id: string; userId: string; title: string; type: string; completed: boolean; rewardXp: number }>;
 
   beforeEach(async () => {
     healthService = {
       getHealth: () => of({ status: 'ok', uptime: 100 }),
     };
 
+    claimSideQuestCalled = false;
+    sideQuestsState = [
+      { id: 'sq-1', userId: 'demo-user', title: 'Quick setup', type: 'quick-win', completed: false, rewardXp: 10 },
+      { id: 'sq-2', userId: 'demo-user', title: 'Daily streak', type: 'daily', completed: false, rewardXp: 20 },
+    ];
+
+    questService = {
+      getQuests: () => of([]),
+      getSideQuests: () => of(sideQuestsState),
+      createQuest: () => of(null),
+      updateQuest: () => of(null),
+      claimSideQuest: () => {
+        claimSideQuestCalled = true;
+        sideQuestsState = sideQuestsState.map((quest) =>
+          quest.id === 'sq-1' ? { ...quest, completed: true } : quest
+        );
+        return of({ id: 'sq-1', userId: 'demo-user', title: 'Quick setup', type: 'quick-win', completed: true, rewardXp: 10 });
+      },
+      logActivity: () => of({ seed: 1, color: 'blue', icon: '🌱', progress: 0 }),
+      getWorldState: () => of({ seed: 1, color: 'blue', icon: '🌱', progress: 0 }),
+    };
+
+    router = {
+      navigate: () => Promise.resolve(true),
+    };
+
+
     await TestBed.configureTestingModule({
       imports: [FormsModule],
       declarations: [DashboardComponent],
       providers: [
         { provide: HealthService, useValue: healthService },
-        {
-          provide: QuestService,
-          useValue: {
-            getQuests: () => of([]),
-            getSideQuests: () => of([]),
-            createQuest: () => of(null),
-            updateQuest: () => of(null),
-            claimSideQuest: () => of(null),
-            logActivity: () => of({ seed: 1, color: 'blue', icon: '🌱', progress: 0 }),
-            getWorldState: () => of({ seed: 1, color: 'blue', icon: '🌱', progress: 0 }),
-          },
-        },
+        { provide: QuestService, useValue: questService },
+        { provide: Router, useValue: router },
       ],
     }).compileComponents();
 
@@ -71,5 +93,63 @@ describe('DashboardComponent', () => {
     expect(component.darkMode).toBe(true);
     expect(localStorage.getItem('hero-hour-dark-mode')).toBe('true');
     expect(document.body.classList.contains('hero-hour-dark-mode')).toBe(true);
+  });
+
+  it('should set selected activity and persist it', () => {
+    localStorage.removeItem('hero-hour-selected-activity');
+
+    component.logActivity('work');
+
+    expect(component.selectedActivity).toBe('work');
+    expect(localStorage.getItem('hero-hour-selected-activity')).toBe('work');
+  });
+
+  it('should load side quests and claim one', () => {
+    component.loadSideQuests();
+    fixture.detectChanges();
+
+    expect(component.sideQuests.length).toBe(2);
+    expect(component.sideQuests[0].title).toBe('Quick setup');
+
+    component.claimSideQuest('sq-1');
+    expect(claimSideQuestCalled).toBe(true);
+  });
+
+  it('should render side quest cards in the UI', () => {
+    fixture.detectChanges();
+
+    const sideQuestCards = fixture.nativeElement.querySelectorAll('.side-quest-card');
+    expect(sideQuestCards.length).toBe(2);
+    expect(fixture.nativeElement.textContent).toContain('Quick setup');
+    expect(fixture.nativeElement.textContent).toContain('Available');
+  });
+
+  it('should show validation and helper text for quest quick-add', () => {
+    component.newQuestTitle = '';
+    component.newQuestArea = 'health';
+    component.createQuest();
+
+    expect(component.formError).toBe('Please enter a quest title.');
+
+    component.newQuestTitle = 'Test quest';
+    component.createQuest();
+
+    expect(component.formError).toBe('');
+    expect(component.newQuestTitle).toBe('');
+  });
+
+  it('should render prioritized dashboard cards in the expected order', () => {
+    fixture.detectChanges();
+    const titles = Array.from(fixture.nativeElement.querySelectorAll('article.hero-card .hero-card__title')).map((el: any) => el.textContent.trim());
+    expect(titles[0]).toBe('API Status');
+    expect(titles[1]).toBe('World Seed State');
+    expect(titles[2]).toBe('Sync Status');
+  });
+
+  it('should navigate to life profile from the dashboard action', async () => {
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    component.navigateToLifeProfile();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/life-profile']);
   });
 });

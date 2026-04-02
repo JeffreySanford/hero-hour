@@ -1,6 +1,5 @@
 import { waitForPortOpen } from '@nx/node/utils';
 
-/* eslint-disable */
 declare global {
   var __TEARDOWN_MESSAGE__: string | undefined;
 }

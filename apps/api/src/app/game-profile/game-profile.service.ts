@@ -33,12 +33,12 @@ export class GameProfileService {
       this.profiles.set(userId, profile);
     }
     if (!this.worldStates.has(userId)) {
-      this.worldStates.set(userId, this.getDefaultWorldState(userId));
+      this.worldStates.set(userId, this.getDefaultWorldState());
     }
     return profile;
   }
 
-  private getDefaultWorldState(userId: string): WorldState {
+  private getDefaultWorldState(): WorldState {
     return {
       seed: 1,
       color: 'blue',
@@ -147,7 +147,7 @@ export class GameProfileService {
 
   async logActivity(userId: string, activityType: string, intensity: number): Promise<WorldState> {
     await this.initProfile(userId);
-    const world = this.worldStates.get(userId) ?? this.getDefaultWorldState(userId);
+    const world = this.worldStates.get(userId) ?? this.getDefaultWorldState();
 
     const weightMap: Record<string, number> = {
       exercise: 10,
@@ -171,6 +171,6 @@ export class GameProfileService {
 
   async getWorldState(userId: string): Promise<WorldState> {
     await this.initProfile(userId);
-    return this.worldStates.get(userId) ?? this.getDefaultWorldState(userId);
+    return this.worldStates.get(userId) ?? this.getDefaultWorldState();
   }
 }

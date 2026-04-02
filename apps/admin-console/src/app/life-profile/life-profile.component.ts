@@ -36,7 +36,7 @@ export class LifeProfileComponent {
     const payload = mapFormToLifeProfile(value, this.userId);
 
     this.profileService.save(payload).subscribe({
-      next: (saved) => {
+      next: () => {
         this.saved = true;
         if (payload.userId && this.profileService.get) {
           this.profileService.get(payload.userId).subscribe({

@@ -6,7 +6,7 @@ describe('AuthEffects', () => {
   let actions$: Subject<any>;
   let effects: AuthEffects;
   const authServiceStub = {
-    login: vi.fn((email: string, password: string) => of({ accessToken: 'tok', refreshToken: 'ref' })),
+    login: vi.fn(() => of({ accessToken: 'tok', refreshToken: 'ref' })),
     logout: vi.fn(() => Promise.resolve()),
   };
 

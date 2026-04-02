@@ -1,3 +1,45 @@
+.form-field {
+  margin-bottom: 0.75rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.hero-input,
+.hero-select {
+  width: 100%;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--hero-hour-radius-sm);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: #1e293b;
+  color: #e2e8f0;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero-input:focus,
+.hero-select:focus {
+  outline: none;
+  border-color: #facc15;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+}
+
+.helper {
+  margin-top: 0.25rem;
+  color: #cbd5e1;
+  font-size: 0.83rem;
+}
+
+.error {
+  color: #f87171;
+  font-weight: 700;
+  margin-top: 0.6rem;
+}
+
 button {
   padding: 0.5em 1em;
 }
+
