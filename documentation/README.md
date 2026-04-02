@@ -31,10 +31,10 @@
 
 ## Documentation Structure
 
-- `docs/README.md` – This overview
-- `docs/agile/` – PI and sprint plans, user stories, acceptance criteria
-- `docs/screenshots/` – App screenshots and UI mockups
-- `docs/diagrams/` – Mermaid diagrams and architecture visuals
+- `documentation/README.md` – This overview
+- `documentation/planning/` – PI and sprint plans, user stories, acceptance criteria
+- `documentation/screenshots/` – App screenshots and UI mockups
+- `documentation/diagrams/` – Mermaid diagrams and architecture visuals
 
 ## Getting Started (Quick Start)
 
@@ -63,6 +63,6 @@
 
 ## Next Steps
 
-- See `docs/agile/PI-1.md` for the first Program Increment plan
-- See `docs/diagrams/` for system and UI diagrams
-- See `docs/screenshots/` for visual references
+- See `documentation/planning/` for the Program Increment plans and sprint stories
+- See `documentation/diagrams/` for system and UI diagrams
+- See `documentation/screenshots/` for visual references

@@ -40,7 +40,7 @@ flowchart TD
 - The Flutter mobile app manages all game UI, animations, and state.
 - Real-time timer updates use WebSocket to the legacy Node.js backend.
 - During scaffolding, the flow was validated with a new player flow: onboarding -> timer loop -> XP events -> village state.
-- API contract docs were added/updated in `docs/architecture/api-contracts.md` to reflect route coverage.
+- API contract docs were added/updated in `documentation/architecture/api-contracts.md` to reflect route coverage.
 - All game data (XP, quests, badges, village) is handled by the new NestJS API and stored in PostgreSQL.
 - Legacy time logs and auditing remain in MongoDB.
 - The architecture allows seamless toggling between Casual (game) and Pro (agile) modes.

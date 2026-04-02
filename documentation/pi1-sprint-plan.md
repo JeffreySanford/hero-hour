@@ -74,3 +74,8 @@
 - Acceptance:
   - [X] Checklist from PI1 done: README, shared libs clarity, scripts explicit, contract baseline, closeout doc.
   - [X] Demonstration run and signoff notes captured.
+
+## PI2 transition
+
+- Next (PI2) door is now defined in `documentation/pi-1-closeout.md` and aligned to sprint stories in `documentation/planning/stories/sprint-2/`.
+- Key themes: full life-profile contract, CI/coverage gates, auth/health contract tests, and release cadence/signoff.

@@ -29,3 +29,4 @@
 - Add full life-profile domain contract to `api-interfaces` and enforce through NX lint tests.
 - Strengthen CI with contract regression check, 80% coverage requirement, contract tests for `POST /auth/login` and `GET /health`.
 - Add onboarding 12-week cadence, release notes and signoff checklist in Sprint 1.
+- Create explicit Sprint 2 planning stories in `documentation/planning/stories/sprint-2/` to capture contract, CI, auth/health tests, and onboarding checklist.

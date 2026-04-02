@@ -135,13 +135,13 @@ test.describe('Admin console end-to-end', () => {
   test('app loads and redirects to login', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveURL('/login');
-    await expect(page.locator('h2', { hasText: 'Login' })).toHaveCount(1);
+    await expect(page.locator('h2', { hasText: 'Sign In' })).toHaveCount(1);
   });
 
   test('redirects to login when unauthenticated dashboard request', async ({ page }) => {
     await page.goto('/dashboard');
     await expect(page).toHaveURL('/login');
-    await expect(page.locator('h2', { hasText: 'Login' })).toHaveCount(1);
+    await expect(page.locator('h2', { hasText: 'Sign In' })).toHaveCount(1);
   });
 
   test('login works and dashboard renders health status', async ({ page }) => {
@@ -149,7 +149,7 @@ test.describe('Admin console end-to-end', () => {
 
     await Promise.all([
       page.waitForResponse('**/api/auth/login'),
-      page.click('button:has-text("Login")'),
+      page.click('button:has-text("Enter the Forge")'),
       page.waitForURL('**/dashboard', { timeout: 20000 }),
     ]);
 
@@ -164,7 +164,7 @@ test.describe('Admin console end-to-end', () => {
 
   test('logout redirects to login and protects dashboard route', async ({ page }) => {
     await page.goto('/login');
-    await page.click('button:has-text("Login")');
+    await page.click('button:has-text("Enter the Forge")');
     await expect(page).toHaveURL('/dashboard');
 
     await page.click('button:has-text("Logout")');
@@ -179,7 +179,7 @@ test.describe('Admin console end-to-end', () => {
 
     await Promise.all([
       page.waitForResponse('**/api/auth/login'),
-      page.click('button:has-text("Login")'),
+      page.click('button:has-text("Enter the Forge")'),
       page.waitForURL('**/dashboard', { timeout: 20000 }),
     ]);
 
@@ -193,7 +193,7 @@ test.describe('Admin console end-to-end', () => {
 
     await Promise.all([
       page.waitForResponse('**/api/auth/login'),
-      page.click('button:has-text("Login")'),
+      page.click('button:has-text("Enter the Forge")'),
       page.waitForURL('**/dashboard', { timeout: 20000 }),
     ]);
 
@@ -212,7 +212,7 @@ test.describe('Admin console end-to-end', () => {
 
     await Promise.all([
       page.waitForResponse('**/api/auth/login'),
-      page.click('button:has-text("Login")'),
+      page.click('button:has-text("Enter the Forge")'),
       page.waitForURL('**/dashboard', { timeout: 20000 }),
     ]);
 
@@ -227,7 +227,7 @@ test.describe('Admin console end-to-end', () => {
 
     await Promise.all([
       page.waitForResponse('**/api/auth/login'),
-      page.click('button:has-text("Login")'),
+      page.click('button:has-text("Enter the Forge")'),
       page.waitForURL('**/dashboard', { timeout: 20000 }),
     ]);
 
@@ -245,7 +245,7 @@ test.describe('Admin console end-to-end', () => {
 
   test('life-area quest and world-state responds to activity', async ({ page }) => {
     await page.goto('/login');
-    await page.click('button:has-text("Login")');
+    await page.click('button:has-text("Enter the Forge")');
     await expect(page).toHaveURL('/dashboard', { timeout: 20000 });
 
     await expect(page.locator('h3', { hasText: 'World Seed State' })).toBeVisible({ timeout: 20000 });
@@ -289,7 +289,7 @@ test.describe('Admin console end-to-end', () => {
 
     await Promise.all([
       page.waitForResponse('**/api/auth/login'),
-      page.click('button:has-text("Login")'),
+      page.click('button:has-text("Enter the Forge")'),
       page.waitForURL('**/dashboard', { timeout: 20000 }),
     ]);
 
@@ -303,7 +303,7 @@ test.describe('Admin console end-to-end', () => {
 
   test('realm activity chips should activate and persist selection', async ({ page }) => {
     await page.goto('/login');
-    await page.click('button:has-text("Login")');
+    await page.click('button:has-text("Enter the Forge")');
     await expect(page).toHaveURL('/dashboard');
 
     const exerciseButton = page.locator('button.realm-chip-btn', { hasText: 'Exercise' });
