@@ -11,12 +11,21 @@ describe('mapFormToLifeProfile', () => {
 
     const mapped = mapFormToLifeProfile(formValue);
 
-    expect(mapped).toEqual({
-      userId: 'demo-user',
-      firstName: 'Alex',
-      lastName: 'Doe',
-      age: 42,
-      preferredRole: 'member',
-    });
+    expect(mapped).toEqual(
+      expect.objectContaining({
+        userId: 'demo-user',
+        firstName: 'Alex',
+        lastName: 'Doe',
+        age: 42,
+        preferredRole: 'member',
+        roles: ['member'],
+        schedule: {},
+        priorities: [],
+        frictionPoints: [],
+        habitAnchors: [],
+        status: 'active',
+        privacy: 'private',
+      }),
+    );
   });
 });

@@ -1,14 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-
-export interface LifeProfile {
-  userId: string;
-  firstName: string;
-  lastName: string;
-  age: number;
-  preferredRole: 'leader' | 'member' | 'observer';
-}
+import type { LifeProfile } from '@org/api-interfaces';
 
 @Injectable({
   providedIn: 'root',

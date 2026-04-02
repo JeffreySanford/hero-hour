@@ -1,6 +1,7 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { LifeProfileService } from './life-profile.service';
+import type { LifeProfile } from '@org/api-interfaces';
 
 describe('LifeProfileService', () => {
   let service: LifeProfileService;
@@ -19,7 +20,22 @@ describe('LifeProfileService', () => {
   afterEach(() => http.verify());
 
   it('should post profile and return value', () => {
-    const profile = { userId: 'demo-user', firstName: 'Sam', lastName: 'Go', age: 30, preferredRole: 'leader' as const };
+    const profile: LifeProfile = {
+      userId: 'demo-user',
+      firstName: 'Sam',
+      lastName: 'Go',
+      age: 30,
+      preferredRole: 'leader',
+      roles: ['leader'],
+      schedule: {},
+      priorities: [],
+      frictionPoints: [],
+      habitAnchors: [],
+      status: 'active',
+      privacy: 'private',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
 
     service.save(profile).subscribe((result) => {
       expect(result).toEqual(profile);

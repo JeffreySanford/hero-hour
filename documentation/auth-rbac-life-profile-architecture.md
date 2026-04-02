@@ -95,6 +95,31 @@ src/
 - **LifeProfile**: id, userId, primaryLifeStage, notes, onboardingCompleted, timestamps
 - **LifeRoleSelection**: id, lifeProfileId, roleType (enum)
 - **ScheduleProfile**: id, userId, wake/sleep/work windows, commute, quiet hours, timestamps
+
+### Standard API Schema (shared in `@org/api-interfaces`)
+
+```ts
+export type LifeRole = 'leader' | 'member' | 'observer' | 'parent' | 'worker' | 'student' | 'athlete';
+export type ProfileStatus = 'draft' | 'active' | 'suspended' | 'archived';
+export type PrivacySetting = 'private' | 'friends' | 'workspace' | 'public';
+
+export interface LifeProfile {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  age: number;
+  preferredRole: LifeRole;
+  roles: LifeRole[];
+  schedule: Record<string, any>;
+  priorities: string[];
+  frictionPoints: string[];
+  habitAnchors: string[];
+  status: ProfileStatus;
+  privacy: PrivacySetting;
+  createdAt: string;
+  updatedAt: string;
+}
+```
 - **ScheduleBlock**: id, scheduleProfileId, blockType, dayOfWeek, start/end, label
 - **PriorityProfile**: id, userId, priorityType (enum), weight
 - **FrictionProfile**: id, userId, frictionType (enum), severity

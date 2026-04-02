@@ -1,10 +1,10 @@
-import { LifeProfile } from './life-profile.service';
+import type { LifeProfile, LifeRole } from '@org/api-interfaces';
 
 export interface LifeProfileFormValue {
   firstName: string;
   lastName: string;
   age: number;
-  preferredRole: 'leader' | 'member' | 'observer';
+  preferredRole: LifeRole;
 }
 
 export function mapFormToLifeProfile(value: LifeProfileFormValue, userId = 'demo-user'): LifeProfile {
@@ -14,5 +14,14 @@ export function mapFormToLifeProfile(value: LifeProfileFormValue, userId = 'demo
     lastName: value.lastName.trim(),
     age: Number(value.age),
     preferredRole: value.preferredRole,
+    roles: [value.preferredRole],
+    schedule: {},
+    priorities: [],
+    frictionPoints: [],
+    habitAnchors: [],
+    status: 'active',
+    privacy: 'private',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 }

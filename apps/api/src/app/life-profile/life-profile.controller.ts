@@ -1,5 +1,6 @@
 import { Controller, Body, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
 import { LifeProfileService } from './life-profile.service';
+import type { LifeProfileRequest } from '@org/api-interfaces';
 import { CreateLifeProfileDto, UpdateLifeRolesDto, UpdateScheduleDto, SaveHabitAnchorsDto } from './life-profile.dto';
 
 @Controller('life-profile')
@@ -16,12 +17,22 @@ export class LifeProfileController {
 		if (!dto || !dto.userId || !dto.firstName || !dto.lastName || dto.age === undefined || !dto.preferredRole) {
 			throw new Error('Missing required life-profile fields');
 		}
-		return this.service.createProfile(dto.userId, {
+
+		const payload: LifeProfileRequest = {
+			userId: dto.userId,
 			firstName: dto.firstName,
 			lastName: dto.lastName,
 			age: dto.age,
 			preferredRole: dto.preferredRole,
-		});
+			roles: dto.roles ?? [],
+			schedule: dto.schedule ?? {},
+			priorities: dto.priorities ?? [],
+			frictionPoints: dto.frictionPoints ?? [],
+			habitAnchors: dto.habitAnchors ?? [],
+			privacy: dto.privacy ?? 'private',
+		};
+
+		return this.service.createProfile(dto.userId, payload);
 	}
 
 	@Get(':userId')

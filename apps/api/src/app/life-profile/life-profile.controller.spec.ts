@@ -32,12 +32,15 @@ describe('LifeProfileController', () => {
     const dto: CreateLifeProfileDto = { userId: 'u1', firstName: 'John', lastName: 'Doe', age: 30, preferredRole: 'leader' };
     (service.createProfile as jest.Mock).mockResolvedValue('created');
     expect(await controller.create(dto)).toBe('created');
-    expect(service.createProfile).toHaveBeenCalledWith('u1', {
-      firstName: 'John',
-      lastName: 'Doe',
-      age: 30,
-      preferredRole: 'leader',
-    });
+    expect(service.createProfile).toHaveBeenCalledWith(
+      'u1',
+      expect.objectContaining({
+        firstName: 'John',
+        lastName: 'Doe',
+        age: 30,
+        preferredRole: 'leader',
+      }),
+    );
   });
 
   it('should create a life profile on the root endpoint alias', async () => {

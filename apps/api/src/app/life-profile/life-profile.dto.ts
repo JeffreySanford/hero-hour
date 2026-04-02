@@ -1,6 +1,8 @@
-import { IsString, IsArray, IsObject, IsNumber, IsIn, IsNotEmpty } from 'class-validator';
+import { IsString, IsArray, IsObject, IsNumber, IsIn, IsNotEmpty, IsOptional } from 'class-validator';
+import type { LifeRole, PrivacySetting } from '@org/api-interfaces';
 
-const roleValues = ['leader', 'member', 'observer'] as const;
+const roleValues = ['leader', 'member', 'observer', 'parent', 'worker', 'student', 'athlete'] as const;
+const privacyValues = ['private', 'friends', 'workspace', 'public'] as const;
 
 export class CreateLifeProfileDto {
   @IsString()
@@ -19,7 +21,31 @@ export class CreateLifeProfileDto {
 
   @IsString()
   @IsIn(roleValues)
-  preferredRole!: typeof roleValues[number];
+  preferredRole!: LifeRole;
+
+  @IsOptional()
+  @IsArray()
+  roles?: LifeRole[];
+
+  @IsOptional()
+  @IsObject()
+  schedule?: Record<string, any>;
+
+  @IsOptional()
+  @IsArray()
+  priorities?: string[];
+
+  @IsOptional()
+  @IsArray()
+  frictionPoints?: string[];
+
+  @IsOptional()
+  @IsArray()
+  habitAnchors?: string[];
+
+  @IsOptional()
+  @IsIn(privacyValues)
+  privacy?: PrivacySetting;
 }
 
 export class UpdateLifeRolesDto {
