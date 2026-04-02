@@ -5,14 +5,8 @@ import 'package:http/testing.dart';
 
 import 'package:mobile_flutter/main.dart';
 
-HeroHourApp _buildApp({
-  http.Client? client,
-  HeroHourAppState? state,
-}) {
-  return HeroHourApp(
-    profileClient: client,
-    initialAppState: state,
-  );
+HeroHourApp _buildApp({http.Client? client, HeroHourAppState? state}) {
+  return HeroHourApp(profileClient: client, initialAppState: state);
 }
 
 void main() {
@@ -30,7 +24,10 @@ void main() {
       _buildApp(
         state: HeroHourAppState(
           accessToken: 'token',
-          currentUser: HeroUser(fullName: 'Anne Lee', email: 'admin@example.com'),
+          currentUser: HeroUser(
+            fullName: 'Anne Lee',
+            email: 'admin@example.com',
+          ),
           profileCompleted: true,
           profile: const LifeProfileFormValue(
             firstName: 'Anne',
@@ -75,46 +72,57 @@ void main() {
     expect(find.text('Life Profile'), findsNothing);
   });
 
-  testWidgets('first-run login lands on life profile and save returns to dashboard', (
-    WidgetTester tester,
-  ) async {
-    final mockClient = MockClient((request) async {
-      if (request.method == 'POST' &&
-          request.url.path.endsWith('/life-profile')) {
-        return http.Response('{}', 201);
-      }
-      if (request.method == 'GET' &&
-          request.url.path.endsWith('/life-profile/demo-user')) {
-        return http.Response(
-          '{"userId":"demo-user","firstName":"Anne","lastName":"Lee","age":32,"preferredRole":"member"}',
-          200,
-        );
-      }
-      return http.Response('Not found', 404);
-    });
+  testWidgets(
+    'first-run login lands on life profile and save returns to dashboard',
+    (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(_buildApp(client: mockClient));
+      final mockClient = MockClient((request) async {
+        if (request.method == 'POST' &&
+            request.url.path.endsWith('/life-profile')) {
+          return http.Response('{}', 201);
+        }
+        if (request.method == 'GET' &&
+            request.url.path.endsWith('/life-profile/demo-user')) {
+          return http.Response(
+            '{"userId":"demo-user","firstName":"Anne","lastName":"Lee","age":32,"preferredRole":"member"}',
+            200,
+          );
+        }
+        return http.Response('Not found', 404);
+      });
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Login'));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(_buildApp(client: mockClient));
 
-    expect(find.text('Life Profile'), findsOneWidget);
-    expect(find.text('New Profile'), findsNothing);
+      await tester.tap(find.widgetWithText(FilledButton, 'Login'));
+      await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextFormField).at(0), 'Anne');
-    await tester.enterText(find.byType(TextFormField).at(1), 'Lee');
-    await tester.enterText(find.byType(TextFormField).at(2), '32');
+      expect(find.text('Life Profile'), findsOneWidget);
+      expect(find.text('New Profile'), findsNothing);
 
-    await tester.tap(find.text('Save Life Profile'));
-    await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField).at(0), 'Anne');
+      await tester.enterText(find.byType(TextFormField).at(1), 'Lee');
+      await tester.enterText(find.byType(TextFormField).at(2), '32');
 
-    expect(find.text('New Profile'), findsOneWidget);
-    expect(find.text('Life Profile'), findsNothing);
-  });
+      final saveProfileButton = find.widgetWithText(
+        FilledButton,
+        'Save Life Profile',
+      );
+      await tester.tap(saveProfileButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('New Profile'), findsOneWidget);
+      expect(find.text('Life Profile'), findsNothing);
+    },
+  );
 
   testWidgets('helper text and form validation hints are visible', (
     WidgetTester tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     final mockClient = MockClient((request) async {
       if (request.method == 'POST' &&
           request.url.path.endsWith('/life-profile')) {
@@ -150,11 +158,18 @@ void main() {
 
     expect(find.text('Life Profile'), findsOneWidget);
 
-    await tester.tap(find.byType(TextFormField).first);
+    final firstProfileField = find.byType(TextFormField).first;
+    await tester.ensureVisible(firstProfileField);
+    await tester.showKeyboard(firstProfileField);
     await tester.pump();
     expect(tester.testTextInput.isVisible, isTrue);
 
-    await tester.tap(find.text('Save Life Profile'));
+    final saveLifeProfileButton = find.widgetWithText(
+      FilledButton,
+      'Save Life Profile',
+    );
+    await tester.ensureVisible(saveLifeProfileButton);
+    await tester.tap(saveLifeProfileButton);
     await tester.pumpAndSettle();
 
     expect(find.text('Required'), findsNWidgets(2));

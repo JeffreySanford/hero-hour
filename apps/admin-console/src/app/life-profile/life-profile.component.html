@@ -1,32 +1,55 @@
-<h2>Life Profile</h2>
+<section class="profile-shell content-shell">
+  <div class="profile-intro">
+    <span class="eyebrow">Identity Loadout</span>
+    <h2>Life Profile</h2>
+    <p>Shape how HeroHour frames your goals, role, and pacing across the dashboard experience.</p>
+  </div>
 
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <label>
-    First name
-    <input formControlName="firstName" />
-  </label>
+  <div class="profile-grid">
+    <aside class="hero-card profile-aside">
+      <span class="section-kicker">Profile impact</span>
+      <h3>Build a clearer operating profile</h3>
+      <ul class="profile-benefits">
+        <li>Personalize the dashboard with a stronger identity layer.</li>
+        <li>Adjust role framing for team-oriented quests and prompts.</li>
+        <li>Keep your saved profile synced for future sessions.</li>
+      </ul>
+    </aside>
 
-  <label>
-    Last name
-    <input formControlName="lastName" />
-  </label>
+    <form class="hero-card profile-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="profile-form__grid">
+        <label class="form-field">
+          <span class="form-label">First name</span>
+          <input class="hero-input" formControlName="firstName" />
+        </label>
 
-  <label>
-    Age
-    <input type="number" formControlName="age" />
-  </label>
+        <label class="form-field">
+          <span class="form-label">Last name</span>
+          <input class="hero-input" formControlName="lastName" />
+        </label>
 
-  <label>
-    Role
-    <select formControlName="preferredRole">
-      <option value="leader">Leader</option>
-      <option value="member">Member</option>
-      <option value="observer">Observer</option>
-    </select>
-  </label>
+        <label class="form-field">
+          <span class="form-label">Age</span>
+          <input class="hero-input" type="number" formControlName="age" />
+        </label>
 
-  <button type="submit">Save</button>
-</form>
+        <label class="form-field">
+          <span class="form-label">Role</span>
+          <select class="hero-input hero-select" formControlName="preferredRole">
+            <option value="leader">Leader</option>
+            <option value="member">Member</option>
+            <option value="observer">Observer</option>
+          </select>
+        </label>
+      </div>
 
-<div *ngIf="saved" class="success">Saved</div>
-<div *ngIf="error" class="error">Failed to save</div>
+      <div class="profile-form__actions">
+        <button class="hero-btn hero-btn-primary" type="submit">Save Profile</button>
+        <span class="save-hint">Stored to your HeroHour identity record.</span>
+      </div>
+
+      <div *ngIf="saved" class="success" role="status">Profile saved successfully.</div>
+      <div *ngIf="error" class="error" role="alert">Failed to save profile.</div>
+    </form>
+  </div>
+</section>

@@ -1,4 +1,9 @@
 <div [ngClass]="modeService.getMode()" class="app-layout">
+  <div class="app-backdrop" aria-hidden="true">
+    <span class="app-backdrop__orb app-backdrop__orb--gold"></span>
+    <span class="app-backdrop__orb app-backdrop__orb--teal"></span>
+    <span class="app-backdrop__grid"></span>
+  </div>
   <app-header (toggleSidebar)="null"></app-header>
 
   <div class="main-stage">

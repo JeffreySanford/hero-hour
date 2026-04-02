@@ -1,8 +1,9 @@
 <div class="dashboard-shell content-shell">
-  <header class="dashboard-header">
+  <header class="dashboard-header hero-card">
     <div class="dashboard-title">
+      <span class="eyebrow">Midnight Forge</span>
       <h2>Dashboard</h2>
-      <span class="brand-tag">Midnight Forge</span>
+      <p class="dashboard-subtitle">One command surface for health, work, recovery, and short-form wins.</p>
     </div>
 
     <div class="dashboard-actions">
@@ -27,7 +28,7 @@
   </header>
 
   <section class="dashboard-grid">
-    <article class="hero-card priority-card" aria-labelledby="api-status-title" role="region">
+    <article class="hero-card priority-card status-card" aria-labelledby="api-status-title" role="region">
       <div class="hero-card__header">
         <h3 id="api-status-title" class="hero-card__title">API Status</h3>
         <span class="status-chip" [ngClass]="{ 'status-success': status === 'ok', 'status-error': error }" aria-live="polite">
@@ -37,7 +38,7 @@
       <div class="hero-card__content">
         <div *ngIf="isLoadingHealth" class="skeleton loading-line" role="status" aria-label="Loading API status"></div>
         <div *ngIf="!isLoadingHealth">
-          <p *ngIf="status">API status: {{ status }}</p>
+          <p *ngIf="status">API status: <strong>{{ status }}</strong></p>
           <p *ngIf="error" class="error">Failed to load health</p>
           <p>Connection: <strong>{{ offlineStatus }}</strong></p>
         </div>
@@ -53,8 +54,13 @@
       <div class="hero-card__content world-state">
         <div *ngIf="isLoadingWorldState" class="skeleton loading-block" role="status" aria-label="Loading world seed state"></div>
         <div *ngIf="!isLoadingWorldState">
-          <p>Seed: {{ worldState.seed }}</p>
-          <p>Icon: {{ worldState.icon }}</p>
+          <div class="world-state__hero">
+            <div>
+              <span class="section-kicker">Realm seed</span>
+              <p class="world-state__seed">{{ worldState.seed }}</p>
+            </div>
+            <div class="world-state__icon" aria-hidden="true">{{ worldState.icon }}</div>
+          </div>
           <div class="progress-container">
             <div class="progress-track" aria-label="world progress">
               <div class="progress-fill" [style.width.%]="worldState.progress"></div>
@@ -167,7 +173,10 @@
 
         <ul class="quest-list" *ngIf="!isLoadingQuests && quests.length > 0">
           <li *ngFor="let quest of quests" class="quest-item">
-            <span>{{ quest.title }} ({{ quest.lifeArea }}) - {{ quest.status }} - {{ quest.progress }}%</span>
+            <div class="quest-copy">
+              <strong>{{ quest.title }}</strong>
+              <span>{{ quest.lifeArea }} · {{ quest.status }} · {{ quest.progress }}%</span>
+            </div>
             <button class="hero-btn hero-btn-secondary" *ngIf="quest.status !== 'complete'" (click)="claimQuest(quest)" aria-label="Complete quest">Complete</button>
           </li>
         </ul>

@@ -1,7 +1,39 @@
 .main-footer {
-  text-align: center;
-  padding: 0.75rem;
-  background: #002244;
-  color: #eee;
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(2, 8, 18, 0.52);
+  backdrop-filter: blur(14px);
+  color: #cbd5e1;
   font-size: 0.9rem;
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.footer-inner div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.footer-inner strong {
+  font-family: var(--hero-hour-display-font-family);
+  font-size: 1rem;
+  color: #f6d77a;
+}
+
+.footer-inner span:last-child {
+  color: #94a3b8;
+}
+
+@media (max-width: 720px) {
+  .footer-inner {
+    flex-direction: column;
+  }
 }

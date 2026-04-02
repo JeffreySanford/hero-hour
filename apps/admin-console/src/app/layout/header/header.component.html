@@ -1,12 +1,18 @@
 <header class="main-header">
   <div class="header-left">
-    <button (click)="toggleSidebar.emit()" class="menu-toggle">☰</button>
-    <a class="logo" routerLink="/dashboard">HeroHour</a>
+    <button (click)="toggleSidebar.emit()" class="menu-toggle" aria-label="Toggle navigation">☰</button>
+    <a class="logo" routerLink="/dashboard" aria-label="Hero Hour dashboard">
+      <span class="logo-mark">HH</span>
+      <span class="logo-copy">
+        <strong>HeroHour</strong>
+        <span>Midnight Forge Command</span>
+      </span>
+    </a>
   </div>
   <div class="header-right">
-    <button (click)="navigateTo('/life-profile')" class="nav-item">New Profile</button>
     <button (click)="navigateTo('/dashboard')" class="nav-item">Dashboard</button>
-    <button (click)="logout()" class="nav-item">Logout</button>
-    <button class="user-icon" aria-label="user menu">👤</button>
+    <button (click)="navigateTo('/life-profile')" class="nav-item">Life Profile</button>
+    <button (click)="logout()" class="nav-item nav-item--strong">Logout</button>
+    <button class="user-icon" aria-label="user menu">Forge</button>
   </div>
 </header>

@@ -3,16 +3,25 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+const _gold = Color(0xFFFBBF24);
+const _teal = Color(0xFF22D3EE);
+const _ink = Color(0xFF07111F);
+const _night = Color(0xFF0F1728);
+const _steel = Color(0xFF17253D);
+const _cardTop = Color(0xFF21344D);
+const _cardBottom = Color(0xFF0D1727);
+const _mutedText = Color(0xFF94A3B8);
+const _bodyText = Color(0xFFE2E8F0);
+const _success = Color(0xFF22C55E);
+const _warning = Color(0xFFF59E0B);
+const _danger = Color(0xFFEF4444);
+
 void main() {
   runApp(const HeroHourApp());
 }
 
 class HeroHourApp extends StatefulWidget {
-  const HeroHourApp({
-    super.key,
-    this.profileClient,
-    this.initialAppState,
-  });
+  const HeroHourApp({super.key, this.profileClient, this.initialAppState});
 
   final http.Client? profileClient;
   final HeroHourAppState? initialAppState;
@@ -55,13 +64,61 @@ class _HeroHourAppState extends State<HeroHourApp> {
 
 ThemeData _buildTheme(Brightness brightness) {
   final isDark = brightness == Brightness.dark;
-  const gold = Color(0xFFFBBF24);
   final scheme = ColorScheme.fromSeed(
     brightness: brightness,
-    seedColor: gold,
-    primary: gold,
-    secondary: const Color(0xFF22C55E),
+    seedColor: _gold,
+    primary: _gold,
+    secondary: _teal,
     surface: isDark ? const Color(0xFF132238) : const Color(0xFFF7F3EA),
+  );
+
+  final baseText = isDark
+      ? Typography.whiteMountainView
+      : Typography.blackMountainView;
+  final textTheme = baseText.copyWith(
+    displayLarge: baseText.displayLarge?.copyWith(
+      fontSize: 48,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 1.4,
+      height: 0.98,
+      color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF1D2430),
+    ),
+    displaySmall: baseText.displaySmall?.copyWith(
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.8,
+      color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF1D2430),
+    ),
+    headlineMedium: baseText.headlineMedium?.copyWith(
+      fontSize: 34,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.8,
+      color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF1D2430),
+    ),
+    titleLarge: baseText.titleLarge?.copyWith(
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.4,
+      color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF1D2430),
+    ),
+    titleMedium: baseText.titleMedium?.copyWith(
+      fontWeight: FontWeight.w700,
+      color: isDark ? _bodyText : const Color(0xFF1D2430),
+    ),
+    bodyMedium: baseText.bodyMedium?.copyWith(
+      color: isDark ? _bodyText : const Color(0xFF334155),
+      height: 1.55,
+    ),
+    bodySmall: baseText.bodySmall?.copyWith(
+      color: isDark ? _mutedText : const Color(0xFF64748B),
+      height: 1.45,
+    ),
+    labelLarge: baseText.labelLarge?.copyWith(
+      fontWeight: FontWeight.w700,
+      letterSpacing: 1.4,
+    ),
+    labelSmall: baseText.labelSmall?.copyWith(
+      fontWeight: FontWeight.w700,
+      letterSpacing: 1.6,
+    ),
   );
 
   return ThemeData(
@@ -69,13 +126,9 @@ ThemeData _buildTheme(Brightness brightness) {
     brightness: brightness,
     colorScheme: scheme,
     splashFactory: NoSplash.splashFactory,
-    scaffoldBackgroundColor: isDark
-        ? const Color(0xFF08101D)
-        : const Color(0xFFF1E8D7),
-    textTheme: Typography.whiteMountainView.apply(
-      bodyColor: isDark ? const Color(0xFFE5EDF7) : const Color(0xFF1D2430),
-      displayColor: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF1D2430),
-    ),
+    scaffoldBackgroundColor: isDark ? _ink : const Color(0xFFF1E8D7),
+    textTheme: textTheme,
+    dividerColor: isDark ? const Color(0xFF2C3D57) : const Color(0xFFD5C18D),
     appBarTheme: AppBarTheme(
       centerTitle: false,
       backgroundColor: Colors.transparent,
@@ -88,11 +141,72 @@ ThemeData _buildTheme(Brightness brightness) {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
         side: BorderSide(
-          color: isDark ? const Color(0xFF2D435E) : const Color(0xFFD3BE90),
+          color: isDark ? const Color(0xFF30445F) : const Color(0xFFD3BE90),
         ),
       ),
-      color: isDark ? const Color(0xCC15263D) : const Color(0xFFF8F1E2),
+      color: isDark ? const Color(0xC917263D) : const Color(0xFFF8F1E2),
       margin: EdgeInsets.zero,
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: isDark
+          ? const Color(0xE60A1322)
+          : const Color(0xFFF6EEDC),
+      indicatorColor: _gold.withValues(alpha: 0.16),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return textTheme.labelMedium?.copyWith(
+          color: selected
+              ? _gold
+              : (isDark ? _mutedText : const Color(0xFF475569)),
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return IconThemeData(
+          color: selected
+              ? _gold
+              : (isDark ? _mutedText : const Color(0xFF475569)),
+        );
+      }),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: _gold,
+        foregroundColor: const Color(0xFF08101D),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        textStyle: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: isDark ? _bodyText : const Color(0xFF1D2430),
+        side: BorderSide(
+          color: isDark ? const Color(0xFF3D516A) : const Color(0xFFD1B77A),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: isDark ? _bodyText : const Color(0xFF1D2430),
+        textStyle: textTheme.labelLarge,
+      ),
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: isDark
+          ? const Color(0xFF0E1A2B)
+          : const Color(0xFFF8F1E2),
+      selectedColor: _gold.withValues(alpha: 0.22),
+      disabledColor: Colors.grey.shade400,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      side: BorderSide(
+        color: isDark ? const Color(0xFF38506B) : const Color(0xFFD7BD82),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      labelStyle: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -111,9 +225,18 @@ ThemeData _buildTheme(Brightness brightness) {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
-        borderSide: const BorderSide(color: gold, width: 1.5),
+        borderSide: const BorderSide(color: _gold, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    ),
+    popupMenuTheme: PopupMenuThemeData(
+      color: isDark ? const Color(0xFF0E1A2B) : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(
+          color: isDark ? const Color(0xFF324861) : const Color(0xFFD7BD82),
+        ),
+      ),
     ),
   );
 }
@@ -149,12 +272,7 @@ class HeroHourAppState extends ChangeNotifier {
     LifeProfileFormValue? profile,
   }) : worldState =
            worldState ??
-           WorldState(
-             seed: 2407,
-             color: 'Amber',
-             icon: 'Forge',
-             progress: 62,
-           ),
+           WorldState(seed: 2407, color: 'Amber', icon: 'Forge', progress: 62),
        quests =
            quests ??
            [
@@ -370,9 +488,17 @@ class _HeroShellState extends State<HeroShell> {
       appBar: AppBar(
         title: const _BrandTitle(),
         actions: [
-          TextButton(
-            onPressed: appState.toggleDarkMode,
-            child: Text(appState.darkMode ? 'Light Mode' : 'Dark Mode'),
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: TextButton(
+              onPressed: appState.toggleDarkMode,
+              child: Text(appState.darkMode ? 'Light Mode' : 'Dark Mode'),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -389,12 +515,29 @@ class _HeroShellState extends State<HeroShell> {
                 PopupMenuItem(value: 'profile', child: Text('Life Profile')),
                 PopupMenuItem(value: 'logout', child: Text('Logout')),
               ],
-              child: CircleAvatar(
-                radius: 18,
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: 0.2),
-                child: Text(appState.userInitials),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.2),
+                      child: Text(appState.userInitials),
+                    ),
+                    const SizedBox(width: 8),
+                    Text('Me', style: Theme.of(context).textTheme.labelLarge),
+                  ],
+                ),
               ),
             ),
           ),
@@ -412,6 +555,7 @@ class _HeroShellState extends State<HeroShell> {
         ],
       ),
       bottomNavigationBar: NavigationBar(
+        height: 76,
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) =>
             setState(() => _selectedIndex = index),
@@ -446,7 +590,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final appState = HeroHourScope.of(context);
 
     return Scaffold(
@@ -454,75 +597,80 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           const _AppBackdrop(),
           SafeArea(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Login', style: theme.textTheme.headlineMedium),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Midnight Forge access for dashboard, profile, and quest management.',
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 24),
-                          TextField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              helperText:
-                                  'Use your corporate or personal login address.',
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 900;
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1180),
+                      child: wide
+                          ? Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Expanded(child: _LoginHero()),
+                                const SizedBox(width: 28),
+                                Flexible(
+                                  child: _LoginCard(
+                                    emailController: _emailController,
+                                    passwordController: _passwordController,
+                                    error: _error,
+                                    onSubmit: () {
+                                      setState(() => _error = null);
+                                      try {
+                                        appState.login(
+                                          _emailController.text,
+                                          _passwordController.text,
+                                        );
+                                      } on FormatException catch (error) {
+                                        setState(() => _error = error.message);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const _Eyebrow(label: 'Hero System'),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Login',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineMedium,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Midnight Forge access for dashboard, profile, and quest management.',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                                const SizedBox(height: 16),
+                                _LoginCard(
+                                  emailController: _emailController,
+                                  passwordController: _passwordController,
+                                  error: _error,
+                                  showIntro: false,
+                                  onSubmit: () {
+                                    setState(() => _error = null);
+                                    try {
+                                      appState.login(
+                                        _emailController.text,
+                                        _passwordController.text,
+                                      );
+                                    } on FormatException catch (error) {
+                                      setState(() => _error = error.message);
+                                    }
+                                  },
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _passwordController,
-                            obscureText: true,
-                            decoration: const InputDecoration(
-                              labelText: 'Password',
-                              helperText:
-                                  'Must be 8+ characters and include a number.',
-                            ),
-                          ),
-                          if (_error != null) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              _error!,
-                              style: TextStyle(color: theme.colorScheme.error),
-                            ),
-                          ],
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: () {
-                                setState(() => _error = null);
-                                try {
-                                  appState.login(
-                                    _emailController.text,
-                                    _passwordController.text,
-                                  );
-                                } on FormatException catch (error) {
-                                  setState(() => _error = error.message);
-                                }
-                              },
-                              child: const Text('Login'),
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ],
@@ -535,6 +683,132 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+}
+
+class _LoginHero extends StatelessWidget {
+  const _LoginHero({this.compact = false});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: EdgeInsets.only(right: compact ? 0 : 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _Eyebrow(label: 'Hero System'),
+          const SizedBox(height: 18),
+          Text(
+            'Forge your next streak with a command surface worth returning to.',
+            style: theme.textTheme.displayLarge?.copyWith(
+              fontSize: compact ? 40 : 56,
+            ),
+          ),
+          const SizedBox(height: 18),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Text(
+              'HeroHour turns routines, projects, and recovery into one mobile quest board. Track the world state, close fast wins, and keep momentum visible.',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: _bodyText.withValues(alpha: 0.92),
+                height: 1.7,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: const [
+              _StatTile(value: '4', label: 'Realm tracks'),
+              _StatTile(value: '24/7', label: 'Command view'),
+              _StatTile(value: '+XP', label: 'Quick wins'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LoginCard extends StatelessWidget {
+  const _LoginCard({
+    required this.emailController,
+    required this.passwordController,
+    required this.error,
+    required this.onSubmit,
+    this.showIntro = true,
+  });
+
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final String? error;
+  final VoidCallback onSubmit;
+  final bool showIntro;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      child: Container(
+        decoration: _cardDecoration(),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showIntro) ...[
+              Text(
+                'Return to command',
+                style: theme.textTheme.labelSmall?.copyWith(color: _mutedText),
+              ),
+              const SizedBox(height: 10),
+              Text('Login', style: theme.textTheme.headlineMedium),
+              const SizedBox(height: 8),
+              Text(
+                'Midnight Forge access for dashboard, profile, and quest management.',
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 24),
+            ],
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                helperText: 'Use your corporate or personal login address.',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Password',
+                helperText: 'Must be 8+ characters and include a number.',
+              ),
+            ),
+            if (error != null) ...[
+              const SizedBox(height: 12),
+              _NoticeBanner(message: error!, tone: BadgeTone.error),
+            ],
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: onSubmit,
+                child: const Text('Login'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -560,30 +834,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Dashboard', style: theme.textTheme.headlineMedium),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Midnight Forge',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.primary,
-                      letterSpacing: 1.1,
+        _HeroPanel(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _Eyebrow(label: 'Midnight Forge'),
+                    const SizedBox(height: 12),
+                    Text('Dashboard', style: theme.textTheme.headlineMedium),
+                    const SizedBox(height: 8),
+                    Text(
+                      'One command surface for health, work, recovery, and short-form wins.',
+                      style: theme.textTheme.bodyMedium,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            TextButton(
-              onPressed: widget.onOpenProfile,
-              child: const Text('New Profile'),
-            ),
-          ],
+              const SizedBox(width: 12),
+              TextButton(
+                onPressed: widget.onOpenProfile,
+                child: const Text('New Profile'),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -602,6 +878,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    'API status: ${appState.hasApiError ? 'Unknown' : appState.apiStatus}',
+                  ),
+                  const SizedBox(height: 4),
                   Text('Connection: ${appState.offlineStatus}'),
                   const SizedBox(height: 12),
                   FilledButton.tonal(
@@ -618,11 +898,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Seed: ${appState.worldState.seed}'),
-                  Text('Icon: ${appState.worldState.icon}'),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Realm seed',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: _mutedText,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '${appState.worldState.seed}',
+                              style: theme.textTheme.displaySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      _ForgeIcon(label: appState.worldState.icon),
+                    ],
+                  ),
                   const SizedBox(height: 12),
-                  LinearProgressIndicator(
-                    value: appState.worldState.progress / 100,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      minHeight: 10,
+                      value: appState.worldState.progress / 100,
+                      backgroundColor: Colors.white.withValues(alpha: 0.08),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text('Progress: ${appState.worldState.progress}%'),
@@ -735,10 +1041,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               if (_formError != null) ...[
                 const SizedBox(height: 12),
-                Text(
-                  _formError!,
-                  style: TextStyle(color: theme.colorScheme.error),
-                ),
+                _NoticeBanner(message: _formError!, tone: BadgeTone.error),
               ],
               const SizedBox(height: 16),
               if (appState.quests.isEmpty)
@@ -749,21 +1052,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 )
               else
                 ...appState.quests.map(
-                  (quest) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(quest.title),
-                    subtitle: Text(
-                      '${quest.lifeArea} • ${quest.status} • ${quest.progress}%',
+                  (quest) => Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
                     ),
-                    trailing: quest.status == 'complete'
-                        ? const _StatusBadge(
-                            label: 'Completed',
-                            tone: BadgeTone.success,
-                          )
-                        : FilledButton.tonal(
-                            onPressed: () => appState.completeQuest(quest),
-                            child: const Text('Complete'),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                quest.title,
+                                style: theme.textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${quest.lifeArea} • ${quest.status} • ${quest.progress}%',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
                           ),
+                        ),
+                        const SizedBox(width: 12),
+                        quest.status == 'complete'
+                            ? const _StatusBadge(
+                                label: 'Completed',
+                                tone: BadgeTone.success,
+                              )
+                            : FilledButton.tonal(
+                                onPressed: () => appState.completeQuest(quest),
+                                child: const Text('Complete'),
+                              ),
+                      ],
+                    ),
                   ),
                 ),
             ],
@@ -783,7 +1111,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       .map(
                         (sideQuest) => Card(
                           margin: const EdgeInsets.only(bottom: 10),
-                          child: Padding(
+                          child: Container(
+                            decoration: _cardDecoration(),
                             padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -954,87 +1283,163 @@ class _LifeProfilePageState extends State<LifeProfilePage> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
       children: [
+        const _Eyebrow(label: 'Identity Loadout'),
+        const SizedBox(height: 12),
         Text('Life Profile', style: theme.textTheme.headlineMedium),
         const SizedBox(height: 6),
         Text(
-          'Match the Angular form flow with the same fields, validation, and save/fetch feedback.',
+          'Shape how HeroHour frames your goals, role, and pacing across the dashboard experience.',
           style: theme.textTheme.bodyMedium,
         ),
         const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 860;
+            final aside = Card(
+              child: Container(
+                decoration: _cardDecoration(),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Profile impact',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: _mutedText,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Build a clearer operating profile',
+                      style: theme.textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 12),
+                    const _ProfileBullet(
+                      text:
+                          'Personalize the dashboard with a stronger identity layer.',
+                    ),
+                    const _ProfileBullet(
+                      text:
+                          'Adjust role framing for team-oriented quests and prompts.',
+                    ),
+                    const _ProfileBullet(
+                      text:
+                          'Keep your saved profile synced for future sessions.',
+                    ),
+                  ],
+                ),
+              ),
+            );
+            final formCard = Card(
+              child: Container(
+                decoration: _cardDecoration(),
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _firstNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'First name',
+                        ),
+                        validator: (value) =>
+                            value == null || value.trim().isEmpty
+                            ? 'Required'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _lastNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Last name',
+                        ),
+                        validator: (value) =>
+                            value == null || value.trim().isEmpty
+                            ? 'Required'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _ageController,
+                        decoration: const InputDecoration(labelText: 'Age'),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          final number = int.tryParse(value ?? '');
+                          if (number == null || number < 1 || number > 120) {
+                            return 'Age must be 1-120';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: _preferredRole,
+                        decoration: const InputDecoration(
+                          labelText: 'Preferred role',
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'leader',
+                            child: Text('Leader'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'member',
+                            child: Text('Member'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'observer',
+                            child: Text('Observer'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _preferredRole = value);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: _isLoading ? null : _submit,
+                          child: Text(
+                            _isLoading ? 'Saving...' : 'Save Life Profile',
+                          ),
+                        ),
+                      ),
+                      if (_statusMessage.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        _NoticeBanner(
+                          message: _statusMessage,
+                          tone: _statusMessage.startsWith('Error:')
+                              ? BadgeTone.error
+                              : BadgeTone.success,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+            if (wide) {
+              return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextFormField(
-                    controller: _firstNameController,
-                    decoration: const InputDecoration(labelText: 'First name'),
-                    validator: (value) => value == null || value.trim().isEmpty
-                        ? 'Required'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _lastNameController,
-                    decoration: const InputDecoration(labelText: 'Last name'),
-                    validator: (value) => value == null || value.trim().isEmpty
-                        ? 'Required'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _ageController,
-                    decoration: const InputDecoration(labelText: 'Age'),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      final number = int.tryParse(value ?? '');
-                      if (number == null || number < 1 || number > 120) {
-                        return 'Age must be 1-120';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: _preferredRole,
-                    decoration: const InputDecoration(
-                      labelText: 'Preferred role',
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'leader', child: Text('Leader')),
-                      DropdownMenuItem(value: 'member', child: Text('Member')),
-                      DropdownMenuItem(
-                        value: 'observer',
-                        child: Text('Observer'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _preferredRole = value);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: _isLoading ? null : _submit,
-                      child: Text(
-                        _isLoading ? 'Saving...' : 'Save Life Profile',
-                      ),
-                    ),
-                  ),
-                  if (_statusMessage.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    Text(_statusMessage),
-                  ],
+                  Expanded(flex: 4, child: aside),
+                  const SizedBox(width: 16),
+                  Expanded(flex: 7, child: formCard),
                 ],
-              ),
-            ),
-          ),
+              );
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [aside, const SizedBox(height: 16), formCard],
+            );
+          },
         ),
       ],
     );
@@ -1056,17 +1461,43 @@ class _AppBackdrop extends StatelessWidget {
   Widget build(BuildContext context) {
     final darkMode = HeroHourScope.of(context).darkMode;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: darkMode
-              ? const [Color(0xFF050816), Color(0xFF101A32), Color(0xFF16253B)]
-              : const [Color(0xFFF7F1E2), Color(0xFFE6D4AB), Color(0xFFF7F3EA)],
+    return Stack(
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: darkMode
+                  ? const [_ink, _night, _steel]
+                  : const [
+                      Color(0xFFF7F1E2),
+                      Color(0xFFE6D4AB),
+                      Color(0xFFF7F3EA),
+                    ],
+            ),
+          ),
+          child: const SizedBox.expand(),
         ),
-      ),
-      child: const SizedBox.expand(),
+        Positioned(
+          top: -80,
+          right: -50,
+          child: _GlowOrb(size: 260, color: _gold.withValues(alpha: 0.14)),
+        ),
+        Positioned(
+          bottom: 120,
+          left: -70,
+          child: _GlowOrb(size: 220, color: _teal.withValues(alpha: 0.12)),
+        ),
+        IgnorePointer(
+          child: CustomPaint(
+            size: Size.infinite,
+            painter: _GridPainter(
+              lineColor: Colors.white.withValues(alpha: darkMode ? 0.04 : 0.06),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1093,7 +1524,9 @@ class _BrandTitle extends StatelessWidget {
                 'HeroHour',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
               Text(
                 'Midnight Forge',
@@ -1128,7 +1561,8 @@ class _InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final card = Card(
-      child: Padding(
+      child: Container(
+        decoration: _cardDecoration(),
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1200,8 +1634,15 @@ class _RealmBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFFF59E0B),
+        color: _gold,
         borderRadius: BorderRadius.circular(999),
+        boxShadow: [
+          BoxShadow(
+            color: _gold.withValues(alpha: 0.24),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1230,6 +1671,16 @@ class _ActivityChip extends StatelessWidget {
     return ChoiceChip(
       label: Text('${activity[0].toUpperCase()}${activity.substring(1)}'),
       selected: selected,
+      showCheckmark: false,
+      side: BorderSide(
+        color: selected ? _gold : Colors.white.withValues(alpha: 0.14),
+      ),
+      selectedColor: _gold.withValues(alpha: 0.24),
+      backgroundColor: Colors.white.withValues(alpha: 0.04),
+      labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: selected ? const Color(0xFF0F172A) : _bodyText,
+        fontWeight: FontWeight.w700,
+      ),
       onSelected: (_) => appState.setActivity(activity),
     );
   }
@@ -1249,6 +1700,12 @@ class _EmptyState extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Theme.of(context).dividerColor),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.06),
+            Colors.white.withValues(alpha: 0.02),
+          ],
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1260,6 +1717,247 @@ class _EmptyState extends StatelessWidget {
       ),
     );
   }
+}
+
+class _Eyebrow extends StatelessWidget {
+  const _Eyebrow({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: _gold.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _gold.withValues(alpha: 0.24)),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.labelSmall?.copyWith(color: const Color(0xFFF6D77A)),
+      ),
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  const _StatTile({required this.value, required this.label});
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 148,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: const Color(0xFFF6D77A),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroPanel extends StatelessWidget {
+  const _HeroPanel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Container(
+        decoration: _cardDecoration(accent: _gold.withValues(alpha: 0.18)),
+        padding: const EdgeInsets.all(20),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _ForgeIcon extends StatelessWidget {
+  const _ForgeIcon({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 58,
+      height: 58,
+      decoration: BoxDecoration(
+        color: _gold.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _gold.withValues(alpha: 0.28)),
+      ),
+      child: Center(
+        child: Text(
+          label == 'Forge' ? '⚒' : label.substring(0, 1),
+          style: const TextStyle(fontSize: 24),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileBullet extends StatelessWidget {
+  const _ProfileBullet({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.only(top: 6),
+            decoration: const BoxDecoration(
+              color: _gold,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoticeBanner extends StatelessWidget {
+  const _NoticeBanner({required this.message, required this.tone});
+
+  final String message;
+  final BadgeTone tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = switch (tone) {
+      BadgeTone.success => (
+        _success.withValues(alpha: 0.18),
+        const Color(0xFFBBF7D0),
+      ),
+      BadgeTone.warning => (
+        _warning.withValues(alpha: 0.18),
+        const Color(0xFFFDE68A),
+      ),
+      BadgeTone.error => (
+        _danger.withValues(alpha: 0.18),
+        const Color(0xFFFECACA),
+      ),
+    };
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.$1,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: colors.$2.withValues(alpha: 0.32)),
+      ),
+      child: Text(
+        message,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: colors.$2,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _GlowOrb extends StatelessWidget {
+  const _GlowOrb({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [color, color.withValues(alpha: 0.02), Colors.transparent],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GridPainter extends CustomPainter {
+  const _GridPainter({required this.lineColor});
+
+  final Color lineColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 1;
+    const spacing = 64.0;
+
+    for (double x = 0; x <= size.width; x += spacing) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y <= size.height; y += spacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GridPainter oldDelegate) =>
+      oldDelegate.lineColor != lineColor;
+}
+
+BoxDecoration _cardDecoration({Color? accent}) {
+  return BoxDecoration(
+    borderRadius: BorderRadius.circular(24),
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        accent ?? _cardTop.withValues(alpha: 0.92),
+        _cardBottom.withValues(alpha: 0.96),
+      ],
+    ),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: 0.28),
+        blurRadius: 28,
+        offset: const Offset(0, 18),
+      ),
+    ],
+  );
 }
 
 class HeroUser {
