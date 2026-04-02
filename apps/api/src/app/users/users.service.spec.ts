@@ -42,10 +42,18 @@ describe('UsersService', () => {
     await expect(service.update(user.id, { email: 'hacker@b.com' })).rejects.toThrow(/not allowed|forbidden|restricted/i);
   });
 
-  it('should soft-delete or deactivate users correctly if supported', async () => {
-    // TODO: Implement soft-delete/deactivate logic and assertion
-    // Example: await service.deactivateUser(id);
-    // expect(...)
+  it('should deactivate users and prevent findById after deactivate if behavior expected', async () => {
+    const user = await service.create({ email: 'deactivate@b.com', username: 'deactivate', password: 'pw' });
+    const deactivated = await service.deactivate(user.id);
+    expect(deactivated.active).toBe(false);
+    const fromLookup = await service.findById(user.id);
+    expect(fromLookup.active).toBe(false);
+  });
+
+  it('should throw when finding undefined users', async () => {
+    await expect(service.findById('missing')).rejects.toThrow(/not found/i);
+    await expect(service.findByEmail('not@found.com')).rejects.toThrow(/not found/i);
+    await expect(service.findByUsername('nobody')).rejects.toThrow(/not found/i);
   });
 
   it('should return role information correctly if joined to auth data', async () => {

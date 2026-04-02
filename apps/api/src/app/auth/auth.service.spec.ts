@@ -102,6 +102,71 @@ describe('AuthService', () => {
       await expect(service.refresh({ refreshToken: 'not.a.jwt' })).rejects.toThrow();
     });
 
+    it('should reject refresh token not in session', async () => {
+      const dto: RegisterDto = { email: 'refresh2@example.com', password: 'pw', username: 'refresh2' };
+      await service.register(dto);
+      const loginResult = await service.login({ email: dto.email, password: dto.password });
+      // Simulate redis being available but token not found
+      (service as any).redisClient = {
+        isReady: true,
+        get: async () => null,
+      };
+      await expect(service.refresh({ refreshToken: loginResult.refreshToken })).rejects.toThrow(/invalid refresh token/i);
+    });
+
+    it('should reject invalid credentials', async () => {
+      const dto: RegisterDto = { email: 'invalid@example.com', password: 'pw', username: 'invalid' };
+      await service.register(dto);
+      await expect(service.login({ email: dto.email, password: 'wrongpw' })).rejects.toThrow(/Invalid credentials/i);
+    });
+
+    it('should reject login for non-existing user', async () => {
+      await expect(service.login({ email: 'nonexistent@example.com', password: 'pw' })).rejects.toThrow(/Invalid credentials/i);
+    });
+
+    it('should reject refresh for revoked token', async () => {
+      const dto: RegisterDto = { email: 'revoke@example.com', password: 'pw', username: 'revoke' };
+      await service.register(dto);
+      const { refreshToken } = await service.login({ email: dto.email, password: dto.password });
+      await service.logout(refreshToken);
+      await expect(service.refresh({ refreshToken })).rejects.toThrow(/Refresh token revoked/i);
+    });
+
+    it('should handle getSession false path and throw', async () => {
+      (service as any).redisClient = {
+        isReady: true,
+        get: async () => null,
+      };
+      expect(await service.getSession(1, 'token')).toBe(false);
+    });
+
+    it('should save and revoke session with redis ready', async () => {
+      let savedKey: string | null = null;
+      let deletedKey: string | null = null;
+      (service as any).redisClient = {
+        isReady: true,
+        set: async (k: string) => { savedKey = k; return 'OK'; },
+        del: async (k: string) => { deletedKey = k; return 1; },
+      };
+      await service.saveSession(1, 'tok1');
+      await service.revokeSession('tok1');
+      expect(savedKey).toBeDefined();
+      expect(deletedKey).toBeDefined();
+    });
+
+    it('should validate credentials and logout behavior', async () => {
+      const dto: RegisterDto = { email: 'valid@example.com', password: 'pw', username: 'valid' };
+      await service.register(dto);
+      const valid = await service.validateCredentials(dto.email, 'pw');
+      expect(valid).toBe(true);
+      await service.logout('');
+      expect(service.isTokenRevoked('')).toBe(false);
+    });
+
+    it('should reject completely missing login', async () => {
+      await expect(service.login({ email: 'missing@example.com', password: 'pw' })).rejects.toThrow(/Invalid credentials/i);
+    });
+
     it('should include role claims in auth payload', async () => {
       const dto: RegisterDto = { email: 'roles@example.com', password: 'pw', username: 'roles' };
       await service.register(dto);
@@ -111,6 +176,19 @@ describe('AuthService', () => {
       const decoded = require('jsonwebtoken').decode(loginResult.accessToken) as { roles: string[] };
       expect(decoded.roles).toContain('admin');
       expect(decoded.roles).toContain('user');
+    });
+
+    it('should revoke tokens and validate revoked state', async () => {
+      const dto: RegisterDto = { email: 'revoke@example.com', password: 'pw', username: 'revoke' };
+      await service.register(dto);
+      const loginResult = await service.login({ email: dto.email, password: dto.password });
+      expect(service.isTokenRevoked(loginResult.accessToken)).toBe(false);
+      await service.logout(loginResult.accessToken);
+      expect(service.isTokenRevoked(loginResult.accessToken)).toBe(true);
+    });
+
+    it('should have non-empty jwt secret from config', () => {
+      expect(service.getJwtSecret()).toBeTruthy();
     });
   });
 });

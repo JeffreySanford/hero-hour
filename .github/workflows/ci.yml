@@ -40,6 +40,17 @@ jobs:
       - run: cd apps/mobile_flutter && flutter test
       - run: cd apps/mobile_flutter && flutter test --dart-define=ENABLE_FLUTTER_API_INTEGRATION=true
 
+      - name: Ensure Docker services are ready (redis + teklif)
+        run: pnpm run docker:teklif:ci-check
+
+      - name: Smoke check coverage for api + admin-console
+        run: |
+          pnpm exec nx test api --code-coverage --no-watch
+          pnpm exec nx test admin-console --code-coverage --no-watch
+
+      - name: E2E contract gate (auth/login, health, life-profile)
+        run: pnpm run test:ci:life-profile
+
       # Prepend any command with "nx record --" to record its logs to Nx Cloud
       - run: npx nx record -- npx nx format:check  --base="remotes/origin/main"
       - run: npx nx run-many -t lint test build typecheck e2e-ci

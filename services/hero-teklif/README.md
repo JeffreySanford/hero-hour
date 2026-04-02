@@ -8,14 +8,19 @@ It reads/writes Redis state and provides contract metadata and health endpoints.
 ## Local startup
 
 1. Build service:
+
    ```bash
    docker build -t hero-teklif ./services/hero-teklif
    ```
+
 2. Bring up infrastructure:
+
    ```bash
    pnpm run docker:ensure-teklif
    ```
+
 3. Verify health:
+
    ```bash
    curl http://localhost:4000/health
    curl http://localhost:4000/contract

@@ -76,5 +76,20 @@ describe('OnboardingService', () => {
       const completed = await service.completeOnboarding(userId);
       expect(completed.completed).toBe(true);
     });
+
+    it('should support saveStep as object and handle missing fields', async () => {
+      const userId = 'user-8';
+      await service.initOnboarding(userId);
+      const saved = service.saveStep({ userId, stepName: 'life-role', payload: { roles: ['leader'] } } as any);
+      expect(saved).toBeDefined();
+    });
+
+    it('should throw when required fields are missing in saveStep object form', async () => {
+      expect(() => service.saveStep({ userId: 'missing' } as any)).toThrow(/Missing required fields/);
+    });
+
+    it('should throw on unsupported complete on missing user', async () => {
+      await expect(service.completeOnboarding('missing')).rejects.toThrow(/Onboarding not found/);
+    });
   });
 });

@@ -120,6 +120,7 @@ export interface LifeProfile {
   updatedAt: string;
 }
 ```
+
 - **ScheduleBlock**: id, scheduleProfileId, blockType, dayOfWeek, start/end, label
 - **PriorityProfile**: id, userId, priorityType (enum), weight
 - **FrictionProfile**: id, userId, frictionType (enum), severity

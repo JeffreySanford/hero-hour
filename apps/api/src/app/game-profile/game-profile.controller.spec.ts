@@ -144,5 +144,15 @@ describe('GameProfileController', () => {
     const state = await controller.getWorldState('u1');
     expect(state).toEqual(mockState);
   });
+
+  it('should throw invalid request for missing quest payloads and user IDs', async () => {
+    await expect(controller.createQuest('', { title: '', lifeArea: '', status: '', progress: 0 } as any)).rejects.toThrow(BadRequestException);
+    await expect(controller.getQuests('')).rejects.toThrow(BadRequestException);
+    await expect(controller.updateQuest('', 'q1', {}) as any).rejects.toThrow(BadRequestException);
+    await expect(controller.logActivity('u1', { userId: 'u1', activityType: '', intensity: 0 } as any)).rejects.toThrow(BadRequestException);
+    await expect(controller.getSideQuests('')).rejects.toThrow(BadRequestException);
+    await expect(controller.claimSideQuest('u1', '') as any).rejects.toThrow(BadRequestException);
+    await expect(controller.getWorldState('')).rejects.toThrow(BadRequestException);
+  });
 });
 // ...existing code...

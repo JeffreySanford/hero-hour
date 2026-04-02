@@ -1,0 +1,29 @@
+{
+  "name": "hero-teklif",
+  "targets": {
+    "build": {
+      "executor": "@nx/workspace:run-commands",
+      "options": {
+        "command": "docker build -t hero-teklif ./services/hero-teklif"
+      }
+    },
+    "start": {
+      "executor": "@nx/workspace:run-commands",
+      "options": {
+        "command": "docker compose -f docker-compose.redis.yml -f docker-compose.teklif.yml up -d --build hero-redis hero-teklif"
+      }
+    },
+    "stop": {
+      "executor": "@nx/workspace:run-commands",
+      "options": {
+        "command": "docker compose -f docker-compose.redis.yml -f docker-compose.teklif.yml down"
+      }
+    },
+    "test": {
+      "executor": "@nx/workspace:run-commands",
+      "options": {
+        "command": "cd services/hero-teklif && npm test"
+      }
+    }
+  }
+}

@@ -19,10 +19,20 @@ Close the data contract for PI2 by extending `libs/api-interfaces` to include li
 - [X] Add e2e assertion in `admin-console-e2e` for life-profile contract payload and response shape.
 - [X] Add `api-interfaces` schema verify tests to assert `LifeProfile` request/response semantics.
 - [X] Add Docker behavior check for hero-redis and hero-teklif in `scripts/ensure-docker-teklif.sh` and `package.json` start:all.
+- [ ] Add `services/hero-teklif/tests/*` and Simple Jest/Nx test target.
+- [ ] Add Nx `project.json` target for `docker-compose:teklif` in `services/hero-teklif`.
+
+## What is hero-teklif?
+
+`hero-teklif` is a lightweight contract service in the stack that ensures the life-profile context and onboarding contract are safe and ready. It provides:
+
+- health endpoint and contract metadata (`/health`, `/contract`)
+- Redis-backed readiness metadata (`teklif:ready`, `teklif:version`, `app:settings`)
+- a single source of truth for contract readiness before API layer starts
 
 ## Offer / "teklif" behavior plan (pre-sprint-2.2)
 
-This plan codifies behavior and contract expectations for sprint 2.1 completion and should be used to drive the next CI gating step.
+his plan codifies behavior and contract expectations for sprint 2.1 completion and should be used to drive the next CI gating step.
 
 1. Behavior goal
    - User chooses life-profile values and submits via UI.
@@ -57,4 +67,3 @@ This plan codifies behavior and contract expectations for sprint 2.1 completion 
   - health endpoint checks
   - Redis key contract checks (`teklif:ready`, `teklif:version`).
   - start:all behavior flow: ensure docker, then API+frontend.
-

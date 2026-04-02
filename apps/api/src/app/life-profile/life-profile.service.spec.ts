@@ -83,4 +83,59 @@ describe('LifeProfileService', () => {
     const other = await service.getProfile('otherUser');
     expect(other).toBeUndefined();
   });
+
+  it('should support updateRoles and direct schedule updates', async () => {
+    const userId = 'user9';
+    await service.createProfile(userId, { roles: ['member'], schedule: { morning: 'code' } });
+    const roleUpdated = await service.updateRoles(userId, ['leader', 'student']);
+    expect(roleUpdated.roles).toEqual(['leader', 'student']);
+
+    const scheduleUpdated = await service.updateSchedule(userId, { night: 'rest' });
+    expect(scheduleUpdated.schedule).toEqual({ morning: 'code', night: 'rest' });
+  });
+
+  it('should support update priorities/friction/habit anchors', async () => {
+    const userId = 'user11';
+    await service.createProfile(userId, {
+      priorities: ['focus'],
+      frictionPoints: ['distraction'],
+      habitAnchors: ['morning routine'],
+    });
+
+    const p = await service.updatePriorities(userId, ['clarity']);
+    expect(p.priorities).toEqual(['clarity']);
+
+    const f = await service.updateFrictionPoints(userId, ['fatigue']);
+    expect(f.frictionPoints).toEqual(['fatigue']);
+
+    const h = await service.saveHabitAnchors(userId, ['evening ritual']);
+    expect(h.habitAnchors).toEqual(['evening ritual']);
+  });
+
+  it('should use default and filtered roles and assign member fallback on invalid role', async () => {
+    const userId = 'user12';
+    const profile = await service.createProfile(userId, {
+      firstName: 'Test',
+      lastName: 'User',
+      age: 21,
+      preferredRole: 'invalid' as any,
+      roles: ['unknown', 'parent'],
+    });
+    expect(profile.preferredRole).toBe('member');
+    expect(profile.roles).toEqual(['parent']);
+  });
+
+  it('should throw on updating missing profile and on invalid role in updateRoles', async () => {
+    await expect(service.updateProfile('not-there', { firstName: 'X' })).rejects.toThrow('Profile not found');
+    const userId = 'user13';
+    await service.createProfile(userId, { firstName: 'A', lastName: 'B', age: 30 });
+    await expect(service.updateRoles(userId, ['fake'])).rejects.toThrow('Invalid role enum');
+  });
+
+  it('should throw on duplicate create and invalid update roles', async () => {
+    const userId = 'user10';
+    await service.createProfile(userId, { firstName: 'A', lastName: 'B', age: 25 });
+    await expect(service.createProfile(userId, { firstName: 'A', lastName: 'B', age: 25 })).rejects.toThrow('Profile already exists');
+    await expect(service.updateRoles(userId, ['invalidRole' as any])).rejects.toThrow('Invalid role enum');
+  });
 });

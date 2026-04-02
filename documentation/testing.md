@@ -21,6 +21,15 @@
 
 - `pnpm run test:ci:life-profile` (includes api, admin-console, admin-console-e2e)
 - `pnpm run test:ci:flutter` (includes flutter unit + integration tests)
+- `pnpm run docker:teklif:ci-check` (ensure Redis + hero-teklif are healthy and seeded before CI tests)
+- `pnpm exec nx run api:teklif-ci-check` (Nx target wrapper for the same pre-check command)
+
+## CI fail-fast and readiness expectations
+
+1. `docker compose -f docker-compose.redis.yml -f docker-compose.teklif.yml up --build -d --wait hero-redis hero-teklif`
+2. Health waits up to 60s for both services to become `healthy`.
+3. Runs `pnpm run docker:ensure-teklif` for service status and readiness key seeding.
+4. On misconfiguration, health failure, or timeout -> exit 1 immediately and stop the job (bazel-style fail-fast).
 
 ## Quick dev loop
 

@@ -86,4 +86,13 @@ describe('LifeProfileController', () => {
   it('should throw if missing user in getMyProfile', async () => {
     await expect(controller.getMyProfile({} as any)).rejects.toThrow();
   });
+
+  it('should throw error when creating profile with missing required fields', async () => {
+    await expect(controller.create({} as any)).rejects.toThrow('Missing required life-profile fields');
+  });
+
+  it('should throw NotFoundException when getting missing profile', async () => {
+    (service.getProfile as jest.Mock).mockReturnValue(undefined);
+    await expect(controller.get('missing')).rejects.toThrow('Life profile not found');
+  });
 });
