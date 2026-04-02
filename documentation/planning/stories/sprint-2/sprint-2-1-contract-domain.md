@@ -19,6 +19,26 @@ Close the data contract for PI2 by extending `libs/api-interfaces` to include li
 - [X] Add e2e assertion in `admin-console-e2e` for life-profile contract payload and response shape.
 - [X] Add `api-interfaces` schema verify tests to assert `LifeProfile` request/response semantics.
 
+## Offer / "teklif" behavior plan (pre-sprint-2.2)
+
+This plan codifies behavior and contract expectations for sprint 2.1 completion and should be used to drive the next CI gating step.
+
+1. Behavior goal
+   - User chooses life-profile values and submits via UI.
+   - Backend receives `LifeProfileRequest` and responds with full `LifeProfile` contract.
+
+2. Contract payload specifics
+   - Request contains: `userId`, `firstName`, `lastName`, `age`, `preferredRole`, optional `roles`, `schedule`, `priorities`, `frictionPoints`, `habitAnchors`, `privacy`.
+   - Response contains added required fields: `status`, `privacy`, `createdAt`, `updatedAt`, and complete contract array/objects.
+
+3. Runtime test assertions
+   - `admin-console-e2e`: POST `/api/life-profile` returns `201`, status='active', privacy='private', roles includes the preferred role, createdAt/updatedAt exist.
+   - `api-interfaces`: snapshot + object containing enforcement.
+
+4. CI/KPI enforce
+   - If any contract property is missing, fail pipeline in step 2.2.
+   - This is pre-2.2: contract defined, validated, and now ready for strict coverage gating.
+
 ## Acceptance Criteria
 
 - `nx lint api-interfaces` passes and catches a manual contract mismatch in a test case.
