@@ -47,3 +47,14 @@ This plan codifies behavior and contract expectations for sprint 2.1 completion 
 - Contract doc section exists and references new DTOs.
 - `admin-console-e2e` includes a dedicated life-profile contract assertion that validates full LifeProfile response shape.
 - `api-interfaces` tests include versioning/snapshot contract check plus type-compatibility assertions.
+- Docker readiness script seeds Redis keys and ensures `hero-teklif` is contract-ready.
+
+## Hero-teklif node service template and runbook
+
+- Add `services/hero-teklif` node service and Dockerfile.
+- Add `README` runbook describing:
+  - start process (docker compose + script)
+  - health endpoint checks
+  - Redis key contract checks (`teklif:ready`, `teklif:version`).
+  - start:all behavior flow: ensure docker, then API+frontend.
+
