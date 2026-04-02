@@ -18,6 +18,7 @@ Close the data contract for PI2 by extending `libs/api-interfaces` to include li
 - [X] Add contract docs snippet and examples in `documentation/auth-rbac-life-profile-architecture.md`.
 - [X] Add e2e assertion in `admin-console-e2e` for life-profile contract payload and response shape.
 - [X] Add `api-interfaces` schema verify tests to assert `LifeProfile` request/response semantics.
+- [X] Add Docker behavior check for hero-redis and hero-teklif in `scripts/ensure-docker-teklif.sh` and `package.json` start:all.
 
 ## Offer / "teklif" behavior plan (pre-sprint-2.2)
 
