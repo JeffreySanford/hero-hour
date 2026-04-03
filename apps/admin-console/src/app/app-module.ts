@@ -15,6 +15,7 @@ import { GrowthMapComponent } from './growth-map/growth-map.component';
 import { LoginComponent } from './auth/login.component';
 import { HeaderModule } from './layout/header/header.module';
 import { FooterModule } from './layout/footer/footer.module';
+import { DailyGridComponent } from './dashboard/daily-grid.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { reducer as authReducer } from './store/auth/auth.reducer';
 import { AuthEffects } from './store/auth/auth.effects';
@@ -30,6 +31,7 @@ import { AuthEffects } from './store/auth/auth.effects';
     FormsModule,
     HeaderModule,
     FooterModule,
+    DailyGridComponent,
     StoreModule.forRoot({ auth: authReducer }),
     EffectsModule.forRoot([AuthEffects]),
     StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: false }),

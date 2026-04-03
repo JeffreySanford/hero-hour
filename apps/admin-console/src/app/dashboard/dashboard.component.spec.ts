@@ -3,6 +3,7 @@ import { By } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
+import { DailyGridComponent } from './daily-grid.component';
 import { HealthService } from '../services/health.service';
 import { QuestService } from '../services/quest.service';
 import { Router } from '@angular/router';
@@ -49,7 +50,7 @@ describe('DashboardComponent', () => {
 
 
     await TestBed.configureTestingModule({
-      imports: [FormsModule],
+      imports: [FormsModule, DailyGridComponent],
       declarations: [DashboardComponent],
       providers: [
         { provide: HealthService, useValue: healthService },

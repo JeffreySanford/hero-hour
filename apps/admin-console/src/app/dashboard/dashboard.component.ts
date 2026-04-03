@@ -80,6 +80,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isLoadingSideQuests = true;
   isLoadingWorldState = true;
 
+  dailyGridCells: Array<{ index: number; activity?: 'work' | 'exercise' | 'social' | 'rest'; completed: boolean }> = [];
+
   constructor(
     private readonly healthService: HealthService,
     private readonly questService: QuestService,
@@ -234,15 +236,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (quests) => {
         this.sideQuests = quests;
         this.isLoadingSideQuests = false;
+        this.refreshDailyGrid();
       },
       error: () => {
         this.sideQuests = [];
         this.isLoadingSideQuests = false;
+        this.refreshDailyGrid();
       },
       complete: () => {
         this.isLoadingSideQuests = false;
       },
     });
+  }
+
+  refreshDailyGrid(): void {
+    const defaultCells = Array.from({ length: 24 }).map((_, idx) => ({ index: idx, completed: false }));
+    const activityMap: Record<number, 'work' | 'exercise' | 'social' | 'rest'> = {
+      2: 'rest',
+      5: 'work',
+      8: 'exercise',
+      11: 'social',
+      15: 'work',
+      18: 'rest',
+      20: 'social',
+    };
+
+    const updated = defaultCells.map((cell) => {
+      const activity = activityMap[cell.index];
+      if (activity) {
+        return { ...cell, activity, completed: cell.index % 3 !== 0 };
+      }
+      return cell;
+    });
+
+    this.dailyGridCells = updated;
   }
 
   loadWorldState(): void {

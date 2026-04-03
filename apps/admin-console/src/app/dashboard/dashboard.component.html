@@ -70,6 +70,11 @@
           <p>Progress: {{ worldState.progress }}%</p>
         </div>
       </div>
+
+      <div class="daily-grid-wrapper">
+        <h4>Daily Time Grid</h4>
+        <app-daily-grid [cells]="dailyGridCells" [reducedMotion]="isReducedMotion"></app-daily-grid>
+      </div>
     </article>
 
     <article class="hero-card telemetry-card" aria-labelledby="telemetry-title" role="region">

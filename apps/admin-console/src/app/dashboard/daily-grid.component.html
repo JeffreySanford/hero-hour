@@ -1,0 +1,23 @@
+<div class="daily-grid" [class.reduced-motion]="reducedMotion" aria-label="Daily time grid" role="grid">
+  <ng-container *ngIf="rows.length > 0; else emptyState">
+    <div class="daily-grid__row" *ngFor="let row of rows" role="row">
+      <button
+        class="daily-grid__cell"
+        *ngFor="let cell of row"
+        [ngClass]="getIndicatorClass(cell)"
+        [attr.aria-label]="getAriaLabel(cell)"
+        role="gridcell"
+        type="button"
+        [disabled]="!cell.activity"
+      >
+        <span class="daily-grid__cell-label" *ngIf="cell.activity">{{ cell.activity }}</span>
+      </button>
+    </div>
+  </ng-container>
+
+  <ng-template #emptyState>
+    <div class="daily-grid__empty" role="status" aria-live="polite">
+      No time entries yet. Start tracking a task and watch the grid fill.
+    </div>
+  </ng-template>
+</div>

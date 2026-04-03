@@ -1,0 +1,69 @@
+:host {
+  display: block;
+  margin-top: 1rem;
+}
+
+.daily-grid {
+  display: grid;
+  gap: 0.35rem;
+  background: var(--background-secondary, #111);
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+}
+
+.daily-grid__row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.daily-grid__cell {
+  border: 1px solid #333;
+  height: 46px;
+  border-radius: 0.35rem;
+  background: #1d1d1d;
+  color: #fff;
+  font-size: 0.65rem;
+  text-transform: capitalize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.daily-grid__cell.activity-work {
+  background: #0d6efd;
+}
+
+.daily-grid__cell.activity-exercise {
+  background: #20c997;
+}
+
+.daily-grid__cell.activity-social {
+  background: #fd7e14;
+}
+
+.daily-grid__cell.activity-rest {
+  background: #6c757d;
+}
+
+.daily-grid__cell.completed {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.daily-grid__cell.empty {
+  background: #111;
+  opacity: 0.4;
+}
+
+.daily-grid__cell:focus-visible,
+.daily-grid__cell:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+}
+
+.daily-grid.reduced-motion .daily-grid__cell {
+  transition: none;
+}
