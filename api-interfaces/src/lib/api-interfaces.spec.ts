@@ -1,4 +1,4 @@
-import type { LifeProfile, LifeProfileRequest, LifeRole, ProfileStatus, PrivacySetting, LoginResponse, HealthResponse } from './api-interfaces';
+import type { GameProfile, LifeProfile, LifeProfileRequest, LifeRole, ProfileStatus, PrivacySetting, LoginResponse, HealthResponse, Quest, SideQuest, WorldState, VillageState } from './api-interfaces';
 import { apiInterfaces } from './api-interfaces';
 import Ajv from 'ajv';
 
@@ -57,6 +57,20 @@ describe('apiInterfaces', () => {
       age: 28,
       preferredRole: 'member',
     });
+  });
+
+  it('should validate new game progression contracts', () => {
+    const profile: GameProfile = { userId: 'u1', avatar: 'mage', theme: 'dark', displayName: 'Hero', xp: 200, level: 2, streak: 5 };
+    const quest: Quest = { id: 'q1', userId: 'u1', title: 'Test quest', lifeArea: 'career', status: 'pending', progress: 20 };
+    const sideQuest: SideQuest = { id: 'sq1', userId: 'u1', title: 'Quick win', type: 'daily', completed: false, rewardXp: 10 };
+    const world: WorldState = { seed: 5, color: 'green', icon: '⚡', progress: 15 };
+    const village: VillageState = { structures: [{ id: 's1', name: 'Campfire', lifeArea: 'fun', level: 1, progress: 10, unlocked: true }], totalProgress: 10, updatedAt: new Date().toISOString() };
+
+    expect(profile).toHaveProperty('userId', 'u1');
+    expect(quest.status).toBe<'pending' | 'complete' | 'failed'>('pending');
+    expect(sideQuest.type).toBe<'quick-win' | 'daily' | 'bonus'>('daily');
+    expect(world.progress).toBe(15);
+    expect(village.totalProgress).toBe(10);
   });
 
   it('should validate login and health schema via Ajv', () => {

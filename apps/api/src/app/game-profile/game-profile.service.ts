@@ -37,10 +37,13 @@ export class GameProfileService {
   private quests: Map<string, Quest[]> = new Map();
   private sideQuests: Map<string, SideQuest[]> = new Map();
   private worldStates: Map<string, WorldState> = new Map();
-  private villageStates: Map<string, VillageState> = new Map();  private loadPromise: Promise<void>;
+  private villageStates: Map<string, VillageState> = new Map();
+
+  private loadPromise: Promise<void> = Promise.resolve();
   private loaded = false;
+
   constructor(private readonly telemetryService: TelemetryService) {
-    void this.loadState();
+    this.loadPromise = this.loadState();
   }
 
   private getDefaultVillageState(): VillageState {

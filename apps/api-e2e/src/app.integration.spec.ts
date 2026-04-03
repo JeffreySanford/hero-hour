@@ -1,10 +1,53 @@
 // Playwright integration test moved from apps/api/src/app/app.integration.spec.ts
 import { request as pwRequest, APIRequestContext, expect as pwExpect, test as pwTest } from '@playwright/test';
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
+import { promises as fs, existsSync } from 'fs';
+import { join } from 'path';
 
 pwTest.describe('Vertical Slice Integration (Playwright)', () => {
   let apiContext: APIRequestContext;
   let accessToken: string;
   const baseURL = process.env.PLAYWRIGHT_API_BASE_URL || 'http://localhost:3333/api';
+
+async function waitForHealth(url: string, timeout = 20000): Promise<void> {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    try {
+      const resp = await fetch(`${url}/health`);
+      if (resp.ok) return;
+    } catch {
+      // retry
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new Error(`Unable to reach ${url}/health within ${timeout}ms`);
+}
+
+function startApiServer(port: number, storePath: string): ChildProcessWithoutNullStreams {
+  const isWindows = process.platform === 'win32';
+  const cmd = isWindows ? 'pnpm.cmd' : 'pnpm';
+  const proc = spawn(cmd, ['nx', 'serve', 'api', '--port', String(port), '--watch', 'false'], {
+    env: { ...process.env, GAME_PROFILE_STORE_PATH: storePath },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  proc.stdout.on('data', (data) => {
+    // keep output available for debugging in CI logs
+    process.stdout.write(`[api-server:${port}] ${data}`);
+  });
+  proc.stderr.on('data', (data) => {
+    process.stderr.write(`[api-server:${port}] ${data}`);
+  });
+
+  return proc;
+}
+
+async function stopApiServer(proc: ChildProcessWithoutNullStreams): Promise<void> {
+  return new Promise((resolve) => {
+    proc.on('exit', () => resolve());
+    proc.kill();
+  });
+}
 
   pwTest.beforeAll(async () => {
     apiContext = await pwRequest.newContext({ baseURL });
@@ -103,7 +146,7 @@ pwTest.describe('Vertical Slice Integration (Playwright)', () => {
     const getRes = await apiContext.get('/game-profile/integrationUser/quests');
     pwExpect(getRes.status()).toBe(200);
     const quests = await getRes.json();
-    pwExpect(quests).toEqual(expect.arrayContaining([expect.objectContaining({ title: 'Roadmap quest', progress: expect.any(Number) }]));
+    pwExpect(quests).toEqual(expect.arrayContaining([expect.objectContaining({ title: 'Roadmap quest', progress: expect.any(Number) })]));
   });
 
   pwTest('creates quest and updates world seed', async () => {
@@ -140,5 +183,65 @@ pwTest.describe('Vertical Slice Integration (Playwright)', () => {
 
     pwExpect(secondState.progress).toBeGreaterThanOrEqual(firstState.progress);
     pwExpect(secondState.seed).not.toBe(firstState.seed);
+  });
+
+  pwTest('process restart persistence for game profile flows', async () => {
+    const registryDir = join(process.cwd(), 'tmp');
+    await fs.mkdir(registryDir, { recursive: true });
+    const registryPath = join(registryDir, 'api-game-profile-persist.json');
+    if (existsSync(registryPath)) await fs.unlink(registryPath);
+
+    const startServer = async (port: number) => {
+      const proc = startApiServer(port, registryPath);
+      await waitForHealth(`http://localhost:${port}`);
+      return proc;
+    };
+
+    let serverProc = await startServer(4444);
+
+    const registerContext = await pwRequest.newContext({ baseURL: 'http://localhost:4444/api' });
+    const registerRes = await registerContext.post('/auth/register', {
+      data: { email: 'persist@example.com', password: 'Test1234!', username: 'persistUser' },
+    });
+    pwExpect(registerRes.status()).toBe(201);
+
+    const loginRes = await registerContext.post('/auth/login', {
+      data: { email: 'persist@example.com', password: 'Test1234!' },
+    });
+    pwExpect(loginRes.status()).toBe(200);
+    const loginBody = await loginRes.json();
+    const token = loginBody.accessToken;
+
+    const activityRes = await registerContext.post('/game-profile/persistUser/activity', {
+      data: { userId: 'persistUser', activityType: 'work', intensity: 3 },
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    pwExpect(activityRes.status()).toBe(200);
+
+    await registerContext.dispose();
+    await stopApiServer(serverProc);
+
+    serverProc = await startServer(4445);
+
+    const secondContext = await pwRequest.newContext({ baseURL: 'http://localhost:4445/api' });
+    const loginRes2 = await secondContext.post('/auth/login', {
+      data: { email: 'persist@example.com', password: 'Test1234!' },
+    });
+    pwExpect(loginRes2.status()).toBe(200);
+    const loginBody2 = await loginRes2.json();
+    const token2 = loginBody2.accessToken;
+
+    const profileRes = await secondContext.get('/game-profile/persistUser', {
+      headers: { Authorization: `Bearer ${token2}` },
+    });
+    pwExpect(profileRes.status()).toBe(200);
+    const profile = await profileRes.json();
+    pwExpect(profile).toHaveProperty('userId', 'persistUser');
+    pwExpect(profile).toHaveProperty('avatar', 'default');
+
+    await secondContext.dispose();
+    await stopApiServer(serverProc);
+
+    if (existsSync(registryPath)) await fs.unlink(registryPath);
   });
 });

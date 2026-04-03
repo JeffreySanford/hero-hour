@@ -63,6 +63,45 @@ export type LifeProfileResponse = LifeProfile & {
 
 export type LifeArea = 'health' | 'career' | 'relationships' | 'fun';
 
+export type QuestStatus = 'pending' | 'complete' | 'failed';
+
+export interface Quest {
+  id: string;
+  userId: string;
+  title: string;
+  lifeArea: LifeArea;
+  status: QuestStatus;
+  progress: number;
+}
+
+export type SideQuestType = 'quick-win' | 'daily' | 'bonus';
+
+export interface SideQuest {
+  id: string;
+  userId: string;
+  title: string;
+  type: SideQuestType;
+  completed: boolean;
+  rewardXp: number;
+}
+
+export interface WorldState {
+  seed: number;
+  color: string;
+  icon: string;
+  progress: number;
+}
+
+export interface GameProfile {
+  userId: string;
+  avatar: string;
+  theme: string;
+  displayName: string;
+  xp: number;
+  level: number;
+  streak: number;
+}
+
 export interface VillageStructure {
   id: string;
   name: string;
