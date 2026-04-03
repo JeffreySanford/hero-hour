@@ -1,5 +1,7 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { promises as fs } from 'fs';
+import { join } from 'path';
 import { GameProfileService } from './game-profile.service';
 import { TelemetryService } from '../telemetry/telemetry.service';
 import { TelemetryAuditRepository } from '@org/domain';
@@ -8,7 +10,17 @@ describe('GameProfileService', () => {
   let service: GameProfileService;
   let telemetry: TelemetryService;
 
+  const persistenceFile = join(process.cwd(), 'tmp', 'game-profile-test.json');
+
   beforeEach(async () => {
+    process.env.GAME_PROFILE_STORE_PATH = persistenceFile;
+    await fs.mkdir(join(process.cwd(), 'tmp'), { recursive: true });
+    try {
+      await fs.unlink(persistenceFile);
+    } catch {
+      // ignore missing file
+    }
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [GameProfileService, TelemetryService, TelemetryAuditRepository],
     }).compile();
@@ -130,10 +142,42 @@ describe('GameProfileService', () => {
       expect(worldState.progress).toBeGreaterThanOrEqual(0);
     });
 
+    it('should persist data across service restarts', async () => {
+      const userId = 'persistUser';
+      await service.initProfile(userId);
+      await service.updateProfile(userId, { xp: 123, level: 5, avatar: 'phoenix' });
+
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [GameProfileService, TelemetryService, TelemetryAuditRepository],
+      }).compile();
+      const restartedService = module.get<GameProfileService>(GameProfileService);
+
+      const fileContent = await fs.readFile(persistenceFile, 'utf8');
+      expect(fileContent).toContain('"persistUser"');
+
+      const reloadedProfile = await restartedService.getProfile(userId);
+      expect(reloadedProfile.userId).toBe(userId);
+      expect(reloadedProfile.xp).toBe(123);
+      expect(reloadedProfile.level).toBe(5);
+      expect(reloadedProfile.avatar).toBe('phoenix');
+
+      const reloadedVillage = await restartedService.getVillageState(userId);
+      expect(reloadedVillage.totalProgress).toBeGreaterThanOrEqual(0);
+    });
+
     it('should throw for non-existent quest update and invalid side-quest claim', async () => {
       const userId = 'user11';
       await service.initProfile(userId);
       await expect(service.updateQuest(userId, 'unknown-quest', { status: 'done' })).rejects.toThrow('Quest not found');
       await expect(service.claimSideQuest(userId, 'invalid')).rejects.toThrow('Side quest not found');
     });
+
+  afterAll(async () => {
+    delete process.env.GAME_PROFILE_STORE_PATH;
+    try {
+      await fs.unlink(persistenceFile);
+    } catch {
+      // ignore
+    }
+  });
 });

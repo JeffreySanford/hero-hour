@@ -125,4 +125,20 @@ pwTest.describe('Vertical Slice Integration (Playwright)', () => {
     pwExpect(worldState).toHaveProperty('icon');
     pwExpect(worldState).toHaveProperty('progress');
   });
+
+  pwTest('maintains world-state after sequential updates', async () => {
+    const firstStateRes = await apiContext.get('/game-profile/integrationUser/world-state');
+    pwExpect(firstStateRes.status()).toBe(200);
+    const firstState = await firstStateRes.json();
+
+    const activityRes = await apiContext.post('/game-profile/integrationUser/activity', { data: { userId: 'integrationUser', activityType: 'work', intensity: 3 } });
+    pwExpect(activityRes.status()).toBe(200);
+
+    const secondStateRes = await apiContext.get('/game-profile/integrationUser/world-state');
+    pwExpect(secondStateRes.status()).toBe(200);
+    const secondState = await secondStateRes.json();
+
+    pwExpect(secondState.progress).toBeGreaterThanOrEqual(firstState.progress);
+    pwExpect(secondState.seed).not.toBe(firstState.seed);
+  });
 });

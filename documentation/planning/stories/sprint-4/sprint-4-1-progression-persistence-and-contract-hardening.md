@@ -62,8 +62,8 @@ Out of scope:
 
 ## Tasks
 
-- [ ] Inventory all currently in-memory or UI-local progression/state stores in `apps/api`, `apps/admin-console`, and `apps/mobile_flutter`.
-- [ ] Define the canonical progression entities and lifecycle boundaries:
+- [x] Inventory all currently in-memory or UI-local progression/state stores in `apps/api`, `apps/admin-console`, and `apps/mobile_flutter`.
+- [x] Define the canonical progression entities and lifecycle boundaries:
   - life profile
   - game profile
   - quests
@@ -72,7 +72,7 @@ Out of scope:
   - village state
   - telemetry event references
 - [ ] Design or implement a durable persistence strategy for these entities.
-- [ ] Refactor `apps/api` services so core progression state is not lost on restart.
+- [x] Refactor `apps/api` services so core progression state is not lost on restart.
 - [ ] Harden API contract definitions in `api-interfaces` to reflect canonical payloads and response shapes.
 - [ ] Reduce duplicated or divergent local type definitions where shared contracts already exist or should exist.
 - [ ] Add API-level validation and explicit error semantics for progression write flows.
@@ -82,8 +82,8 @@ Out of scope:
   - confirmed backend state
   - error/retry state
 - [ ] Improve offline sync behavior so queued actions reconcile cleanly once the backend is reachable again.
-- [ ] Add tests for persistence and reload scenarios.
-- [ ] Add migration/runbook documentation if local dev setup or test setup changes.
+- [x] Add tests for persistence and reload scenarios.
+- [x] Add migration/runbook documentation if local dev setup or test setup changes.
 
 ## Implementation Considerations
 
