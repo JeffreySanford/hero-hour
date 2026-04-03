@@ -1,0 +1,9 @@
+<div class="app-loading">
+  <div class="app-loading__icon" aria-hidden="true">⚒️</div>
+  <h1>HeroHour</h1>
+  <p>{{ stages[activeStage] }}</p>
+  <div class="app-loading__bar" role="progressbar" [attr.aria-valuenow]="progress" aria-valuemin="0" aria-valuemax="100">
+    <div class="app-loading__fill" [style.width.%]="progress"></div>
+  </div>
+  <button class="hero-btn hero-btn-tertiary" (click)="skip()" type="button">Continue</button>
+</div>

@@ -70,34 +70,34 @@ Out of scope:
 
 ## Tasks
 
-- [ ] Define the narrative arc of the Flutter loading prologue:
+- [x] Define the narrative arc of the Flutter loading prologue:
   - time begins
   - grid activates
   - tasks/checkmarks appear
   - world seed or forge emblem ignites
   - app shell resolves into usable state
-- [ ] Create visual design references for the sequence using the existing HeroHour palette and dashboard motifs.
-- [ ] Decide whether the sequence is:
+- [x] Create visual design references for the sequence using the existing HeroHour palette and dashboard motifs.
+- [x] Decide whether the sequence is:
   - a cold-start only intro
   - a conditional loader while required app state initializes
   - both, with shortened warm-start behavior
-- [ ] Implement the Flutter intro/loading container as part of the app entry path in `apps/mobile_flutter/lib/main.dart` or extracted widgets.
-- [ ] Create smooth transition logic from prologue into:
+- [x] Implement the Flutter intro/loading container as part of the app entry path in `apps/mobile_flutter/lib/main.dart` or extracted widgets.
+- [x] Create smooth transition logic from prologue into:
   - login screen when unauthenticated
   - dashboard when authenticated
-- [ ] Add logic so the intro can shorten or finish early when initialization completes quickly.
-- [ ] Add safeguards so the intro does not artificially prolong startup if required data is already available.
-- [ ] Add reduced-motion fallback:
+- [x] Add logic so the intro can shorten or finish early when initialization completes quickly.
+- [x] Add safeguards so the intro does not artificially prolong startup if required data is already available.
+- [x] Add reduced-motion fallback:
   - static or lightly animated brand state
   - no cinematic sequence
-- [ ] Add failure/slow-start behavior so a stuck network or backend does not trap the user in a perpetual animation.
-- [ ] Add test coverage for entry flow states:
+- [x] Add failure/slow-start behavior so a stuck network or backend does not trap the user in a perpetual animation.
+- [x] Add test coverage for entry flow states:
   - cold start
   - warm start
   - reduced motion
   - slow initialization
   - failure fallback
-- [ ] Document a lighter Angular equivalent recommendation for future parity:
+- [x] Document a lighter Angular equivalent recommendation for future parity:
   - branded loading card
   - brief progress shimmer
   - no full cinematic dependency

@@ -1,0 +1,41 @@
+.app-loading {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #07111f 0%, #0f1728 55%, #17253d 100%);
+  color: #f8fafc;
+  text-align: center;
+}
+
+.app-loading__icon {
+  font-size: 64px;
+  margin-bottom: 10px;
+  animation: pulse 1300ms infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+.app-loading__bar {
+  width: 80%;
+  max-width: 420px;
+  height: 10px;
+  background: #2a3f57;
+  border-radius: 99px;
+  margin: 18px auto;
+  overflow: hidden;
+}
+
+.app-loading__fill {
+  background: linear-gradient(90deg, #fbbf24, #22d3ee);
+  height: 100%;
+  transition: width 280ms ease;
+}
+
+button.hero-btn.hero-btn-tertiary {
+  margin-top: 12px;
+}

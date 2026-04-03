@@ -78,11 +78,27 @@ Stories:
 Benefit Hypothesis: If progression and challenge events are captured and exposed, future analytics and admin dashboards will be possible and trustworthy.
  Acceptance Criteria:
 
-[ ] progression and challenge events are emitted and persisted
-[ ] admin-facing telemetry contracts exist
-[ ] core progression events are test-covered and documented
+[x] progression and challenge events are emitted and persisted
+[x] admin-facing telemetry contracts exist
+[x] core progression events are test-covered and documented
 Stories:
 
 - As an operator, I want challenge participation and achievement penetration captured so that I can analyze long-term engagement later.
 - As an operator, I want village growth and companion progression events emitted so that future analytics are possible.
 - As an operator, I want progression milestones logged consistently so that later dashboards can trust the data.
+
+### Feature 3.7 – Prologue/Loading UX + World Seed State Convergence
+
+Benefit Hypothesis: If users see a branded loading progression and then immediately observe real-time world-seed updates based on tasks, they’ll feel system feedback is direct and reliable.
+ Acceptance Criteria:
+
+[ ] splash/prologue loader exists for Angular and Flutter with stage progression (time, grid, task check, world activation)
+[ ] auto-redirect from splash to login/dashboard is reliable and test-covered (including reduced-motion fallback)
+[ ] world seed state updates in dashboard on task/side-quest completion and activity logging
+[ ] world seed state persists and is reloaded after navigation or app restart
+Stories:
+
+- As a user, I want a branded startup prologue that shows progress stages so that HeroHour feels like an “activation experience” rather than a generic spinner.
+- As a user, I want my world seed value to increase when I complete quests or log activity so that I can link progress actions to immediate world-state growth.
+- As a product manager, I want both load UX and world seed state updates to be covered in end-to-end tests so the system feels stable and deterministic.
+

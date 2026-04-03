@@ -26,6 +26,7 @@
     "test:ci:life-profile": "pnpm run test:ci:contract && pnpm exec nx e2e admin-console-e2e --verbose",
     "test:ci:flutter": "npm run test:mobile && npm run test:mobile:integration",
     "ci:smoke": "pnpm run test:ci:life-profile && pnpm run lint:all",
+    "ci:prologue-world-seed": "pnpm nx e2e admin-console-e2e -- --grep \"world seed updates after activity\" --project=chromium",
     "ci:post-deploy-contract": "pnpm run test:ci:life-profile && pnpm exec nx e2e api-e2e --verbose",
     "ci:contract-schema": "pnpm exec nx test api-interfaces"
   },

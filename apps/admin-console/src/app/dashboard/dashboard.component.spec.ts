@@ -106,6 +106,15 @@ describe('DashboardComponent', () => {
     expect(localStorage.getItem('hero-hour-selected-activity')).toBe('work');
   });
 
+  it('should update world state when logActivity is called', () => {
+    questService.logActivity = () => of({ seed: 21, color: 'gold', icon: '🌟', progress: 35 });
+
+    component.logActivity('exercise');
+
+    expect(component.worldState.seed).toBe(21);
+    expect(component.worldState.progress).toBe(35);
+  });
+
   it('should load side quests and claim one', () => {
     component.loadSideQuests();
     fixture.detectChanges();

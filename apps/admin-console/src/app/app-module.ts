@@ -13,6 +13,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { LifeProfileComponent } from './life-profile/life-profile.component';
 import { GrowthMapComponent } from './growth-map/growth-map.component';
 import { LoginComponent } from './auth/login.component';
+import { AppLoadingComponent } from './app-loading.component';
 import { HeaderModule } from './layout/header/header.module';
 import { FooterModule } from './layout/footer/footer.module';
 import { DailyGridComponent } from './dashboard/daily-grid.component';
@@ -23,6 +24,7 @@ import { AuthEffects } from './store/auth/auth.effects';
 @NgModule({
   declarations: [App, DashboardComponent, LifeProfileComponent, GrowthMapComponent, LoginComponent],
   imports: [
+    AppLoadingComponent,
     BrowserModule,
     CommonModule,
     RouterModule.forRoot(appRoutes),
