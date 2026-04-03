@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2020",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": [
+    "index.d.ts",
+    "index.test-d.ts",
+    "api-interfaces/src/lib/**",
+    "api-interfaces/test/**"
+  ],
+  "testFiles": ["index.test-d.ts"]
+}

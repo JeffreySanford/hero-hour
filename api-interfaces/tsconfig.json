@@ -13,7 +13,12 @@
     "noPropertyAccessFromIndexSignature": true
   },
   "files": [],
-  "include": [],
+  "include": [
+    "src/lib/**/*.ts",
+    "test/**/*.test-d.ts",
+    "index.d.ts",
+    "index.test-d.ts"
+  ],
   "references": [
     {
       "path": "./tsconfig.lib.json"

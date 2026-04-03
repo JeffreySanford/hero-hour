@@ -71,9 +71,9 @@ Out of scope:
   - world state
   - village state
   - telemetry event references
-- [ ] Design or implement a durable persistence strategy for these entities.
+- [x] Design or implement a durable persistence strategy for these entities.
 - [x] Refactor `apps/api` services so core progression state is not lost on restart.
-- [ ] Harden API contract definitions in `api-interfaces` to reflect canonical payloads and response shapes.
+- [x] Harden API contract definitions in `api-interfaces` to reflect canonical payloads and response shapes.
 - [ ] Reduce duplicated or divergent local type definitions where shared contracts already exist or should exist.
 - [ ] Add API-level validation and explicit error semantics for progression write flows.
 - [ ] Update Angular services to align with durable backend truth rather than relying on local assumptions.
@@ -126,6 +126,20 @@ Out of scope:
 - Contract validation must fail fast for malformed payloads.
 - Durability changes must be covered by automated tests for restart/reload scenarios.
 - The solution must be maintainable enough to support future challenge, achievement, and analytics features.
+
+## Dev/CI config: `GAME_PROFILE_STORE_PATH`
+
+To run local and CI persistence tests reliably, set a dedicated file path that survives process restarts and does not conflict with other runs:
+
+- key env var: `GAME_PROFILE_STORE_PATH`
+- example local command:
+  - `GAME_PROFILE_STORE_PATH=$PWD/tmp/api-profile-store.json pnpm nx serve api`
+- test command (non-watch):
+  - `GAME_PROFILE_STORE_PATH=$PWD/tmp/api-profile-store.json pnpm nx test api --runInBand`
+- e2e regression command (repeatable):
+  - `GAME_PROFILE_STORE_PATH=$PWD/tmp/api-profile-store.json pnpm nx run api-e2e:e2e --verbose --runInBand`
+
+Ensure the same path is shared across restart cycles in regression harness text, and cleanup `tmp/api-profile-store.json` before/after each test.
 
 ## Exit Strategy
 
