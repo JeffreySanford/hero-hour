@@ -126,6 +126,12 @@ describe('GameProfileService', () => {
       expect(updatedQuest.progress).toBe(30);
       expect(updatedQuest.status).toBe('in-progress');
 
+      const worldBefore = await service.getWorldState(userId);
+      await service.updateQuest(userId, quest.id, { progress: 100, status: 'complete' });
+      const worldAfter = await service.getWorldState(userId);
+      expect(worldAfter.progress).toBeGreaterThanOrEqual(worldBefore.progress);
+      expect(worldAfter.seed).toBeGreaterThan(worldBefore.seed);
+
       const worldState = await service.logActivity(userId, 'exercise', 2);
       expect(worldState).toHaveProperty('seed');
       expect(worldState).toHaveProperty('progress');

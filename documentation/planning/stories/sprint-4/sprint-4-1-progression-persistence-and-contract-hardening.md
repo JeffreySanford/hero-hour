@@ -141,6 +141,16 @@ To run local and CI persistence tests reliably, set a dedicated file path that s
 
 Ensure the same path is shared across restart cycles in regression harness text, and cleanup `tmp/api-profile-store.json` before/after each test.
 
+## API-Interfaces compile-time type check
+
+- Added `api-interfaces/test/api-interfaces.contract.test-d.ts` (tsd-style contract fixture).
+- Added `api-interfaces/tsd.json` + `api-interfaces/index.d.ts` + `api-interfaces/index.test-d.ts`.
+- Because `tsd` is sensitive to workspace `type`/TS config state inside `api-interfaces`, the robust local check is:
+  - `cd api-interfaces && npx tsc --noEmit -p tsconfig.spec.json`
+- Root scripts:
+  - `test:contract-types`: `cd api-interfaces && npx tsc --noEmit -p tsconfig.spec.json`
+  - `test:tsd`: `cd api-interfaces && tsd --config tsd.json` (attempted config, functional with `tsd` once path table can include the file list).
+
 ## Exit Strategy
 
 - Demonstrate restart-safe persistence for life profile and game profile.

@@ -11,6 +11,10 @@
     "jest.config.cts",
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "src/**/*.ts",
+    "../index.d.ts",
+    "../index.test-d.ts",
+    "../test/**/*.test-d.ts"
   ]
 }

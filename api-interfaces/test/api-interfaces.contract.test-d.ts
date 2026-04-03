@@ -1,3 +1,4 @@
+import { expectType, expectAssignable } from 'tsd';
 import type {
   GameProfile,
   Quest,
@@ -65,11 +66,6 @@ const village: VillageState = {
 expectType<VillageState>(village);
 
 // Enum-like type values
-const area: LifeArea = 'health';
-const questStatus: QuestStatus = 'complete';
-const sideQuestType: SideQuestType = 'quick-win';
-import { expectAssignable } from 'tsd';
-
-expectAssignable<LifeArea>(area);
-expectAssignable<QuestStatus>(questStatus);
-expectAssignable<SideQuestType>(sideQuestType);
+expectAssignable<LifeArea>('health');
+expectAssignable<QuestStatus>('complete');
+expectAssignable<SideQuestType>('quick-win');

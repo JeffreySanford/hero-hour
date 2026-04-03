@@ -239,6 +239,11 @@ export class GameProfileService {
           },
         } as TelemetryEventPayload,
       });
+
+      const world = await this.getWorldState(userId);
+      world.seed += 10;
+      world.progress = Math.min(100, world.progress + 10);
+      this.worldStates.set(userId, world);
     }
 
     await this.saveState();

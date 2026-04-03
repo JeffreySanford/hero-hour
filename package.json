@@ -29,7 +29,8 @@
     "ci:prologue-world-seed": "pnpm nx e2e admin-console-e2e -- --grep \"world seed updates after activity\" --project=chromium",
     "ci:post-deploy-contract": "pnpm run test:ci:life-profile && pnpm exec nx e2e api-e2e --verbose",
     "test:tsd": "cd api-interfaces && tsd --config tsd.json",
-    "ci:contract-schema": "pnpm exec nx test api-interfaces && pnpm run test:tsd"
+    "test:contract-types": "cd api-interfaces && npx tsc --noEmit -p tsconfig.spec.json",
+    "ci:contract-schema": "pnpm exec nx test api-interfaces && pnpm run test:contract-types"
   },
   "private": true,
   "devDependencies": {

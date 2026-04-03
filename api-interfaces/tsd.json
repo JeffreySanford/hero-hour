@@ -1,16 +1,5 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2020",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "types": ["node"]
-  },
-  "include": [
-    "src/lib/**/*.ts",
-    "test/**/*.test-d.ts",
-    "index.d.ts"
-  ],
-  "exclude": ["dist", "node_modules"]
+  "project": "./tsconfig.spec.json",
+  "testFiles": ["index.test-d.ts"]
 }
+
