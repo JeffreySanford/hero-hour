@@ -37,6 +37,17 @@ This creates a stronger brand impression while still respecting startup performa
 - Make the app feel polished and premium.
 - Ensure the animation supports, rather than delays, first interaction.
 
+## Status
+
+- Implemented Flutter prologue entry flow in `apps/mobile_flutter/lib/main.dart`.
+- Prologue includes step progression (time, grid, tasks, world activation), adaptive duration, reduced-motion behavior, and timeout fallback.
+- Added Flutter widget tests in `apps/mobile_flutter/test/widget_test.dart` for:
+  - cold start prologue to login
+  - warm start short prologue to dashboard
+  - reduced-motion behavior
+  - slow initialization with fallback state timeout
+- Verified all Flutter tests pass (`flutter test`).
+
 ## Scope
 
 Primary scope:

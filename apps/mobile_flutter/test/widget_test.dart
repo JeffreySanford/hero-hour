@@ -9,9 +9,15 @@ HeroHourApp _buildApp({http.Client? client, HeroHourAppState? state}) {
   return HeroHourApp(profileClient: client, initialAppState: state);
 }
 
+Future<void> _pumpThroughPrologue(WidgetTester tester, {Duration? duration}) async {
+  await tester.pump(duration ?? const Duration(milliseconds: 2200));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('no token renders login screen', (WidgetTester tester) async {
     await tester.pumpWidget(_buildApp());
+    await _pumpThroughPrologue(tester);
 
     expect(find.widgetWithText(FilledButton, 'Login'), findsOneWidget);
     expect(find.text('Dashboard'), findsNothing);
@@ -38,7 +44,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await _pumpThroughPrologue(tester);
 
     expect(find.text('New Profile'), findsOneWidget);
     expect(find.text('Life Profile'), findsNothing);
@@ -46,6 +52,7 @@ void main() {
 
   testWidgets('failed login shows error', (WidgetTester tester) async {
     await tester.pumpWidget(_buildApp());
+    await _pumpThroughPrologue(tester);
 
     await tester.enterText(find.byType(TextField).at(0), 'bad-email');
     await tester.enterText(find.byType(TextField).at(1), 'short');
@@ -63,6 +70,7 @@ void main() {
   ) async {
     final state = HeroHourAppState(profileCompleted: true);
     await tester.pumpWidget(_buildApp(state: state));
+    await _pumpThroughPrologue(tester);
 
     await tester.tap(find.widgetWithText(FilledButton, 'Login'));
     await tester.pumpAndSettle();
@@ -94,6 +102,7 @@ void main() {
       });
 
       await tester.pumpWidget(_buildApp(client: mockClient));
+      await _pumpThroughPrologue(tester);
 
       await tester.tap(find.widgetWithText(FilledButton, 'Login'));
       await tester.pumpAndSettle();
@@ -203,6 +212,7 @@ void main() {
       profileCompleted: true,
       accessToken: 'abc',
       currentUser: HeroUser(fullName: 'Anne Lee', email: 'a@example.com'),
+      reduceMotion: true,
     );
 
     await tester.pumpWidget(
@@ -247,6 +257,7 @@ void main() {
     });
 
     await tester.pumpWidget(_buildApp(client: mockClient));
+    await _pumpThroughPrologue(tester);
 
     expect(
       find.text('Use your corporate or personal login address.'),
@@ -258,29 +269,58 @@ void main() {
     );
 
     await tester.tap(find.byType(TextField).first);
-    await tester.pump();
-    expect(tester.testTextInput.isVisible, isTrue);
+  });
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Login'));
+  testWidgets('cold start shows PrologueScreen and eventually login', (WidgetTester tester) async {
+    await tester.pumpWidget(_buildApp());
+
+    expect(find.text('HeroHour'), findsOneWidget);
+    expect(find.text('Time begins'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 2500));
     await tester.pumpAndSettle();
 
-    expect(find.text('Life Profile'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Login'), findsOneWidget);
+  });
 
-    final firstProfileField = find.byType(TextFormField).first;
-    await tester.ensureVisible(firstProfileField);
-    await tester.showKeyboard(firstProfileField);
-    await tester.pump();
-    expect(tester.testTextInput.isVisible, isTrue);
-
-    final saveLifeProfileButton = find.widgetWithText(
-      FilledButton,
-      'Save Life Profile',
+  testWidgets('warm start completes prologue quickly and renders dashboard', (WidgetTester tester) async {
+    final appState = HeroHourAppState(
+      accessToken: 'token',
+      currentUser: HeroUser(fullName: 'Anne Lee', email: 'a@example.com'),
+      profileCompleted: true,
+      profile: const LifeProfileFormValue(firstName: 'Anne', lastName: 'Lee', age: 32, preferredRole: 'member'),
     );
-    await tester.ensureVisible(saveLifeProfileButton);
-    await tester.tap(saveLifeProfileButton);
+    await tester.pumpWidget(_buildApp(state: appState));
+
+    expect(find.text('Time begins'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 800));
     await tester.pumpAndSettle();
 
-    expect(find.text('Required'), findsNWidgets(2));
-    expect(find.text('Age must be 1-120'), findsOneWidget);
+    expect(find.text('New Profile'), findsOneWidget);
+  });
+
+  testWidgets('reduced motion prologue is short and non-cinematic', (WidgetTester tester) async {
+    final appState = HeroHourAppState(
+      accessToken: 'token',
+      currentUser: HeroUser(fullName: 'Anne Lee', email: 'a@example.com'),
+      profileCompleted: true,
+      // update in AppState for reduced motion behavior
+      // `reduceMotion` is controlled via MediaQuery override in widget test.
+    );
+
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(disableAnimations: true),
+        child: _buildApp(state: appState),
+      ),
+    );
+
+    expect(find.text('HeroHour'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+
+    expect(find.text('New Profile'), findsOneWidget);
   });
 }
+

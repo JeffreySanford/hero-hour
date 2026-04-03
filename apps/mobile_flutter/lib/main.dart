@@ -53,15 +53,122 @@ class _HeroHourAppState extends State<HeroHourApp> {
             themeMode: _appState.darkMode ? ThemeMode.dark : ThemeMode.light,
             theme: _buildTheme(Brightness.light),
             darkTheme: _buildTheme(Brightness.dark),
-            home: _appState.isAuthenticated
-                ? HeroShell(profileClient: widget.profileClient)
-                : LoginScreen(profileClient: widget.profileClient),
+            home: _appState.prologueComplete
+        ? (_appState.isAuthenticated
+            ? HeroShell(profileClient: widget.profileClient)
+            : LoginScreen(profileClient: widget.profileClient))
+        : PrologueScreen(appState: _appState),
           ),
         );
       },
     );
   }
 }
+
+class PrologueScreen extends StatefulWidget {
+  const PrologueScreen({super.key, required this.appState});
+
+  final HeroHourAppState appState;
+
+  @override
+  State<PrologueScreen> createState() => _PrologueScreenState();
+}
+
+class _PrologueScreenState extends State<PrologueScreen> {
+  late final Duration _duration;
+  int _step = 0;
+  Timer? _progressTimer;
+  Timer? _fallbackTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _duration = widget.appState.prologueDuration;
+    final stepDuration = Duration(milliseconds: (_duration.inMilliseconds / 4).ceil());
+
+    _progressTimer = Timer.periodic(stepDuration, (timer) {
+      if (!mounted) return;
+      if (_step >= 3) {
+        timer.cancel();
+      }
+      setState(() => _step = (_step + 1).clamp(0, 4));
+    });
+
+    Timer(_duration, _completePrologue);
+
+    _fallbackTimer = Timer(const Duration(seconds: 8), () {
+      if (!widget.appState.prologueComplete) {
+        widget.appState.completePrologue();
+      }
+    });
+  }
+
+  void _completePrologue() {
+    if (!widget.appState.prologueComplete) {
+      widget.appState.completePrologue();
+    }
+  }
+
+  @override
+  void dispose() {
+    _progressTimer?.cancel();
+    _fallbackTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final shouldReduce = MediaQuery.of(context).disableAnimations;
+    if (widget.appState.reduceMotion != shouldReduce) {
+      widget.appState.reduceMotion = shouldReduce;
+    }
+
+    final steps = ['Time begins', 'Grid activates', 'Tasks check', 'World ignites', 'Ready'];
+    final activeStep = _step.clamp(0, steps.length - 1);
+
+    final progress = (activeStep + 1) / steps.length;
+
+    return Scaffold(
+      backgroundColor: _ink,
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.currency_bitcoin, size: 80, color: _gold),
+              const SizedBox(height: 18),
+              Text(
+                'HeroHour',
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(color: _gold),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                steps[activeStep],
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: _bodyText),
+              ),
+              const SizedBox(height: 22),
+              LinearProgressIndicator(
+                value: progress,
+                color: _teal,
+                backgroundColor: _steel,
+                minHeight: widget.appState.reduceMotion ? 4 : 8,
+              ),
+              const SizedBox(height: 16),
+              if (_fallbackTimer != null && _fallbackTimer!.isActive)
+                const Text('Loading...', style: TextStyle(color: Colors.white70)),
+              if (_fallbackTimer != null && !_fallbackTimer!.isActive)
+                TextButton(
+                  onPressed: _completePrologue,
+                  child: const Text('Continue', style: TextStyle(color: _gold)),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
 ThemeData _buildTheme(Brightness brightness) {
   final isDark = brightness == Brightness.dark;
@@ -267,6 +374,7 @@ class HeroHourAppState extends ChangeNotifier {
     this.apiStatus = 'ok',
     this.hasApiError = false,
     this.queueCount = 2,
+    this.reduceMotion = false,
     WorldState? worldState,
     List<QuestItem>? quests,
     List<SideQuestItem>? sideQuests,
@@ -351,6 +459,19 @@ class HeroHourAppState extends ChangeNotifier {
   final List<QuestItem> quests;
   final List<SideQuestItem> sideQuests;
   LifeProfileFormValue profile;
+
+  bool prologueComplete = false;
+
+  Duration get prologueDuration {
+    if (reduceMotion) return const Duration(milliseconds: 350);
+    if (isAuthenticated && profileCompleted) return const Duration(milliseconds: 600);
+    return const Duration(milliseconds: 1800);
+  }
+
+  void completePrologue() {
+    prologueComplete = true;
+    notifyListeners();
+  }
 
   bool get isAuthenticated => accessToken != null && accessToken!.isNotEmpty;
 
