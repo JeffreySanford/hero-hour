@@ -16,6 +16,9 @@ import { LifeProfileService } from './life-profile/life-profile.service';
 import { LifeProfileController } from './life-profile/life-profile.controller';
 import { GameProfileService } from './game-profile/game-profile.service';
 import { GameProfileController } from './game-profile/game-profile.controller';
+import { TelemetryService } from './telemetry/telemetry.service';
+import { TelemetryController } from './telemetry/telemetry.controller';
+import { TelemetryAuditRepository } from '@org/domain';
 import { JwtGuard } from './auth/jwt.guard';
 
 @Module({
@@ -33,6 +36,7 @@ import { JwtGuard } from './auth/jwt.guard';
     OnboardingController,
     LifeProfileController,
     GameProfileController,
+    TelemetryController,
   ],
   providers: [
     AppService,
@@ -41,6 +45,8 @@ import { JwtGuard } from './auth/jwt.guard';
     OnboardingService,
     LifeProfileService,
     GameProfileService,
+    TelemetryService,
+    TelemetryAuditRepository,
     JwtGuard,
   ],
 })

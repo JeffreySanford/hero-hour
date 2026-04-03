@@ -31,6 +31,14 @@
 3. Runs `pnpm run docker:ensure-teklif` for service status and readiness key seeding.
 4. On misconfiguration, health failure, or timeout -> exit 1 immediately and stop the job (bazel-style fail-fast).
 
+## Auth/Health/Life-profile contract validation
+
+- `apps/api` unit tests cover `POST /auth/login` and `GET /health` their shared contract shapes from `@org/api-interfaces`.
+- `apps/api-e2e` includes contract checks for `auth/login` and `health`, plus three consecutive health status checks.
+- `apps/admin-console-e2e` verifies end-to-end login/dash/health/life-profile contract flows in a single smoke path.
+- `api-interfaces` has Ajv runtime JSON schema checks for `LoginResponse` and `HealthResponse`.
+- CI adds post-deploy contract checkpoint job in `.github/workflows/ci.yml` via `pnpm run ci:post-deploy-contract`.
+
 ## Quick dev loop
 
 1. Start backend and frontend in parallel:

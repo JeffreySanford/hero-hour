@@ -117,6 +117,114 @@ void main() {
     },
   );
 
+  test('claiming a side quest updates app state and world progress', () {
+    final appState = HeroHourAppState();
+
+    final beforeProgress = appState.worldState.progress;
+    expect(appState.sideQuests.first.completed, isFalse);
+
+    appState.claimSideQuest('recover');
+
+    expect(appState.sideQuests.first.completed, isTrue);
+    expect(appState.worldState.progress, equals((beforeProgress + 8).clamp(0, 100)));
+  });
+
+  test('animate completion pins and clears status with a small delay', () async {
+    final appState = HeroHourAppState();
+    final questId = appState.quests.first.id;
+    final sideQuestId = appState.sideQuests.first.id;
+
+    appState.activateCompletionAnimation(
+      questId: questId,
+      sideQuestId: sideQuestId,
+      duration: const Duration(milliseconds: 50),
+    );
+
+    expect(appState.recentlyCompletedQuestId, questId);
+    expect(appState.recentlyClaimedSideQuestId, sideQuestId);
+
+    await Future.delayed(const Duration(milliseconds: 70));
+
+    expect(appState.recentlyCompletedQuestId, isNull);
+    expect(appState.recentlyClaimedSideQuestId, isNull);
+  });
+
+  test('activation resets overlapping animation timers when invoked rapidly', () async {
+    final appState = HeroHourAppState();
+
+    appState.activateCompletionAnimation(
+      questId: appState.quests.first.id,
+      duration: const Duration(milliseconds: 500),
+    );
+    appState.activateCompletionAnimation(
+      questId: appState.quests.last.id,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    expect(appState.recentlyCompletedQuestId, appState.quests.last.id);
+
+    await Future.delayed(const Duration(milliseconds: 550));
+    expect(appState.recentlyCompletedQuestId, isNull);
+  });
+
+  test('triple activation uses last trigger and clears previous', () async {
+    final appState = HeroHourAppState();
+
+    appState.activateCompletionAnimation(questId: 'q1', duration: const Duration(milliseconds: 400));
+    appState.activateCompletionAnimation(questId: 'q2', duration: const Duration(milliseconds: 400));
+    appState.activateCompletionAnimation(questId: 'q3', duration: const Duration(milliseconds: 400));
+
+    expect(appState.recentlyCompletedQuestId, 'q3');
+
+    await Future.delayed(const Duration(milliseconds: 399));
+    expect(appState.recentlyCompletedQuestId, 'q3');
+
+    await Future.delayed(const Duration(milliseconds: 1));
+    expect(appState.recentlyCompletedQuestId, isNull);
+  });
+
+  test('reduced motion mode uses shortened animation timing', () async {
+    final appState = HeroHourAppState();
+    appState.reduceMotion = true;
+
+    appState.activateCompletionAnimation(
+      questId: appState.quests.first.id,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    await Future.delayed(const Duration(milliseconds: 550));
+    expect(appState.recentlyCompletedQuestId, isNull);
+  });
+
+  testWidgets('reduced motion disables heavy quest scale transitions', (
+    WidgetTester tester,
+  ) async {
+    final appState = HeroHourAppState(
+      profileCompleted: true,
+      accessToken: 'abc',
+      currentUser: HeroUser(fullName: 'Anne Lee', email: 'a@example.com'),
+    );
+
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(disableAnimations: true),
+        child: _buildApp(state: appState),
+      ),
+    );
+
+    await tester.pump();
+
+    expect(appState.reduceMotion, isTrue);
+
+    // If reduced motion is enabled, completion animation timing should be brief and not use heavy transforms.
+    appState.activateCompletionAnimation(
+      questId: appState.quests.first.id,
+      duration: const Duration(milliseconds: 1000),
+    );
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(appState.recentlyCompletedQuestId, isNull);
+  });
+
   testWidgets('helper text and form validation hints are visible', (
     WidgetTester tester,
   ) async {

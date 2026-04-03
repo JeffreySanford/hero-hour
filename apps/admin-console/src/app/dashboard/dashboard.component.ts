@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HealthService } from '../services/health.service';
-import type { HealthResponse } from '@org/api-interfaces';
+import type { HealthResponse, TelemetryEvent } from '@org/api-interfaces';
 import { QuestService, Quest, LifeArea, WorldState, SideQuest } from '../services/quest.service';
 import { OfflineService } from '../services/offline.service';
 import { AuthService } from '../services/auth.service';
+import { TelemetryService } from '../services/telemetry.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -12,7 +13,7 @@ import { Router } from '@angular/router';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   status?: string;
   error = false;
   readonly userId = 'demo-user';
@@ -26,6 +27,42 @@ export class DashboardComponent implements OnInit {
   worldState: WorldState = { seed: 0, color: 'gray', icon: '⏳', progress: 0 };
   selectedActivity = localStorage.getItem('hero-hour-selected-activity') || '';
   darkMode = false;
+  telemetryEvents: TelemetryEvent[] = [];
+  isLoadingTelemetry = true;
+  recentlyCompletedQuestId: string | null = null;
+  recentlyClaimedSideQuestId: string | null = null;
+  isReducedMotion = false;
+  private completionAnimationTimer: ReturnType<typeof setTimeout> | null = null;
+  private reducedMotionMediaQuery: MediaQueryList | null = null;
+
+  // Central animation trigger for completion/claim states. This helper keeps timing logic in one place
+  // and allows tests to assert animation state without needing to duplicate timeout cleanup logic.
+  activateCompletionAnimation(questId?: string, sideQuestId?: string, timeout = 1600): void {
+    if (this.completionAnimationTimer) {
+      clearTimeout(this.completionAnimationTimer);
+      this.completionAnimationTimer = null;
+    }
+
+    if (questId) {
+      this.recentlyCompletedQuestId = questId;
+    }
+    if (sideQuestId) {
+      this.recentlyClaimedSideQuestId = sideQuestId;
+    }
+
+    const effectiveTimeout = this.isReducedMotion ? 300 : timeout;
+
+    this.completionAnimationTimer = setTimeout(() => {
+      if (questId) {
+        this.recentlyCompletedQuestId = null;
+      }
+      if (sideQuestId) {
+        this.recentlyClaimedSideQuestId = null;
+      }
+      this.completionAnimationTimer = null;
+    }, effectiveTimeout);
+  }
+
   availableQuestSuggestions = [
     { title: 'Prepare quarterly roadmap', lifeArea: 'career' },
     { title: 'Run cross-team design review', lifeArea: 'career' },
@@ -48,6 +85,7 @@ export class DashboardComponent implements OnInit {
     private readonly questService: QuestService,
     private readonly offlineService: OfflineService,
     private readonly authService: AuthService,
+    private readonly telemetryService: TelemetryService,
     private readonly router: Router
   ) {}
 
@@ -61,10 +99,34 @@ export class DashboardComponent implements OnInit {
     this.loadQuests();
     this.loadSideQuests();
     this.loadWorldState();
+    this.loadTelemetryEvents();
 
     this.offlineStatus = this.offlineService.getStatus();
     this.offlineService.online$.subscribe(() => (this.offlineStatus = this.offlineService.getStatus()));
     this.offlineService.syncing$.subscribe(() => (this.offlineStatus = this.offlineService.getStatus()));
+
+    const matchMedia = (typeof window !== 'undefined' ? (window as any).matchMedia : null);
+    if (matchMedia) {
+      this.reducedMotionMediaQuery = (window as any).matchMedia('(prefers-reduced-motion: reduce)');
+      this.isReducedMotion = this.reducedMotionMediaQuery!.matches;
+      this.reducedMotionMediaQuery!.addEventListener('change', this.handleReducedMotionChange);
+    } else {
+      this.isReducedMotion = false;
+    }
+  }
+
+  private handleReducedMotionChange = (event: MediaQueryListEvent): void => {
+    this.isReducedMotion = event.matches;
+  };
+
+  ngOnDestroy(): void {
+    if (this.completionAnimationTimer) {
+      clearTimeout(this.completionAnimationTimer);
+      this.completionAnimationTimer = null;
+    }
+    if (this.reducedMotionMediaQuery) {
+      this.reducedMotionMediaQuery.removeEventListener('change', this.handleReducedMotionChange);
+    }
   }
 
   toggleDarkMode(): void {
@@ -166,12 +228,6 @@ export class DashboardComponent implements OnInit {
     this.newQuestArea = suggestion.lifeArea as LifeArea;
   }
 
-  claimQuest(quest: Quest): void {
-    this.questService.updateQuest(this.userId, quest.id, { status: 'complete', progress: 100 }).subscribe({
-      next: () => this.loadQuests(),
-    });
-  }
-
   loadSideQuests(): void {
     this.isLoadingSideQuests = true;
     this.questService.getSideQuests(this.userId).subscribe({
@@ -204,14 +260,42 @@ export class DashboardComponent implements OnInit {
       },
     });
   }
+  loadTelemetryEvents(): void {
+    this.isLoadingTelemetry = true;
+    this.telemetryService.getTelemetryEvents().subscribe({
+      next: (items) => {
+        this.telemetryEvents = items;
+        this.isLoadingTelemetry = false;
+      },
+      error: () => {
+        this.telemetryEvents = [];
+        this.isLoadingTelemetry = false;
+      },
+      complete: () => {
+        this.isLoadingTelemetry = false;
+      },
+    });
+  }
 
   claimSideQuest(sideQuestId: string): void {
     this.questService.claimSideQuest(this.userId, sideQuestId).subscribe({
       next: () => {
+        this.activateCompletionAnimation(undefined, sideQuestId);
         this.loadSideQuests();
         this.loadWorldState();
       },
       error: () => console.warn('Failed to claim side quest'),
+    });
+  }
+
+  claimQuest(quest: Quest): void {
+    this.questService.updateQuest(this.userId, quest.id, { status: 'complete', progress: 100 }).subscribe({
+      next: () => {
+        this.activateCompletionAnimation(quest.id, undefined);
+        this.loadQuests();
+        this.loadWorldState();
+      },
+      error: () => console.warn('Failed to complete quest'),
     });
   }
 

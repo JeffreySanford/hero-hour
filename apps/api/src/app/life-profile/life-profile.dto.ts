@@ -53,7 +53,7 @@ export class UpdateLifeRolesDto {
   userId!: string;
 
   @IsArray()
-  roles!: string[];
+  roles!: LifeRole[];
 }
 
 export class UpdateScheduleDto {

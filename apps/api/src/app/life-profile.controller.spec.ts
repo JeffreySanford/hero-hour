@@ -35,34 +35,36 @@ describe('LifeProfileController', () => {
     });
   });
 
-  it('should throw conflict on duplicate create', async () => {
+  it('should update existing profile on duplicate create via upsert', async () => {
     const dto = {
       userId: 'test-user-dup',
       firstName: 'Sam',
       lastName: 'Go',
       age: 35,
       preferredRole: 'leader',
+      roles: ['student'],
     };
 
     await controller.create(dto as any);
+    const result = await controller.create({ ...dto, age: 36 } as any);
 
-    await expect(controller.create({ ...dto, age: 36 } as any)).rejects.toThrow(ConflictException);
-    expect(service.getProfile('test-user-dup')?.age).toBe(35);
+    expect(result.age).toBe(36);
+    expect(service.getProfile('test-user-dup')?.age).toBe(36);
   });
 
-  it('should throw conflict exception when service already throws exists', async () => {
-    jest.spyOn(service, 'createProfile').mockImplementation(async () => {
-      throw new Error('already exists');
-    });
+  it('should return existing profile unchanged if request matches existing profile', async () => {
+    const dto = {
+      userId: 'conflict-user',
+      firstName: 'X',
+      lastName: 'Y',
+      age: 40,
+      preferredRole: 'member',
+    };
 
-    await expect(
-      controller.create({
-        userId: 'conflict-user',
-        firstName: 'X',
-        lastName: 'Y',
-        age: 40,
-        preferredRole: 'member',
-      } as any),
-    ).rejects.toThrow(ConflictException);
+    await controller.create(dto as any);
+    const result = await controller.create(dto as any);
+
+    expect(result.age).toBe(40);
+    expect(service.getProfile('conflict-user')?.age).toBe(40);
   });
 });

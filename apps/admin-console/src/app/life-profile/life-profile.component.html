@@ -51,5 +51,10 @@
       <div *ngIf="saved" class="success" role="status">Profile saved successfully.</div>
       <div *ngIf="error" class="error" role="alert">Failed to save profile.</div>
     </form>
+
+    <section class="growth-shell">
+      <h3>Village growth map</h3>
+      <app-growth-map [villageState]="villageState"></app-growth-map>
+    </section>
   </div>
 </section>

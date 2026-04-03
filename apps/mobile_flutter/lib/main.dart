@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -277,11 +278,13 @@ class HeroHourAppState extends ChangeNotifier {
            quests ??
            [
              QuestItem(
+               id: 'prepare-quarterly-roadmap',
                title: 'Prepare quarterly roadmap',
                lifeArea: 'career',
                progress: 70,
              ),
              QuestItem(
+               id: 'prototype-customer-onboarding',
                title: 'Prototype customer onboarding flow',
                lifeArea: 'product',
                progress: 35,
@@ -320,6 +323,12 @@ class HeroHourAppState extends ChangeNotifier {
   String offlineStatus;
   String apiStatus;
   bool hasApiError;
+
+  // Animation-tracking state for completion celebration.
+  String? recentlyCompletedQuestId;
+  String? recentlyClaimedSideQuestId;
+  bool reduceMotion = false;
+  Timer? _completionAnimationTimer;
   int queueCount;
   final WorldState worldState;
   final List<QuestSuggestion> suggestions = const [
@@ -424,20 +433,60 @@ class HeroHourAppState extends ChangeNotifier {
     }
     quests.insert(
       0,
-      QuestItem(title: cleanTitle, lifeArea: lifeArea, progress: 0),
+      QuestItem(
+        id: DateTime.now().toIso8601String(),
+        title: cleanTitle,
+        lifeArea: lifeArea,
+        progress: 0,
+      ),
     );
+    notifyListeners();
+  }
+
+  void activateCompletionAnimation({
+    String? questId,
+    String? sideQuestId,
+    Duration duration = const Duration(milliseconds: 1600),
+  }) {
+    if (_completionAnimationTimer?.isActive ?? false) {
+      _completionAnimationTimer?.cancel();
+    }
+
+    if (questId != null) {
+      recentlyCompletedQuestId = questId;
+    }
+    if (sideQuestId != null) {
+      recentlyClaimedSideQuestId = sideQuestId;
+    }
+
+    final effectiveDuration = reduceMotion
+        ? const Duration(milliseconds: 300)
+        : duration;
+
+    _completionAnimationTimer = Timer(effectiveDuration, () {
+      if (questId != null && recentlyCompletedQuestId == questId) {
+        recentlyCompletedQuestId = null;
+      }
+      if (sideQuestId != null && recentlyClaimedSideQuestId == sideQuestId) {
+        recentlyClaimedSideQuestId = null;
+      }
+      notifyListeners();
+    });
+
     notifyListeners();
   }
 
   void completeQuest(QuestItem quest) {
     quest.progress = 100;
     quest.status = 'complete';
+    activateCompletionAnimation(questId: quest.id);
     notifyListeners();
   }
 
   void claimSideQuest(String id) {
     final sideQuest = sideQuests.firstWhere((item) => item.id == id);
     sideQuest.completed = true;
+    activateCompletionAnimation(sideQuestId: sideQuest.id);
     worldState.progress = (worldState.progress + 8).clamp(0, 100);
     notifyListeners();
   }
@@ -446,6 +495,12 @@ class HeroHourAppState extends ChangeNotifier {
     profile = value;
     profileCompleted = true;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _completionAnimationTimer?.cancel();
+    super.dispose();
   }
 }
 
@@ -830,6 +885,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final appState = HeroHourScope.of(context);
     final theme = Theme.of(context);
+    final prefersReducedMotion = MediaQuery.of(context).disableAnimations;
+    final celebrationScale = prefersReducedMotion ? 1.01 : 1.03;
+    final completionAnimDuration = prefersReducedMotion ? const Duration(milliseconds: 150) : const Duration(milliseconds: 240);
+    final worldProgressDuration = prefersReducedMotion ? const Duration(milliseconds: 150) : const Duration(milliseconds: 700);
+
+    if (appState.reduceMotion != prefersReducedMotion) {
+      appState.reduceMotion = prefersReducedMotion;
+    }
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
@@ -922,16 +985,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
-                    child: LinearProgressIndicator(
-                      minHeight: 10,
-                      value: appState.worldState.progress / 100,
-                      backgroundColor: Colors.white.withValues(alpha: 0.08),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(
+                      begin: 0.0,
+                      end: appState.worldState.progress / 100,
                     ),
+                    duration: worldProgressDuration,
+                    builder: (context, value, child) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: LinearProgressIndicator(
+                              minHeight: 10,
+                              value: value,
+                              backgroundColor:
+                                  Colors.white.withValues(alpha: 0.08),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text('Progress: ${(value * 100).round()}%'),
+                        ],
+                      );
+                    },
                   ),
-                  const SizedBox(height: 8),
-                  Text('Progress: ${appState.worldState.progress}%'),
                 ],
               ),
             ),
@@ -1051,49 +1129,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       'Start by adding your first quest for life progress tracking.',
                 )
               else
-                ...appState.quests.map(
-                  (quest) => Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.04),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.08),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                quest.title,
-                                style: theme.textTheme.titleMedium,
+                ...appState.quests
+                    .map(
+                      (quest) {
+                        final isQuestAnimating =
+                            appState.recentlyCompletedQuestId == quest.id;
+                        return AnimatedScale(
+                          scale: isQuestAnimating ? celebrationScale : 1.0,
+                          duration: completionAnimDuration,
+                          curve: Curves.easeOut,
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.04),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.08),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${quest.lifeArea} • ${quest.status} • ${quest.progress}%',
-                                style: theme.textTheme.bodySmall,
-                              ),
-                            ],
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        quest.title,
+                                        style: theme.textTheme.titleMedium,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${quest.lifeArea} • ${quest.status} • ${quest.progress}%',
+                                        style: theme.textTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                quest.status == 'complete'
+                                    ? const _StatusBadge(
+                                        label: 'Completed',
+                                        tone: BadgeTone.success,
+                                      )
+                                    : FilledButton.tonal(
+                                        onPressed: () =>
+                                            appState.completeQuest(quest),
+                                        child: const Text('Complete'),
+                                      ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        quest.status == 'complete'
-                            ? const _StatusBadge(
-                                label: 'Completed',
-                                tone: BadgeTone.success,
-                              )
-                            : FilledButton.tonal(
-                                onPressed: () => appState.completeQuest(quest),
-                                child: const Text('Complete'),
-                              ),
-                      ],
-                    ),
-                  ),
-                ),
+                        );
+                      },
+                    )
+                    .toList(),
             ],
           ),
         ),
@@ -1109,51 +1200,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
               : Column(
                   children: appState.sideQuests
                       .map(
-                        (sideQuest) => Card(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          child: Container(
-                            decoration: _cardDecoration(),
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                        (sideQuest) {
+                          final isSideAnimating =
+                              appState.recentlyClaimedSideQuestId == sideQuest.id;
+                          return AnimatedScale(
+                            scale: isSideAnimating ? celebrationScale : 1.0,
+                            duration: completionAnimDuration,
+                            curve: Curves.easeOut,
+                            child: Card(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              child: Container(
+                                decoration: _cardDecoration(),
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
-                                      child: Text(
-                                        sideQuest.title,
-                                        style: theme.textTheme.titleMedium,
-                                      ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            sideQuest.title,
+                                            style: theme.textTheme.titleMedium,
+                                          ),
+                                        ),
+                                        _StatusBadge(
+                                          label: sideQuest.completed
+                                              ? 'Completed'
+                                              : 'Available',
+                                          tone: sideQuest.completed
+                                              ? BadgeTone.success
+                                              : BadgeTone.warning,
+                                        ),
+                                      ],
                                     ),
-                                    _StatusBadge(
-                                      label: sideQuest.completed
-                                          ? 'Completed'
-                                          : 'Available',
-                                      tone: sideQuest.completed
-                                          ? BadgeTone.success
-                                          : BadgeTone.warning,
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      '${sideQuest.type.toUpperCase()} • +${sideQuest.rewardXp} XP',
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: sideQuest.completed
+                                          ? const SizedBox.shrink()
+                                          : TextButton(
+                                              onPressed: () => appState
+                                                  .claimSideQuest(sideQuest.id),
+                                              child: const Text('Claim'),
+                                            ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  '${sideQuest.type.toUpperCase()} • +${sideQuest.rewardXp} XP',
-                                ),
-                                const SizedBox(height: 10),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: sideQuest.completed
-                                      ? const SizedBox.shrink()
-                                      : TextButton(
-                                          onPressed: () => appState
-                                              .claimSideQuest(sideQuest.id),
-                                          child: const Text('Claim'),
-                                        ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       )
                       .toList(),
                 ),
@@ -1990,12 +2091,14 @@ class QuestSuggestion {
 
 class QuestItem {
   QuestItem({
+    required this.id,
     required this.title,
     required this.lifeArea,
     required this.progress,
     this.status = 'pending',
   });
 
+  final String id;
   final String title;
   final String lifeArea;
   int progress;

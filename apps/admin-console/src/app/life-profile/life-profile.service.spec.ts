@@ -46,4 +46,16 @@ describe('LifeProfileService', () => {
     expect(req.request.body).toEqual(profile);
     req.flush(profile);
   });
+
+  it('should fetch village state via API', () => {
+    const userId = 'demo-user';
+    const villageState = { structures: [{ id: 's1', name: 'Campfire', lifeArea: 'fun', level: 1, progress: 10, unlocked: true }], totalProgress: 10, updatedAt: new Date().toISOString() };
+    service.getVillageState(userId).subscribe((result) => {
+      expect(result).toEqual(villageState);
+    });
+
+    const req = http.expectOne(`/api/game-profile/${encodeURIComponent(userId)}/village`);
+    expect(req.request.method).toBe('GET');
+    req.flush(villageState);
+  });
 });

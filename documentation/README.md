@@ -47,6 +47,34 @@
 4. Run full test suite (optional):
    - `pnpm nx test --all`
 
+## Release notes template + content guide
+
+When preparing an increment release, add a `documentation/release-notes.md` entry and link it from this README.
+
+### Template
+
+- **Release version**: `vYYYY.MM` (or `vX.Y`)
+- **Date**: `YYYY-MM-DD`
+- **PI**: PI2
+- **Summary**: short bullet overview of business impact
+- **New Features**:
+  - `-`
+- **Improvements**:
+  - `-`
+- **Bug fixes**:
+  - `-`
+- **Risk notes**: e.g., compatibility or migration actions
+- **Signoff**:
+  - QA: [name]
+  - PO: [name]
+  - DEV: [name]
+
+### Content guide
+
+- Prioritize narrative for stakeholders (value, safety, metrics).
+- Link to related issues/PRs and testing evidence.
+- Include runtime rollout checklist items (rollout window, feature flags, canary checks).
+
 ## How to Contribute
 
 - Branch names: `feature/<brief-name>`, `bugfix/<brief-name>`, `chore/<brief-name>`

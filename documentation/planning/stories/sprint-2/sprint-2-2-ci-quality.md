@@ -37,3 +37,4 @@ Ensure the pipeline prevents regressions by applying strict contract tests and c
 - E2E contract target runs in CI and covers `auth/login`, `health`, `life-profile` API shapes.
 - CI includes `docker-compose:teklif` readiness check, and failure in startup or health check stops the pipeline fast.
 - If any Docker check or contract assertion fails, CI marks as failed and halts further jobs (bazel-style fail-fast behavior).
+- cross-link: see `documentation/planning/epics` and `documentation/planning/features` for PI2 accountability and arch story mapping.

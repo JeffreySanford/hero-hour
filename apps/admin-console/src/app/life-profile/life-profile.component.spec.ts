@@ -3,21 +3,28 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { LifeProfileComponent } from './life-profile.component';
 import { LifeProfileService } from './life-profile.service';
+import { GrowthMapComponent } from '../growth-map/growth-map.component';
 
 describe('LifeProfileComponent', () => {
   let component: LifeProfileComponent;
   let fixture: ComponentFixture<LifeProfileComponent>;
-  let service: { save: (profile: any) => any; get?: (userId: string) => any };
+  let service: { save: (profile: any) => any; get?: (userId: string) => any; getVillageState?: (userId: string) => any };
 
   beforeEach(async () => {
     service = {
       save: () => of({ userId: 'demo-user', firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' }),
       get: () => of({ userId: 'demo-user', firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' }),
+      getVillageState: () => of({
+        villageId: 'demo-village',
+        population: 10,
+        resources: { food: 100, wood: 80, stone: 60 },
+        structures: [],
+      }),
     };
 
     await TestBed.configureTestingModule({
       imports: [ReactiveFormsModule],
-      declarations: [LifeProfileComponent],
+      declarations: [LifeProfileComponent, GrowthMapComponent],
       providers: [{ provide: LifeProfileService, useValue: service }],
     }).compileComponents();
 
@@ -44,6 +51,15 @@ describe('LifeProfileComponent', () => {
       service.get = () => of({ userId: 'demo-user', firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' });
     }
 
+    if (!service.getVillageState) {
+      service.getVillageState = () => of({
+        villageId: 'demo-village',
+        population: 10,
+        resources: { food: 100, wood: 80, stone: 60 },
+        structures: [],
+      });
+    }
+
     component.form.setValue({ firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' });
     component.onSubmit();
 
@@ -60,5 +76,26 @@ describe('LifeProfileComponent', () => {
 
     expect(component.saved).toBe(false);
     expect(component.error).toBe(true);
+  });
+
+  it('should render GrowthMapComponent when villageState is loaded', () => {
+    const villageState = {
+      structures: [{ id: 's1', name: 'Campfire', lifeArea: 'fun', level: 2, progress: 80, unlocked: true }],
+      totalProgress: 80,
+      updatedAt: new Date().toISOString(),
+    };
+
+    service.save = () => of({ userId: 'demo-user', firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' });
+    service.get = () => of({ userId: 'demo-user', firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' });
+    service.getVillageState = () => of(villageState);
+
+    component.form.setValue({ firstName: 'John', lastName: 'Doe', age: 35, preferredRole: 'leader' });
+    component.onSubmit();
+    fixture.detectChanges();
+
+    expect(component.villageState).toEqual(villageState);
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.growth-map')).not.toBeNull();
+    expect(compiled.textContent).toContain('Campfire (Level 2)');
   });
 });

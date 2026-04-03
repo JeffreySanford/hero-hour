@@ -1,15 +1,20 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { GameProfileService } from './game-profile.service';
+import { TelemetryService } from '../telemetry/telemetry.service';
+import { TelemetryAuditRepository } from '@org/domain';
 
 describe('GameProfileService', () => {
   let service: GameProfileService;
+  let telemetry: TelemetryService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GameProfileService],
+      providers: [GameProfileService, TelemetryService, TelemetryAuditRepository],
     }).compile();
     service = module.get<GameProfileService>(GameProfileService);
+    telemetry = module.get<TelemetryService>(TelemetryService);
+    telemetry.clear();
   });
 
   it('should initialize default game profile once', async () => {
@@ -56,6 +61,35 @@ describe('GameProfileService', () => {
     // Other fields remain unchanged
     expect(updated.streak).toBe(0);
   });
+
+  it('should provide village state and progress updates', async () => {
+    const userId = 'user6';
+    const initial = await service.getVillageState(userId);
+    const initialTotal = initial.totalProgress;
+    expect(initial.structures.length).toBeGreaterThan(0);
+
+    const next = await service.updateVillageProgress(userId, 's1', 70);
+    expect(next.totalProgress).toBeGreaterThan(initialTotal);
+    expect(next.structures.find((s) => s.id === 's1')?.level).toBe(1);
+
+    const final = await service.updateVillageProgress(userId, 's1', 40);
+    expect(final.structures.find((s) => s.id === 's1')?.level).toBe(2);
+  });
+
+  it('should record questCompleted and focusSessionCompleted telemetry', async () => {
+    const userId = 'user100';
+    await service.initProfile(userId);
+    const quest = await service.createQuest(userId, { title: 'Quest', lifeArea: 'fun', status: 'pending', progress: 50 });
+    await service.updateQuest(userId, quest.id, { status: 'complete', progress: 100 });
+    await service.completeFocusSession(userId, 30, 'deep-work');
+
+    const events = telemetry.list();
+    expect(events).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'questCompleted', userId }),
+      expect.objectContaining({ type: 'focusSessionCompleted', userId }),
+    ]));
+  });
+
     it('should manage quests and side-quests with world state updates', async () => {
       const userId = 'user10';
       await service.initProfile(userId);

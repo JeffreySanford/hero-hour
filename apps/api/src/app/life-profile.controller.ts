@@ -1,4 +1,4 @@
-import { Controller, Body, Get, Param, Post, Put, Patch, HttpCode, HttpStatus, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Controller, Body, Get, Param, Post, Put, Patch, HttpCode, HttpStatus, NotFoundException, BadRequestException } from '@nestjs/common';
 import { LifeProfileService } from './life-profile/life-profile.service';
 import { CreateLifeProfileDto, UpdateLifeRolesDto, UpdateScheduleDto, SaveHabitAnchorsDto } from './life-profile/life-profile.dto';
 
@@ -20,9 +20,6 @@ export class LifeProfileController {
     } catch (err: any) {
       if (err.message.includes('Missing')) {
         throw new BadRequestException(err.message);
-      }
-      if (err.message.includes('exists') || err.message.includes('already exists')) {
-        throw new ConflictException(err.message);
       }
       throw err;
     }

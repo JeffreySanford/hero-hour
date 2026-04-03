@@ -72,6 +72,35 @@
       </div>
     </article>
 
+    <article class="hero-card telemetry-card" aria-labelledby="telemetry-title" role="region">
+      <div class="hero-card__header">
+        <h3 id="telemetry-title" class="hero-card__title">Telemetry Events</h3>
+      </div>
+      <div class="hero-card__content">
+        <div *ngIf="isLoadingTelemetry" class="skeleton loading-block" role="status" aria-label="Loading telemetry events"></div>
+        <div *ngIf="!isLoadingTelemetry && telemetryEvents.length === 0" class="empty-state">No telemetry events recorded yet.</div>
+
+        <table *ngIf="!isLoadingTelemetry && telemetryEvents.length > 0" class="telemetry-table" aria-label="Telemetry event list">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>User</th>
+              <th>Created</th>
+              <th>Payload</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let event of telemetryEvents">
+              <td>{{ event.type }}</td>
+              <td>{{ event.userId }}</td>
+              <td>{{ event.createdAt | date: 'short' }}</td>
+              <td><pre>{{ event.payload | json }}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
     <article class="hero-card priority-card">
       <div class="hero-card__header">
         <h3 class="hero-card__title">Sync Status</h3>
@@ -172,7 +201,7 @@
         </div>
 
         <ul class="quest-list" *ngIf="!isLoadingQuests && quests.length > 0">
-          <li *ngFor="let quest of quests" class="quest-item">
+          <li *ngFor="let quest of quests" class="quest-item" [ngClass]="{ 'completed': quest.status === 'complete', 'animate-complete': recentlyCompletedQuestId === quest.id }">
             <div class="quest-copy">
               <strong>{{ quest.title }}</strong>
               <span>{{ quest.lifeArea }} · {{ quest.status }} · {{ quest.progress }}%</span>
@@ -196,7 +225,7 @@
         </div>
 
         <div class="side-quest-list" *ngIf="!isLoadingSideQuests && sideQuests.length > 0">
-          <div *ngFor="let side of sideQuests" class="side-quest-card" [ngClass]="{ 'completed': side.completed }" tabindex="0" aria-label="Side quest {{ side.title }}">
+          <div *ngFor="let side of sideQuests" class="side-quest-card" [ngClass]="{ 'completed': side.completed, 'animate-claimed': recentlyClaimedSideQuestId === side.id }" tabindex="0" aria-label="Side quest {{ side.title }}">
             <div class="side-quest-main">
               <h4 class="side-quest-title">{{ side.title }}</h4>
               <span class="side-quest-tag">{{ side.type }}</span>

@@ -51,6 +51,12 @@ jobs:
       - name: E2E contract gate (auth/login, health, life-profile)
         run: pnpm run test:ci:life-profile
 
+      - name: Analytics event coverage gate for admin-console-e2e
+        run: pnpm exec nx e2e admin-console-e2e
+
+      - name: Post-deploy contract checkpoint
+        run: pnpm run ci:post-deploy-contract
+
       # Prepend any command with "nx record --" to record its logs to Nx Cloud
       - run: npx nx record -- npx nx format:check  --base="remotes/origin/main"
       - run: npx nx run-many -t lint test build typecheck e2e-ci

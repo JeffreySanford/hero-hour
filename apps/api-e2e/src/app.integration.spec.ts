@@ -70,6 +70,42 @@ pwTest.describe('Vertical Slice Integration (Playwright)', () => {
     pwExpect(resBody).toHaveProperty('displayName');
   });
 
+  pwTest('contract-check /auth/login and /health responses', async () => {
+    const loginRes = await apiContext.post('/auth/login', {
+      data: { email: 'integration@example.com', password: 'Test1234!' },
+    });
+    pwExpect(loginRes.status()).toBe(200);
+    const loginBody = await loginRes.json();
+    pwExpect(loginBody).toMatchObject({ accessToken: expect.any(String), refreshToken: expect.any(String) });
+
+    const healthRes = await apiContext.get('/health');
+    pwExpect(healthRes.status()).toBe(200);
+    const healthBody = await healthRes.json();
+    pwExpect(healthBody).toMatchObject({ status: expect.any(String), uptime: expect.any(Number) });
+
+    // 3 consecutive checks condition
+    for (let i = 0; i < 3; i++) {
+      const checkRes = await apiContext.get('/health');
+      pwExpect(checkRes.status()).toBe(200);
+      const checkBody = await checkRes.json();
+      pwExpect(checkBody.status).toMatch(/^(ok|degraded|down)$/);
+      pwExpect(checkBody.uptime).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  pwTest('game-profile GET/POST contract tests', async () => {
+    const questDto = { userId: 'integrationUser', title: 'Roadmap quest', lifeArea: 'career', status: 'pending', progress: 10 };
+    const postRes = await apiContext.post('/game-profile/integrationUser/quests', { data: questDto });
+    pwExpect(postRes.status()).toBe(201);
+    const questBody = await postRes.json();
+    pwExpect(questBody).toMatchObject({ userId: 'integrationUser', title: 'Roadmap quest', lifeArea: 'career', status: 'pending' });
+
+    const getRes = await apiContext.get('/game-profile/integrationUser/quests');
+    pwExpect(getRes.status()).toBe(200);
+    const quests = await getRes.json();
+    pwExpect(quests).toEqual(expect.arrayContaining([expect.objectContaining({ title: 'Roadmap quest', progress: expect.any(Number) }]));
+  });
+
   pwTest('creates quest and updates world seed', async () => {
     // create a quest in a life area
     const questDto = { userId: 'integrationUser', title: 'Read docs', lifeArea: 'career', status: 'pending', progress: 10 };

@@ -10,13 +10,13 @@ Make contract guarantees observable through automated tests in API and e2e suite
 
 ## Tasks
 
-- [ ] Add unit tests in `api` for `POST /auth/login` response shape using shared types.
-- [ ] Add unit tests in `api` for `GET /health` response shape using shared types.
-- [ ] Add e2e assertions in `api-e2e` for both endpoints with payload validation and contract version metadata checks.
-- [ ] Add E2E integration in `admin-console-e2e` to verify login + dashboard + health and life-profile contract flows in a single smoke scenario.
-- [ ] Add JSON Schema contract test in `api-interfaces` to validate runtime responses.
-- [ ] Add post-deploy contract checkpoint job (in CI script) that runs `api-e2e` health checks and contract schema assertions.
-- [ ] Update `documentation/testing.md` with `auth/login`, `health`, and `life-profile` contract test requirements.
+- [x] Add unit tests in `api` for `POST /auth/login` response shape using shared types.
+- [x] Add unit tests in `api` for `GET /health` response shape using shared types.
+- [x] Add e2e assertions in `api-e2e` for both endpoints with payload validation and contract version metadata checks.
+- [x] Add E2E integration in `admin-console-e2e` to verify login + dashboard + health and life-profile contract flows in a single smoke scenario.
+- [x] Add JSON Schema contract test in `api-interfaces` to validate runtime responses.
+- [x] Add post-deploy contract checkpoint job (in CI script) that runs `api-e2e` health checks and contract schema assertions.
+- [x] Update `documentation/testing.md` with `auth/login`, `health`, and `life-profile` contract test requirements.
 
 ## Acceptance Criteria
 

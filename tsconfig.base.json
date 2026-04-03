@@ -3,6 +3,7 @@
     "composite": true,
     "declarationMap": true,
     "importHelpers": true,
+    "baseUrl": ".",
     "isolatedModules": true,
     "lib": ["es2022", "dom"],
     "module": "nodenext",

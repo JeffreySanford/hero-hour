@@ -1,14 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LifeProfileService } from './life-profile.service';
+import { TelemetryService } from '../telemetry/telemetry.service';
+import { TelemetryAuditRepository } from '@org/domain';
 
 describe('LifeProfileService', () => {
   let service: LifeProfileService;
+  let telemetry: TelemetryService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [LifeProfileService],
+      providers: [LifeProfileService, TelemetryService, TelemetryAuditRepository],
     }).compile();
     service = module.get<LifeProfileService>(LifeProfileService);
+    telemetry = module.get<TelemetryService>(TelemetryService);
+    telemetry.clear();
   });
 
   it('should create life profile for user', async () => {
@@ -22,6 +27,10 @@ describe('LifeProfileService', () => {
     });
     expect(profile.userId).toBe(userId);
     expect(profile.roles).toContain('parent');
+
+    const events = telemetry.list('lifeProfileUpdated', userId);
+    expect(events.length).toBe(1);
+    expect(events[0].payload.details.event).toBe('createProfile');
   });
 
   it('should update life roles', async () => {
@@ -132,10 +141,15 @@ describe('LifeProfileService', () => {
     await expect(service.updateRoles(userId, ['fake'])).rejects.toThrow('Invalid role enum');
   });
 
-  it('should throw on duplicate create and invalid update roles', async () => {
+  it('should upsert on duplicate create and invalid update roles remains protected', async () => {
     const userId = 'user10';
     await service.createProfile(userId, { firstName: 'A', lastName: 'B', age: 25 });
-    await expect(service.createProfile(userId, { firstName: 'A', lastName: 'B', age: 25 })).rejects.toThrow('Profile already exists');
+    const duplicate = await service.createProfile(userId, { firstName: 'A', lastName: 'B', age: 25 });
+    expect(duplicate.age).toBe(25);
+
+    const updated = await service.createProfile(userId, { firstName: 'A', lastName: 'B', age: 26 });
+    expect(updated.age).toBe(26);
+
     await expect(service.updateRoles(userId, ['invalidRole' as any])).rejects.toThrow('Invalid role enum');
   });
 });

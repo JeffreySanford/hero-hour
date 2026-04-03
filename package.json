@@ -25,7 +25,9 @@
     "test:ci:contract": "pnpm exec nx test api-interfaces && pnpm exec nx test api && pnpm exec nx test admin-console",
     "test:ci:life-profile": "pnpm run test:ci:contract && pnpm exec nx e2e admin-console-e2e --verbose",
     "test:ci:flutter": "npm run test:mobile && npm run test:mobile:integration",
-    "ci:smoke": "pnpm run test:ci:life-profile && pnpm run lint:all"
+    "ci:smoke": "pnpm run test:ci:life-profile && pnpm run lint:all",
+    "ci:post-deploy-contract": "pnpm run test:ci:life-profile && pnpm exec nx e2e api-e2e --verbose",
+    "ci:contract-schema": "pnpm exec nx test api-interfaces"
   },
   "private": true,
   "devDependencies": {
@@ -52,6 +54,7 @@
     "@nx/webpack": "22.6.2",
     "@oxc-project/runtime": "^0.115.0",
     "@playwright/test": "^1.36.0",
+    "ajv": "^8.13.0",
     "@schematics/angular": "~21.2.0",
     "@storybook/addon-essentials": "^7.0.0",
     "@storybook/angular": "^7.0.0",

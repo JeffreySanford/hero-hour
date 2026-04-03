@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
@@ -115,6 +116,85 @@ describe('DashboardComponent', () => {
     expect(claimSideQuestCalled).toBe(true);
   });
 
+  it('should animate quest and side quest completion states', () => {
+    questService.getQuests = () => of([{ id: 'q1', userId: 'demo-user', title: 'Test', lifeArea: 'health', status: 'pending', progress: 0 }]);
+    questService.getSideQuests = () => of([{ id: 'sq1', userId: 'demo-user', title: 'Test side', type: 'quick-win' as any, completed: false, rewardXp: 10 }]);
+
+    // Intent: use the shared animation trigger helper so behavior is easier to test and maintain.
+    component.activateCompletionAnimation('q1', 'sq1', 1000);
+
+    fixture.detectChanges();
+
+    const questItemDebug = fixture.debugElement.query(By.css('.quest-item'));
+    const sideQuestItemDebug = fixture.debugElement.query(By.css('.side-quest-card'));
+
+    expect(questItemDebug).toBeTruthy();
+    expect(sideQuestItemDebug).toBeTruthy();
+    expect(questItemDebug.nativeElement.classList.contains('animate-complete')).toBe(true);
+    expect(sideQuestItemDebug.nativeElement.classList.contains('animate-claimed')).toBe(true);
+  });
+
+  it('should activate and clear animation state using activateCompletionAnimation()', () => {
+    vi.useFakeTimers();
+
+    component.activateCompletionAnimation('q1', 'sq1', 1000);
+
+    expect(component.recentlyCompletedQuestId).toBe('q1');
+    expect(component.recentlyClaimedSideQuestId).toBe('sq1');
+
+    vi.advanceTimersByTime(1000);
+
+    expect(component.recentlyCompletedQuestId).toBeNull();
+    expect(component.recentlyClaimedSideQuestId).toBeNull();
+
+    vi.useRealTimers();
+  });
+
+  it('should cancel prior animation timer when called repeatedly', () => {
+    vi.useFakeTimers();
+
+    component.activateCompletionAnimation('q1', undefined, 1500);
+    expect(component.recentlyCompletedQuestId).toBe('q1');
+
+    component.activateCompletionAnimation('q2', undefined, 1500);
+    expect(component.recentlyCompletedQuestId).toBe('q2');
+
+    vi.advanceTimersByTime(1500);
+    expect(component.recentlyCompletedQuestId).toBeNull();
+
+    vi.useRealTimers();
+  });
+  it('should keep only the last of triple activated animations and clear old ids', () => {
+    vi.useFakeTimers();
+
+    component.activateCompletionAnimation('q1', undefined, 1000);
+    component.activateCompletionAnimation('q2', undefined, 1000);
+    component.activateCompletionAnimation('q3', undefined, 1000);
+
+    expect(component.recentlyCompletedQuestId).toBe('q3');
+
+    // after 999ms, still active
+    vi.advanceTimersByTime(999);
+    expect(component.recentlyCompletedQuestId).toBe('q3');
+
+    // after 1 more ms (1000ms total), animation should finish once
+    vi.advanceTimersByTime(1);
+    expect(component.recentlyCompletedQuestId).toBeNull();
+
+    vi.useRealTimers();
+  });
+  it('should use reduced duration when reduced motion is enabled', () => {
+    vi.useFakeTimers();
+
+    component.isReducedMotion = true;
+    component.activateCompletionAnimation('q1', undefined, 1000);
+
+    vi.advanceTimersByTime(300);
+    expect(component.recentlyCompletedQuestId).toBeNull();
+
+    vi.useRealTimers();
+  });
+
   it('should render side quest cards in the UI', () => {
     fixture.detectChanges();
 
@@ -143,7 +223,8 @@ describe('DashboardComponent', () => {
     const titles = Array.from(fixture.nativeElement.querySelectorAll('article.hero-card .hero-card__title')).map((el: any) => el.textContent.trim());
     expect(titles[0]).toBe('API Status');
     expect(titles[1]).toBe('World Seed State');
-    expect(titles[2]).toBe('Sync Status');
+    expect(titles[2]).toBe('Telemetry Events');
+    expect(titles[3]).toBe('Sync Status');
   });
 
   it('should navigate to life profile from the dashboard action', async () => {

@@ -19,3 +19,13 @@ This directory contains the expanded, verbose planning artifacts for Time-Forge:
 - Use these documents to drive backlog creation, sprint planning, and Copilot/AI-powered implementation
 - Update as new PIs, features, or sprints are defined
 - Expand `stories/` and `copilot-packs/` as the project matures
+
+## Signoff checklist guidance
+
+- Add exit criteria in `documentation/pi-1-closeout.md` for PI completion.
+- Include smoke validations and gating requirements:
+  - authentication contract success (`/auth/login`)
+  - health endpoint correctness (`/health`)
+  - onboarding completion ❤️ flow
+  - life-profile persistence and contract compliance
+- Cross-link to PI2 roadmap in `documentation/planning/pi2-roadmap.md`.

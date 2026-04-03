@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { LifeProfile, LifeProfileRequest, LifeRole, ProfileStatus } from '@org/api-interfaces';
+import type { LifeProfile, LifeProfileRequest, LifeRole, ProfileStatus, TelemetryEventPayload } from '@org/api-interfaces';
+import { TelemetryService } from '../telemetry/telemetry.service';
 
 const DEFAULT_ROLES: LifeRole[] = ['member'];
 const VALID_ROLES: LifeRole[] = ['leader', 'member', 'observer', 'parent', 'worker', 'student', 'athlete'];
@@ -8,9 +9,31 @@ const VALID_ROLES: LifeRole[] = ['leader', 'member', 'observer', 'parent', 'work
 export class LifeProfileService {
   private profiles: Map<string, LifeProfile> = new Map();
 
+  constructor(private readonly telemetryService: TelemetryService) {}
+
   async createProfile(userId: string, data: LifeProfileRequest): Promise<LifeProfile> {
-    if (this.profiles.has(userId)) {
-      throw new Error('Profile already exists');
+    const existing = this.profiles.get(userId);
+
+    if (existing) {
+      const sameProfile =
+        existing.firstName === data.firstName &&
+        existing.lastName === data.lastName &&
+        existing.age === data.age &&
+        existing.preferredRole === data.preferredRole &&
+        JSON.stringify(existing.roles) === JSON.stringify(data.roles || existing.roles) &&
+        JSON.stringify(existing.schedule) === JSON.stringify(data.schedule || existing.schedule) &&
+        JSON.stringify(existing.priorities) === JSON.stringify(data.priorities || existing.priorities) &&
+        JSON.stringify(existing.frictionPoints) === JSON.stringify(data.frictionPoints || existing.frictionPoints) &&
+        JSON.stringify(existing.habitAnchors) === JSON.stringify(data.habitAnchors || existing.habitAnchors) &&
+        existing.privacy === (data.privacy || existing.privacy);
+
+      if (sameProfile) {
+        // Profile exists and matches supplied data; no change needed.
+        return existing;
+      }
+
+      // Profile exists; merge updates from provided data and persist.
+      return this.updateProfile(userId, data);
     }
 
     const preferredRole = VALID_ROLES.includes(data.preferredRole) ? data.preferredRole : 'member';
@@ -34,6 +57,13 @@ export class LifeProfileService {
     };
 
     this.profiles.set(userId, profile);
+
+    this.telemetryService.record({
+      type: 'lifeProfileUpdated',
+      userId,
+      payload: { userId, details: { event: 'createProfile', profile } } as TelemetryEventPayload,
+    });
+
     return profile;
   }
 
@@ -57,6 +87,13 @@ export class LifeProfileService {
     };
 
     this.profiles.set(userId, updated);
+
+    this.telemetryService.record({
+      type: 'lifeProfileUpdated',
+      userId,
+      payload: { userId, details: { event: 'updateProfile', updated } } as TelemetryEventPayload,
+    });
+
     return updated;
   }
 
@@ -71,6 +108,13 @@ export class LifeProfileService {
     profile.roles = roles;
     profile.updatedAt = new Date().toISOString();
     this.profiles.set(userId, profile);
+
+    this.telemetryService.record({
+      type: 'lifeProfileUpdated',
+      userId,
+      payload: { userId, details: { event: 'updateRoles', roles } } as TelemetryEventPayload,
+    });
+
     return profile;
   }
 

@@ -35,6 +35,21 @@ export interface SideQuest {
   rewardXp: number;
 }
 
+export interface VillageStructure {
+  id: string;
+  name: string;
+  lifeArea: LifeArea;
+  level: number;
+  progress: number;
+  unlocked: boolean;
+}
+
+export interface VillageState {
+  structures: VillageStructure[];
+  totalProgress: number;
+  updatedAt: string;
+}
+
 export interface WorldState {
   seed: number;
   color: string;

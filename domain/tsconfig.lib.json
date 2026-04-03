@@ -3,13 +3,26 @@
   "compilerOptions": {
     "outDir": "../dist/out-tsc",
     "declaration": true,
-    "types": ["node"]
+    "types": ["node"],
+    "rootDir": ".."
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "../api-interfaces/src/**/*.ts",
+    "../shared-types/src/**/*.ts",
+    "../util/src/**/*.ts"
+  ],
   "exclude": [
     "jest.config.ts",
     "jest.config.cts",
     "src/**/*.spec.ts",
-    "src/**/*.test.ts"
+    "src/**/*.test.ts",
+    "../api-interfaces/src/**/*.spec.ts",
+    "../shared-types/src/**/*.spec.ts",
+    "../util/src/**/*.spec.ts"
+  ],
+  "references": [
+    { "path": "../shared-types" },
+    { "path": "../util" }
   ]
 }

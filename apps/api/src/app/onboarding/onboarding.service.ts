@@ -1,4 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { TelemetryService } from '../telemetry/telemetry.service';
+import type { TelemetryEventPayload } from '@org/api-interfaces';
 
 export interface OnboardingStep {
   type: string;
@@ -15,6 +17,8 @@ export interface OnboardingState {
 @Injectable()
 export class OnboardingService {
   private onboardingStates: Map<string, OnboardingState> = new Map();
+
+  constructor(private readonly telemetryService: TelemetryService) {}
 
   initOnboarding(userId: string): OnboardingState {
     if (this.onboardingStates.has(userId)) {
@@ -74,6 +78,13 @@ export class OnboardingService {
     state.completed = true;
     state.starterProfileGenerated = state.starterProfileGenerated ?? true;
     this.onboardingStates.set(userId, state);
+
+    this.telemetryService.record({
+      type: 'lifeProfileUpdated',
+      userId,
+      payload: { userId, details: { event: 'onboardingComplete', requiredSections: requiredSections } } as TelemetryEventPayload,
+    });
+
     return { completed: true, starterProfileGenerated: state.starterProfileGenerated };
   }
 }

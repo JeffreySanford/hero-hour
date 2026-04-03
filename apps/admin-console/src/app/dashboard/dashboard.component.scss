@@ -194,6 +194,55 @@
     margin-top: 0.5rem;
   }
 
+  .quest-item,
+  .side-quest-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    position: relative;
+  }
+
+  .quest-item.completed,
+  .side-quest-card.completed {
+    opacity: 0.85;
+    filter: grayscale(0.2);
+  }
+
+  .animate-complete,
+  .animate-claimed {
+    animation: rewardPulse 1s ease forwards;
+    box-shadow: 0 0 26px rgba(251, 191, 36, 0.45);
+    z-index: 1;
+  }
+
+  @keyframes rewardPulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.45);
+    }
+    50% {
+      transform: scale(1.03);
+      box-shadow: 0 0 28px rgba(251, 191, 36, 0.65);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.35);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progress-fill {
+      transition: none !important;
+    }
+    .quest-item,
+    .side-quest-card,
+    .animate-complete,
+    .animate-claimed {
+      animation: none !important;
+      transition: none !important;
+      transform: none !important;
+      box-shadow: 0 0 8px rgba(251, 191, 36, 0.2) !important;
+    }
+  }
+
   .suggestions {
     display: flex;
     flex-wrap: wrap;

@@ -1,5 +1,6 @@
-import type { LifeProfile, LifeProfileRequest, LifeRole, ProfileStatus, PrivacySetting } from './api-interfaces';
+import type { LifeProfile, LifeProfileRequest, LifeRole, ProfileStatus, PrivacySetting, LoginResponse, HealthResponse } from './api-interfaces';
 import { apiInterfaces } from './api-interfaces';
+import Ajv from 'ajv';
 
 describe('apiInterfaces', () => {
   it('should work', () => {
@@ -56,5 +57,41 @@ describe('apiInterfaces', () => {
       age: 28,
       preferredRole: 'member',
     });
+  });
+
+  it('should validate login and health schema via Ajv', () => {
+    const ajv = new Ajv({ allErrors: true });
+
+    const loginSchema = {
+      type: 'object',
+      required: ['accessToken', 'refreshToken'],
+      properties: {
+        accessToken: { type: 'string' },
+        refreshToken: { type: 'string' },
+      },
+      additionalProperties: false,
+    };
+
+    const healthSchema = {
+      type: 'object',
+      required: ['status', 'uptime'],
+      properties: {
+        status: { type: 'string', enum: ['ok', 'degraded', 'down'] },
+        uptime: { type: 'number' },
+      },
+      additionalProperties: false,
+    };
+
+    const validLogin: LoginResponse = { accessToken: 'abc', refreshToken: 'xyz' };
+    const validHealth: HealthResponse = { status: 'ok', uptime: 112233 }; 
+
+    const validateLogin = ajv.compile(loginSchema);
+    const validateHealth = ajv.compile(healthSchema);
+
+    expect(validateLogin(validLogin)).toBe(true);
+    expect(validateHealth(validHealth)).toBe(true);
+
+    expect(validateLogin({ accessToken: 'abc' })).toBe(false);
+    expect(validateHealth({ status: 'wrong', uptime: 1 })).toBe(false);
   });
 });

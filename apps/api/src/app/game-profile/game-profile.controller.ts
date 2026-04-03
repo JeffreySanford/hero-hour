@@ -1,7 +1,7 @@
 import { Controller, Get, Patch, Post, Put, Body, Param, BadRequestException, NotFoundException, UseGuards } from '@nestjs/common';
 import { JwtGuard } from '../auth/jwt.guard';
 import { GameProfileService } from './game-profile.service';
-import { UpdateAvatarThemeDto, CreateQuestDto, UpdateQuestDto, ActivityDto } from './game-profile.dto';
+import { UpdateAvatarThemeDto, CreateQuestDto, UpdateQuestDto, ActivityDto, FocusSessionDto } from './game-profile.dto';
 import { Quest, SideQuest } from './game-profile.types';
 
 @Controller('game-profile')
@@ -67,6 +67,14 @@ export class GameProfileController {
   async getWorldState(@Param('userId') userId: string) {
     if (!userId) throw new BadRequestException('Missing userId');
     return this.service.getWorldState(userId);
+  }
+
+  @Post(':userId/focus-sessions')
+  async completeFocusSession(@Param('userId') userId: string, @Body() dto: FocusSessionDto) {
+    if (!userId || dto.durationMinutes <= 0 || !dto.focusArea) {
+      throw new BadRequestException('Missing focus session data');
+    }
+    return this.service.completeFocusSession(userId, dto.durationMinutes, dto.focusArea);
   }
 
   @Get(':userId')

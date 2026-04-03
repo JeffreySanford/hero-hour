@@ -18,8 +18,25 @@ export class LifeProfileService {
   private profiles: Map<string, LifeProfile> = new Map();
 
   createProfile(userId: string, data: any): LifeProfile {
-    if (this.profiles.has(userId)) {
-      throw new Error('Profile already exists');
+    const existing = this.profiles.get(userId);
+
+    if (existing) {
+      const sameProfile =
+        existing.firstName === (data.firstName || existing.firstName) &&
+        existing.lastName === (data.lastName || existing.lastName) &&
+        existing.age === (data.age ?? existing.age) &&
+        existing.preferredRole === (data.preferredRole || existing.preferredRole) &&
+        JSON.stringify(existing.roles) === JSON.stringify(data.roles || existing.roles) &&
+        JSON.stringify(existing.schedule) === JSON.stringify(data.schedule || existing.schedule) &&
+        JSON.stringify(existing.priorities) === JSON.stringify(data.priorities || existing.priorities) &&
+        JSON.stringify(existing.frictionPoints) === JSON.stringify(data.frictionPoints || existing.frictionPoints) &&
+        JSON.stringify(existing.habitAnchors) === JSON.stringify(data.habitAnchors || existing.habitAnchors);
+
+      if (sameProfile) {
+        return existing;
+      }
+
+      return this.updateProfile(userId, data);
     }
 
     const profile: LifeProfile = {

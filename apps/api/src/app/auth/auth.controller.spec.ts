@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, RefreshTokenDto } from './dto/auth.dto';
+import type { LoginResponse } from '@org/api-interfaces';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -31,12 +32,15 @@ describe('AuthController', () => {
     expect(result.password).toBe('hashed');
   });
 
-  it('should login and return tokens', async () => {
+  it('should login and return tokens with LoginResponse contract', async () => {
     const dto: LoginDto = { email: 'a@b.com', password: 'secret123' };
     const result = await controller.login(dto);
     expect(service.login).toHaveBeenCalledWith(dto);
-    expect(result).toHaveProperty('accessToken');
-    expect(result).toHaveProperty('refreshToken');
+    const loginResult: LoginResponse = result;
+    expect(loginResult).toHaveProperty('accessToken');
+    expect(loginResult).toHaveProperty('refreshToken');
+    expect(typeof loginResult.accessToken).toBe('string');
+    expect(typeof loginResult.refreshToken).toBe('string');
   });
 
   it('should refresh tokens', async () => {

@@ -11,6 +11,7 @@ import { App } from './app';
 import { appRoutes } from './app.routes';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { LifeProfileComponent } from './life-profile/life-profile.component';
+import { GrowthMapComponent } from './growth-map/growth-map.component';
 import { LoginComponent } from './auth/login.component';
 import { HeaderModule } from './layout/header/header.module';
 import { FooterModule } from './layout/footer/footer.module';
@@ -19,7 +20,7 @@ import { reducer as authReducer } from './store/auth/auth.reducer';
 import { AuthEffects } from './store/auth/auth.effects';
 
 @NgModule({
-  declarations: [App, DashboardComponent, LifeProfileComponent, LoginComponent],
+  declarations: [App, DashboardComponent, LifeProfileComponent, GrowthMapComponent, LoginComponent],
   imports: [
     BrowserModule,
     CommonModule,

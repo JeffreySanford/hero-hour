@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OnboardingService } from './onboarding.service';
+import { TelemetryService } from '../telemetry/telemetry.service';
+import { TelemetryAuditRepository } from '@org/domain';
 
 describe('OnboardingService', () => {
   let service: OnboardingService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OnboardingService],
+      providers: [OnboardingService, TelemetryService, TelemetryAuditRepository],
     }).compile();
     service = module.get<OnboardingService>(OnboardingService);
   });

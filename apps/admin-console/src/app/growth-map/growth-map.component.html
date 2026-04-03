@@ -1,0 +1,16 @@
+<div class="growth-map">
+  <h3>Village Growth Map</h3>
+  <div *ngIf="villageState; else loading">
+    <div *ngFor="let structure of villageState.structures" class="structure-card" [class.unlocked]="structure.unlocked">
+      <div class="header">{{ structureLabel(structure) }}</div>
+      <div class="progress">Progress: {{ structure.progress }}%</div>
+      <div class="tooltip" title="Area: {{ structure.lifeArea }}\nProgress: {{ structure.progress }}%\nStatus: {{ structure.unlocked ? 'Unlocked' : 'Locked' }}">
+        {{ structure.unlocked ? 'Unlocked' : 'Locked' }} - {{ structure.lifeArea }}
+      </div>
+    </div>
+    <div class="summary">Total progress: {{ villageState.totalProgress }}</div>
+  </div>
+  <ng-template #loading>
+    <p>Loading growth map...</p>
+  </ng-template>
+</div>

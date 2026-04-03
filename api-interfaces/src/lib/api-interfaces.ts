@@ -61,6 +61,38 @@ export type LifeProfileResponse = LifeProfile & {
   lastUpdatedBy?: string;
 };
 
+export type LifeArea = 'health' | 'career' | 'relationships' | 'fun';
+
+export interface VillageStructure {
+  id: string;
+  name: string;
+  lifeArea: LifeArea;
+  level: number;
+  progress: number;
+  unlocked: boolean;
+}
+
+export interface VillageState {
+  structures: VillageStructure[];
+  totalProgress: number;
+  updatedAt: string;
+}
+
+export type TelemetryEventType = 'lifeProfileUpdated' | 'questCompleted' | 'focusSessionCompleted';
+
+export interface TelemetryEventPayload {
+  userId: string;
+  details: Record<string, any>;
+}
+
+export interface TelemetryEvent {
+  id: string;
+  type: TelemetryEventType;
+  userId: string;
+  payload: TelemetryEventPayload;
+  createdAt: string;
+}
+
 export function apiInterfaces(): string {
   return 'api-interfaces';
 }

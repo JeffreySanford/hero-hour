@@ -13,6 +13,7 @@ export class LifeProfileComponent {
   form: FormGroup;
   saved = false;
   error = false;
+  villageState: any = null;
   private readonly userId = 'demo-user';
 
   constructor(private fb: FormBuilder, private profileService: LifeProfileService) {
@@ -38,7 +39,7 @@ export class LifeProfileComponent {
     this.profileService.save(payload).subscribe({
       next: () => {
         this.saved = true;
-        if (payload.userId && this.profileService.get) {
+        if (payload.userId) {
           this.profileService.get(payload.userId).subscribe({
             next: (retrieved) => {
               this.form.patchValue({
@@ -50,6 +51,14 @@ export class LifeProfileComponent {
             },
             error: () => {
               // ignore retrieval error but keep success state
+            },
+          });
+          this.profileService.getVillageState(payload.userId).subscribe({
+            next: (village) => {
+              this.villageState = village;
+            },
+            error: () => {
+              // keep existing village state if error
             },
           });
         }

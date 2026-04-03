@@ -46,3 +46,12 @@ export class ActivityDto {
   intensity!: number;
 }
 
+export class FocusSessionDto {
+  @IsNumber()
+  durationMinutes!: number;
+
+  @IsString()
+  @IsNotEmpty()
+  focusArea!: string;
+}
+
