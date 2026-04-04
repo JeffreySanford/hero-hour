@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -136,6 +137,275 @@ void main() {
 
     expect(appState.sideQuests.first.completed, isTrue);
     expect(appState.worldState.progress, equals((beforeProgress + 8).clamp(0, 100)));
+  });
+
+  test('completing a quest uses complete endpoint and syncs world state', () async {
+    final appState = HeroHourAppState();
+    final quest = appState.quests.first;
+    final initialWorld = appState.worldState.progress;
+
+    final mockClient = MockClient((request) async {
+      if (request.url.path.endsWith('/complete')) {
+        return http.Response(
+          jsonEncode({
+            'quest': {
+              'id': quest.id,
+              'userId': quest.id,
+              'title': quest.title,
+              'lifeArea': quest.lifeArea,
+              'status': 'complete',
+              'progress': 100,
+            },
+            'worldState': {
+              'seed': appState.worldState.seed + 10,
+              'color': appState.worldState.color,
+              'icon': appState.worldState.icon,
+              'progress': (initialWorld + 10).clamp(0, 100),
+            },
+            'profile': {
+              'userId': 'demo-user',
+              'avatar': 'default',
+              'theme': 'default',
+              'displayName': '',
+              'xp': 0,
+              'level': 1,
+              'streak': 0,
+            },
+          }),
+          200,
+        );
+      }
+      if (request.url.path.endsWith('/world-state')) {
+        return http.Response(
+          jsonEncode({
+            'seed': appState.worldState.seed + 10,
+            'color': appState.worldState.color,
+            'icon': appState.worldState.icon,
+            'progress': (initialWorld + 10).clamp(0, 100),
+          }),
+          200,
+        );
+      }
+      return http.Response('Not found', 404);
+    });
+
+    await appState.completeQuest(quest, client: mockClient);
+
+    expect(quest.status, 'complete');
+    expect(quest.syncStatus, 'confirmed');
+    expect(appState.worldState.progress, (initialWorld + 10).clamp(0, 100));
+  });
+
+  test('daily time grid cells list generation includes completed entries', () {
+    final appState = HeroHourAppState();
+    appState.worldState.progress = 50; // 12 slots complete
+    appState.quests.first.status = 'complete';
+
+    final cells = appState.dailyTimeGridCells;
+
+    expect(cells.length, 24);
+    expect(cells.where((cell) => cell.completed).length, greaterThanOrEqualTo(12));
+    expect(cells.where((cell) => cell.activity == 'work').length, greaterThanOrEqualTo(12));
+  });
+
+  testWidgets('dashboard displays daily time grid', (WidgetTester tester) async {
+    final appState = HeroHourAppState(
+      profileCompleted: true,
+      accessToken: 'token',
+      currentUser: HeroUser(fullName: 'Anne Lee', email: 'a@example.com'),
+    );
+
+    await tester.pumpWidget(_buildApp(state: appState));
+    await _pumpThroughPrologue(tester);
+
+    expect(appState.prologueComplete, isTrue);
+    expect(find.text('New Profile'), findsOneWidget);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -900));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Daily Time Grid'), findsOneWidget);
+    expect(find.byType(DailyTimeGrid), findsOneWidget);
+    expect(find.byType(GridView), findsOneWidget);
+  });
+
+  testWidgets('dashboard standalone includes daily time grid', (WidgetTester tester) async {
+    final appState = HeroHourAppState(
+      profileCompleted: true,
+      accessToken: 'token',
+      currentUser: HeroUser(fullName: 'Anne Lee', email: 'a@example.com'),
+    );
+
+    await tester.pumpWidget(
+      HeroHourScope(
+        appState: appState,
+        child: MaterialApp(
+          home: DashboardScreen(onOpenProfile: () {}),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    expect(find.text('Dashboard'), findsOneWidget);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -900));
+    await tester.pumpAndSettle();
+
+    final foundTexts = find
+        .byType(Text)
+        .evaluate()
+        .map((element) => (element.widget as Text).data)
+        .whereType<String>()
+        .toList();
+
+    expect(foundTexts.contains('Daily Time Grid'), isTrue);
+    expect(find.byType(DailyTimeGrid), findsOneWidget);
+    expect(find.byType(GridView), findsOneWidget);
+  });
+
+  testWidgets('strategy profile section shows recommendations and dimensions', (WidgetTester tester) async {
+    final appState = HeroHourAppState(
+      profileCompleted: true,
+      accessToken: 'token',
+      currentUser: HeroUser(fullName: 'Anne Lee', email: 'a@example.com'),
+    );
+
+    appState.quests.clear();
+    appState.quests.addAll([
+      QuestItem(id: 'q1', title: 'A', lifeArea: 'career', progress: 100),
+      QuestItem(id: 'q2', title: 'B', lifeArea: 'health', progress: 40),
+    ]);
+    appState.sideQuests.clear();
+    appState.sideQuests.addAll([
+      SideQuestItem(id: 's1', title: 'S', type: 'daily', rewardXp: 10, completed: true),
+    ]);
+
+    await tester.pumpWidget(
+      HeroHourScope(
+        appState: appState,
+        child: MaterialApp(
+          home: DashboardScreen(onOpenProfile: () {}),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView), const Offset(0, -1800));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Re-entry summary'), findsOneWidget);
+    expect(find.textContaining('Recommendations'), findsOneWidget);
+    expect(find.text('Planning consistency'), findsOneWidget);
+    expect(find.text('Recovery quality'), findsOneWidget);
+  });
+
+  testWidgets('strategy profile section is visible with dimensions and recommendations', (WidgetTester tester) async {
+    final appState = HeroHourAppState(
+      profileCompleted: true,
+      accessToken: 'token',
+      currentUser: HeroUser(fullName: 'Anne Lee', email: 'a@example.com'),
+    );
+
+    appState.quests.clear();
+    appState.quests.addAll(
+      [
+        QuestItem(id: 'q1', title: 'A', lifeArea: 'career', progress: 100),
+        QuestItem(id: 'q2', title: 'B', lifeArea: 'health', progress: 30),
+      ],
+    );
+    appState.sideQuests.clear();
+    appState.sideQuests.addAll(
+      [
+        SideQuestItem(id: 's1', title: 'X', type: 'daily', rewardXp: 5, completed: true),
+      ],
+    );
+
+    await tester.pumpWidget(
+      HeroHourScope(
+        appState: appState,
+        child: MaterialApp(
+          home: DashboardScreen(onOpenProfile: () {}),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('strategy-profile-card')),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Re-entry summary'), findsOneWidget);
+    expect(find.text('Planning consistency'), findsOneWidget);
+    expect(find.text('Life-area balance'), findsOneWidget);
+    expect(find.text('Recommendations'), findsOneWidget);
+  });
+
+  testWidgets('empty state shows guiding message when no quests exist', (WidgetTester tester) async {
+    final appState = HeroHourAppState(
+      profileCompleted: true,
+      accessToken: 'token',
+      currentUser: HeroUser(fullName: 'Anne Lee', email: 'a@example.com'),
+    );
+    appState.quests.clear();
+    appState.sideQuests.clear();
+
+    await tester.pumpWidget(
+      HeroHourScope(
+        appState: appState,
+        child: MaterialApp(home: DashboardScreen(onOpenProfile: () {})),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('No quests yet'), 400, scrollable: find.byType(Scrollable).first);
+    expect(find.text('No quests yet'), findsOneWidget);
+    expect(find.textContaining('Start by adding your first quest'), findsOneWidget);
+  });
+
+  test('prologue duration is reduced in reduced motion mode', () {
+    final appState = HeroHourAppState();
+    appState.reduceMotion = true;
+    expect(appState.prologueDuration, const Duration(milliseconds: 350));
+  });
+
+  testWidgets('computeStrategyRecommendations returns expected type for sample state', (WidgetTester tester) async {
+    final appState = HeroHourAppState(
+      profileCompleted: true,
+      accessToken: 'token',
+      currentUser: HeroUser(fullName: 'Anne Lee', email: 'a@example.com'),
+    );
+
+    appState.quests.clear();
+    appState.quests.addAll([
+      QuestItem(id: 'q1', title: 'A', lifeArea: 'career', progress: 20),
+      QuestItem(id: 'q2', title: 'B', lifeArea: 'health', progress: 100),
+    ]);
+
+    appState.sideQuests.clear();
+    appState.sideQuests.addAll([
+      SideQuestItem(id: 's1', title: 'X', type: 'daily', rewardXp: 5, completed: true),
+    ]);
+
+    appState.worldState.progress = 80;
+
+    // Need to pump widget to instantiate DashboardScreen state so we can invoke its method.
+    await tester.pumpWidget(
+      HeroHourScope(
+        appState: appState,
+        child: MaterialApp(home: DashboardScreen(onOpenProfile: () {})),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final state = tester.state(find.byType(DashboardScreen)) as dynamic;
+    final recommendations = state.computeStrategyRecommendations(appState) as List<dynamic>;
+
+    expect(recommendations, isNotEmpty);
+    expect(recommendations.any((r) => r['type'] == 'momentum'), isTrue);
   });
 
   test('animate completion pins and clears status with a small delay', () async {

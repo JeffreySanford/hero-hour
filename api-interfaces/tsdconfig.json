@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "types": ["node"]
+  },
+  "include": [
+    "index.d.ts",
+    "index.test-d.ts",
+    "test/**/*.test-d.ts",
+    "src/lib/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

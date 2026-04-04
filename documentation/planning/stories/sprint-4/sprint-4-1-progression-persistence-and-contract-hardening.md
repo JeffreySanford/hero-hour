@@ -74,14 +74,14 @@ Out of scope:
 - [x] Design or implement a durable persistence strategy for these entities.
 - [x] Refactor `apps/api` services so core progression state is not lost on restart.
 - [x] Harden API contract definitions in `api-interfaces` to reflect canonical payloads and response shapes.
-- [ ] Reduce duplicated or divergent local type definitions where shared contracts already exist or should exist.
-- [ ] Add API-level validation and explicit error semantics for progression write flows.
-- [ ] Update Angular services to align with durable backend truth rather than relying on local assumptions.
-- [ ] Update Flutter state flows to better distinguish:
+- [x] Reduce duplicated or divergent local type definitions where shared contracts already exist or should exist.
+- [x] Add API-level validation and explicit error semantics for progression write flows.
+- [x] Update Angular services to align with durable backend truth rather than relying on local assumptions.
+- [x] Update Flutter state flows to better distinguish:
   - optimistic local state
   - confirmed backend state
   - error/retry state
-- [ ] Improve offline sync behavior so queued actions reconcile cleanly once the backend is reachable again.
+- [x] Improve offline sync behavior so queued actions reconcile cleanly once the backend is reachable again.
 - [x] Add tests for persistence and reload scenarios.
 - [x] Add migration/runbook documentation if local dev setup or test setup changes.
 

@@ -46,19 +46,19 @@ Out of scope:
 
 ## Tasks
 
-- [ ] Define the first strategy-profile dimensions and how they are calculated.
-- [ ] Define the minimum data requirements for each dimension.
-- [ ] Implement API/domain support for returning strategy-profile data.
-- [ ] Create Angular presentation for the strategy-profile summary and recommendations.
-- [ ] Create Flutter presentation for the strategy-profile summary and recommendations.
-- [ ] Add re-entry guidance behavior for returning users:
+- [x] Define the first strategy-profile dimensions and how they are calculated.
+- [x] Define the minimum data requirements for each dimension.
+- [x] Implement API/domain support for returning strategy-profile data.
+- [x] Create Angular presentation for the strategy-profile summary and recommendations.
+- [x] Create Flutter presentation for the strategy-profile summary and recommendations.
+- [x] Add re-entry guidance behavior for returning users:
   - what changed
   - where momentum was gained or lost
   - one suggested next action
-- [ ] Ensure recommendations are explainable and tied to visible user behavior.
-- [ ] Add supportive copy and tone guidelines so the feature remains encouraging rather than judgmental.
-- [ ] Add tests for strategy metric calculation and recommendation selection.
-- [ ] Add telemetry to measure strategy-profile views and recommendation interaction.
+- [x] Ensure recommendations are explainable and tied to visible user behavior.
+- [x] Add supportive copy and tone guidelines so the feature remains encouraging rather than judgmental.
+- [x] Add tests for strategy metric calculation and recommendation selection.
+- [x] Add telemetry to measure strategy-profile views and recommendation interaction.
 
 ## Design Guidance
 

@@ -7,6 +7,7 @@ export enum LifeArea {
 
 export enum QuestStatus {
   PENDING = 'pending',
+  IN_PROGRESS = 'in-progress',
   COMPLETE = 'complete',
   FAILED = 'failed',
 }
@@ -48,6 +49,40 @@ export interface VillageState {
   structures: VillageStructure[];
   totalProgress: number;
   updatedAt: string;
+}
+
+export interface WeeklyChallenge {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  target: number;
+  progress: number;
+  status: 'active' | 'complete' | 'expired';
+  rewardXp: number;
+  startDate: string;
+  endDate: string;
+}
+
+export interface StrategyDimension {
+  name: string;
+  score: number;
+  detail: string;
+}
+
+export interface StrategyRecommendation {
+  id: string;
+  text: string;
+  type: 'completion' | 'balance' | 'momentum';
+  rationale: string;
+}
+
+export interface StrategyProfile {
+  userId: string;
+  updatedAt: string;
+  dimensions: StrategyDimension[];
+  recommendations: StrategyRecommendation[];
+  reentrySummary: string;
 }
 
 export interface WorldState {

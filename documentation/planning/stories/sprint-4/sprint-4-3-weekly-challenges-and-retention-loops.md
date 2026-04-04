@@ -54,27 +54,27 @@ Out of scope:
 
 ## Tasks
 
-- [ ] Define the first weekly challenge taxonomy:
+- [x] Define the first weekly challenge taxonomy:
   - balance challenges
   - completion challenges
   - consistency/streak challenges
   - recovery or reflection challenges
-- [ ] Define challenge data structures and persistence needs.
-- [ ] Add challenge API support and durable state handling.
-- [ ] Add Angular dashboard surfaces for:
+- [x] Define challenge data structures and persistence needs.
+- [x] Add challenge API support and durable state handling.
+- [x] Add Angular dashboard surfaces for:
   - active weekly challenge
   - current progress
   - reward or unlock preview
-- [ ] Add Flutter surfaces for the same challenge loop with stronger motivational presentation.
-- [ ] Define reward behavior:
+- [x] Add Flutter surfaces for the same challenge loop with stronger motivational presentation.
+- [x] Define reward behavior:
   - XP
   - cosmetic/theme unlocks
   - badge or title progress
   - world-state or village-state effects
-- [ ] Ensure challenge progress responds to real user actions rather than mock-only counters.
-- [ ] Add challenge completion feedback and next-challenge or next-step behavior.
-- [ ] Add telemetry around challenge assignment, progress, completion, and abandonment.
-- [ ] Add tests for challenge progression logic and visible UI states.
+- [x] Ensure challenge progress responds to real user actions rather than mock-only counters.
+- [x] Add challenge completion feedback and next-challenge or next-step behavior.
+- [x] Add telemetry around challenge assignment, progress, completion, and abandonment.
+- [x] Add tests for challenge progression logic and visible UI states.
 
 ## Challenge Design Guidance
 

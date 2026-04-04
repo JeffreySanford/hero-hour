@@ -1,10 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HealthService } from '../services/health.service';
-import type { HealthResponse, TelemetryEvent } from '@org/api-interfaces';
-import { QuestService, Quest, LifeArea, WorldState, SideQuest } from '../services/quest.service';
+import type { HealthResponse, TelemetryEvent, Quest, LifeArea, WorldState, SideQuest, WeeklyChallenge } from '@org/api-interfaces';
+import { QuestService } from '../services/quest.service';
 import { OfflineService } from '../services/offline.service';
 import { AuthService } from '../services/auth.service';
 import { TelemetryService } from '../services/telemetry.service';
+import { FeatureFlagService } from '../services/feature-flag.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -32,6 +33,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   recentlyCompletedQuestId: string | null = null;
   recentlyClaimedSideQuestId: string | null = null;
   isReducedMotion = false;
+  featureFlags: Record<string, boolean> = {};
   private completionAnimationTimer: ReturnType<typeof setTimeout> | null = null;
   private reducedMotionMediaQuery: MediaQueryList | null = null;
 
@@ -79,15 +81,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isLoadingQuests = true;
   isLoadingSideQuests = true;
   isLoadingWorldState = true;
+  isReturningUser = false;
 
+  weeklyChallenge?: WeeklyChallenge;
   dailyGridCells: Array<{ index: number; activity?: 'work' | 'exercise' | 'social' | 'rest'; completed: boolean }> = [];
-
   constructor(
     private readonly healthService: HealthService,
     private readonly questService: QuestService,
     private readonly offlineService: OfflineService,
     private readonly authService: AuthService,
     private readonly telemetryService: TelemetryService,
+    private readonly featureFlagService: FeatureFlagService,
     private readonly router: Router
   ) {}
 
@@ -100,20 +104,38 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.refresh();
     this.loadQuests();
     this.loadSideQuests();
+    this.loadWeeklyChallenge();
     this.loadWorldState();
     this.loadTelemetryEvents();
+
+    this.featureFlagService.getFlags().subscribe((flags) => {
+      this.featureFlags = flags;
+      if (!flags['weeklyChallenges']) {
+        this.weeklyChallenge = undefined;
+      }
+    });
 
     this.offlineStatus = this.offlineService.getStatus();
     this.offlineService.online$.subscribe(() => (this.offlineStatus = this.offlineService.getStatus()));
     this.offlineService.syncing$.subscribe(() => (this.offlineStatus = this.offlineService.getStatus()));
 
     const matchMedia = (typeof window !== 'undefined' ? (window as any).matchMedia : null);
+    this.isReturningUser = localStorage.getItem('hero-hour-returning-user') === 'true';
+    if (!this.isReturningUser) {
+      localStorage.setItem('hero-hour-returning-user', 'true');
+    }
+
     if (matchMedia) {
       this.reducedMotionMediaQuery = (window as any).matchMedia('(prefers-reduced-motion: reduce)');
       this.isReducedMotion = this.reducedMotionMediaQuery!.matches;
       this.reducedMotionMediaQuery!.addEventListener('change', this.handleReducedMotionChange);
     } else {
       this.isReducedMotion = false;
+    }
+
+    // Allow explicit reduced-motion preference from local storage for testing or user setting
+    if (localStorage.getItem('hero-hour-reduced-motion') === 'true') {
+      this.isReducedMotion = true;
     }
   }
 
@@ -245,6 +267,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
       complete: () => {
         this.isLoadingSideQuests = false;
+      },
+    });
+  }
+
+  loadWeeklyChallenge(): void {
+    this.questService.getWeeklyChallenges(this.userId).subscribe({
+      next: (challenges) => {
+        this.weeklyChallenge = challenges.find((c) => c.status !== 'expired') ?? challenges[0];
+      },
+      error: () => {
+        this.weeklyChallenge = undefined;
       },
     });
   }

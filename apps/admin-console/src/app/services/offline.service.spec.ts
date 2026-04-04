@@ -52,4 +52,35 @@ describe('OfflineService', () => {
 
     expect(service.getPendingCount()).toBe(0);
   });
+
+  it('should sync update-quest and claim-sidequest actions', () => {
+    const updateAction: OfflineAction = {
+      type: 'update-quest',
+      payload: { userId: 'demo-user', questId: 'q1', updates: { status: 'complete', progress: 100 } },
+    };
+    const claimAction: OfflineAction = {
+      type: 'claim-sidequest',
+      payload: { userId: 'demo-user', sideQuestId: 'sq1' },
+    };
+
+    service.enqueue(updateAction);
+    service.enqueue(claimAction);
+
+    service.syncQueue().subscribe({
+      error: () => {
+        expect(true).toBe(false);
+      },
+    });
+
+    const req1 = http.expectOne('/api/game-profile/demo-user/quests/q1');
+    expect(req1.request.method).toBe('PUT');
+    expect(req1.request.body).toEqual({ status: 'complete', progress: 100 });
+    req1.flush({});
+
+    const req2 = http.expectOne('/api/game-profile/demo-user/side-quests/sq1/claim');
+    expect(req2.request.method).toBe('POST');
+    req2.flush({});
+
+    expect(service.getPendingCount()).toBe(0);
+  });
 });

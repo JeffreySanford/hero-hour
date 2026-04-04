@@ -3,7 +3,7 @@ import { BehaviorSubject, from, Observable, of } from 'rxjs';
 import { concatMap, filter, finalize, map, take } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
-export type OfflineActionType = 'create-quest' | 'log-activity';
+export type OfflineActionType = 'create-quest' | 'log-activity' | 'update-quest' | 'claim-sidequest';
 
 export interface OfflineAction {
   type: OfflineActionType;
@@ -48,6 +48,20 @@ export class OfflineService {
     localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(list));
   }
 
+  enqueueUpdateQuest(userId: string, questId: string, updates: Partial<Record<string, any>>): void {
+    this.enqueue({
+      type: 'update-quest',
+      payload: { userId, questId, updates },
+    });
+  }
+
+  enqueueClaimSideQuest(userId: string, sideQuestId: string): void {
+    this.enqueue({
+      type: 'claim-sidequest',
+      payload: { userId, sideQuestId },
+    });
+  }
+
   getQueue(): OfflineAction[] {
     try {
       const raw = localStorage.getItem(OFFLINE_QUEUE_KEY);
@@ -76,6 +90,10 @@ export class OfflineService {
         switch (action.type) {
           case 'create-quest':
             return this.http.post('/api/game-profile/' + encodeURIComponent(action.payload.userId) + '/quests', action.payload.quest).pipe(map(() => undefined));
+          case 'update-quest':
+            return this.http.put('/api/game-profile/' + encodeURIComponent(action.payload.userId) + '/quests/' + encodeURIComponent(action.payload.questId), action.payload.updates).pipe(map(() => undefined));
+          case 'claim-sidequest':
+            return this.http.post('/api/game-profile/' + encodeURIComponent(action.payload.userId) + '/side-quests/' + encodeURIComponent(action.payload.sideQuestId) + '/claim', {}).pipe(map(() => undefined));
           case 'log-activity':
             return this.http.post('/api/game-profile/' + encodeURIComponent(action.payload.userId) + '/activity', action.payload.activity).pipe(map(() => undefined));
           default:

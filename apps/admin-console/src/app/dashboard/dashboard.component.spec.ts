@@ -30,6 +30,9 @@ describe('DashboardComponent', () => {
 
     questService = {
       getQuests: () => of([]),
+      getWeeklyChallenges: () => of([
+        { id: 'wc1', userId: 'demo-user', title: 'weekly', description: 'Do 5 quests', target: 5, progress: 2, status: 'active', rewardXp: 30, startDate: new Date().toISOString(), endDate: new Date(Date.now() + 7*24*60*60*1000).toISOString() },
+      ]),
       getSideQuests: () => of(sideQuestsState),
       createQuest: () => of(null),
       updateQuest: () => of(null),
@@ -212,6 +215,16 @@ describe('DashboardComponent', () => {
     expect(sideQuestCards.length).toBe(2);
     expect(fixture.nativeElement.textContent).toContain('Quick setup');
     expect(fixture.nativeElement.textContent).toContain('Available');
+  });
+
+  it('should show weekly challenge progress card', () => {
+    component.loadWeeklyChallenge();
+    fixture.detectChanges();
+
+    expect(component.weeklyChallenge).toBeDefined();
+    expect(component.weeklyChallenge?.title).toBe('weekly');
+    expect(fixture.nativeElement.textContent).toContain('Weekly Challenge');
+    expect(fixture.nativeElement.textContent).toContain('2/5');
   });
 
   it('should show validation and helper text for quest quick-add', () => {

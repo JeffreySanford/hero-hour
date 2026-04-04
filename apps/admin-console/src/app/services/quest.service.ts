@@ -1,40 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { OfflineService } from './offline.service';
-
-export type LifeArea = 'health' | 'career' | 'relationships' | 'fun';
-export type QuestStatus = 'pending' | 'complete' | 'failed';
+import { Quest, WorldState, SideQuest, WeeklyChallenge } from '@org/api-interfaces';
 
 export enum SideQuestType {
   QUICK_WIN = 'quick-win',
   DAILY = 'daily',
   BONUS = 'bonus',
-}
-
-export interface Quest {
-  id: string;
-  userId: string;
-  title: string;
-  lifeArea: LifeArea;
-  status: QuestStatus;
-  progress: number;
-}
-
-export interface SideQuest {
-  id: string;
-  userId: string;
-  title: string;
-  type: SideQuestType;
-  completed: boolean;
-  rewardXp: number;
-}
-
-export interface WorldState {
-  seed: number;
-  color: string;
-  icon: string;
-  progress: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -73,6 +47,24 @@ export class QuestService {
     return this.http.put<Quest>(`/api/game-profile/${encodeURIComponent(userId)}/quests/${encodeURIComponent(questId)}`, updates);
   }
 
+  completeQuest(userId: string, questId: string): Observable<Quest> {
+    if (!this.offlineService.isOnline()) {
+      this.offlineService.enqueueUpdateQuest(userId, questId, { status: 'complete', progress: 100 });
+      return of({
+        id: questId,
+        userId,
+        title: '',
+        lifeArea: 'career',
+        status: 'complete',
+        progress: 100,
+      } as Quest);
+    }
+
+    return this.http
+      .post<{ quest: Quest; worldState: WorldState; profile: any }>(`/api/game-profile/${encodeURIComponent(userId)}/quests/${encodeURIComponent(questId)}/complete`, {})
+      .pipe(map((result) => result.quest));
+  }
+
   logActivity(userId: string, activityType: string, intensity: number): Observable<WorldState> {
     if (!this.offlineService.isOnline()) {
       this.offlineService.enqueue({
@@ -108,6 +100,17 @@ export class QuestService {
 
   getSideQuests(userId: string): Observable<SideQuest[]> {
     return this.http.get<SideQuest[]>(`/api/game-profile/${encodeURIComponent(userId)}/side-quests`);
+  }
+
+  getWeeklyChallenges(userId: string): Observable<WeeklyChallenge[]> {
+    return this.http.get<WeeklyChallenge[]>(`/api/game-profile/${encodeURIComponent(userId)}/weekly-challenges`);
+  }
+
+  createWeeklyChallenge(userId: string, challenge: Omit<WeeklyChallenge, 'id' | 'userId' | 'status'>): Observable<WeeklyChallenge> {
+    return this.http.post<WeeklyChallenge>(`/api/game-profile/${encodeURIComponent(userId)}/weekly-challenges`, {
+      ...challenge,
+      userId,
+    });
   }
 
   claimSideQuest(userId: string, sideQuestId: string): Observable<SideQuest> {

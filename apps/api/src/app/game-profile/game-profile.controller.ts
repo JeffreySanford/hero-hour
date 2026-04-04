@@ -29,13 +29,58 @@ export class GameProfileController {
     return this.service.getQuests(userId);
   }
 
+  @Get(':userId/weekly-challenges')
+  async getWeeklyChallenges(@Param('userId') userId: string) {
+    if (!userId) throw new BadRequestException('Missing userId');
+    return this.service.getWeeklyChallenges(userId);
+  }
+
+  @Post(':userId/weekly-challenges')
+  async createWeeklyChallenge(@Param('userId') userId: string, @Body() payload: any) {
+    if (!userId || !payload?.title || !payload?.target || !payload?.rewardXp) {
+      throw new BadRequestException('Missing challenge fields');
+    }
+    return this.service.createWeeklyChallenge(userId, {
+      title: payload.title,
+      description: payload.description || 'Weekly challenge goal',
+      target: payload.target,
+      progress: payload.progress ?? 0,
+      rewardXp: payload.rewardXp,
+      startDate: payload.startDate ?? new Date().toISOString(),
+      endDate: payload.endDate ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+  }
+
+  @Put(':userId/weekly-challenges/:challengeId/complete')
+  async completeWeeklyChallenge(@Param('userId') userId: string, @Param('challengeId') challengeId: string) {
+    if (!userId || !challengeId) throw new BadRequestException('Missing identifiers');
+    const challenges = await this.service.getWeeklyChallenges(userId);
+    const challenge = challenges.find((c) => c.id === challengeId);
+    if (!challenge) {
+      throw new NotFoundException('Challenge not found');
+    }
+    if (challenge.status !== 'active') {
+      return challenge;
+    }
+    challenge.status = 'complete';
+    challenge.progress = challenge.target;
+    await this.service.updateProfile(userId, { xp: (await this.service.getProfile(userId)).xp + challenge.rewardXp });
+    return challenge;
+  }
+
   @Put(':userId/quests/:questId')
   async updateQuest(@Param('userId') userId: string, @Param('questId') questId: string, @Body() dto: UpdateQuestDto): Promise<Quest> {
     if (!userId || !questId) throw new BadRequestException('Missing required quest identifiers');
     try {
       return await this.service.updateQuest(userId, questId, dto);
     } catch (err: any) {
-      throw new NotFoundException(err.message);
+      if (err.message?.includes('not found')) {
+        throw new NotFoundException(err.message);
+      }
+      if (err.message?.includes('Invalid quest status') || err.message?.includes('progress must be between')) {
+        throw new BadRequestException(err.message);
+      }
+      throw new BadRequestException(err.message || 'Invalid quest update request');
     }
   }
 
@@ -67,6 +112,25 @@ export class GameProfileController {
   async getWorldState(@Param('userId') userId: string) {
     if (!userId) throw new BadRequestException('Missing userId');
     return this.service.getWorldState(userId);
+  }
+
+  @Get(':userId/strategy-profile')
+  async getStrategyProfile(@Param('userId') userId: string) {
+    if (!userId) throw new BadRequestException('Missing userId');
+    return this.service.getStrategyProfile(userId);
+  }
+
+  @Post(':userId/quests/:questId/complete')
+  async completeQuest(@Param('userId') userId: string, @Param('questId') questId: string) {
+    if (!userId || !questId) throw new BadRequestException('Missing required quest identifiers');
+    try {
+      return await this.service.completeQuest(userId, questId);
+    } catch (err: any) {
+      if (err.message?.includes('not found')) {
+        throw new NotFoundException(err.message);
+      }
+      throw new BadRequestException(err.message || 'Invalid quest complete request');
+    }
   }
 
   @Post(':userId/focus-sessions')

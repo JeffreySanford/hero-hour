@@ -90,6 +90,92 @@ async function stopApiServer(proc: ChildProcessWithoutNullStreams): Promise<void
     pwExpect(resBody).toHaveProperty('stepName', 'life-role');
   });
 
+  pwTest('cross-device progression with explicit userId consistency', async () => {
+    const userId = 'cross-device-user';
+
+    const createQuest = await apiContext.post(`/game-profile/${userId}/quests`, {
+      data: { userId, title: 'Sync Quest', lifeArea: 'career', status: 'pending', progress: 10 },
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    pwExpect(createQuest.status()).toBe(201);
+    const questBody = await createQuest.json();
+
+    const completeQuest = await apiContext.post(`/game-profile/${userId}/quests/${questBody.id}/complete`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    pwExpect(completeQuest.status()).toBe(200);
+    const completeBody = await completeQuest.json();
+
+    pwExpect(completeBody).toHaveProperty('quest');
+    pwExpect(completeBody).toHaveProperty('worldState');
+    pwExpect(completeBody).toHaveProperty('profile');
+    pwExpect(completeBody.quest.status).toBe('complete');
+    pwExpect(completeBody.worldState.progress).toBeGreaterThanOrEqual(10);
+
+    const worldState = await apiContext.get(`/game-profile/${userId}/world-state`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    pwExpect(worldState.status()).toBe(200);
+    const worldStateData = await worldState.json();
+    pwExpect(worldStateData.seed).toBe(completeBody.worldState.seed);
+    pwExpect(worldStateData.progress).toBe(completeBody.worldState.progress);
+
+    // simulate a second client (Flutter) reading same user journey
+    const secondClientWorldState = await apiContext.get(`/game-profile/${userId}/world-state`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    pwExpect(secondClientWorldState.status()).toBe(200);
+    const secondWorldStateData = await secondClientWorldState.json();
+    pwExpect(secondWorldStateData).toEqual(worldStateData);
+  });
+
+  pwTest('weekly challenge progression is tracked via quest complete', async () => {
+    const userId = 'weekly-challenge-user';
+
+    const challengeCreate = await apiContext.post(`/game-profile/${userId}/weekly-challenges`, {
+      data: {
+        title: 'Complete 2 quests',
+        description: 'Complete two quests this week',
+        target: 2,
+        rewardXp: 20,
+      },
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    pwExpect(challengeCreate.status()).toBe(201);
+    const challenge = await challengeCreate.json();
+
+    const quest1 = await apiContext.post(`/game-profile/${userId}/quests`, {
+      data: { userId, title: 'Q1', lifeArea: 'career', status: 'pending', progress: 10 },
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    pwExpect(quest1.status()).toBe(201);
+    const q1body = await quest1.json();
+
+    const complete1 = await apiContext.post(`/game-profile/${userId}/quests/${q1body.id}/complete`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    pwExpect(complete1.status()).toBe(200);
+
+    const quest2 = await apiContext.post(`/game-profile/${userId}/quests`, {
+      data: { userId, title: 'Q2', lifeArea: 'health', status: 'pending', progress: 10 },
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    pwExpect(quest2.status()).toBe(201);
+    const q2body = await quest2.json();
+
+    const complete2 = await apiContext.post(`/game-profile/${userId}/quests/${q2body.id}/complete`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    pwExpect(complete2.status()).toBe(200);
+
+    const updated = await apiContext.get(`/game-profile/${userId}/weekly-challenges`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    pwExpect(updated.status()).toBe(200);
+    const activeChallenges = await updated.json();
+    pwExpect(activeChallenges).toEqual(expect.arrayContaining([expect.objectContaining({ id: challenge.id, status: 'complete', progress: 2 })]));
+  });
+
   pwTest('saves a life-profile step', async () => {
     const lifeProfileDto = { roles: ['student'], priorities: ['health'], habitAnchors: ['morning'] };
     const res = await apiContext.patch('/life-profile', {
@@ -167,6 +253,11 @@ async function stopApiServer(proc: ChildProcessWithoutNullStreams): Promise<void
     pwExpect(worldState).toHaveProperty('color');
     pwExpect(worldState).toHaveProperty('icon');
     pwExpect(worldState).toHaveProperty('progress');
+
+    const badUpdateRes = await apiContext.put(`/game-profile/integrationUser/quests/${questBody.id}`, {
+      data: { status: 'foo', progress: 150 },
+    });
+    pwExpect(badUpdateRes.status()).toBe(400);
   });
 
   pwTest('maintains world-state after sequential updates', async () => {
@@ -183,6 +274,34 @@ async function stopApiServer(proc: ChildProcessWithoutNullStreams): Promise<void
 
     pwExpect(secondState.progress).toBeGreaterThanOrEqual(firstState.progress);
     pwExpect(secondState.seed).not.toBe(firstState.seed);
+  });
+
+  pwTest('quest-complete API returns joined payload and updates world state', async () => {
+    const questDto = { userId: 'integrationUser', title: 'Complete RPC', lifeArea: 'career', status: 'pending', progress: 10 };
+    const questRes = await apiContext.post('/game-profile/integrationUser/quests', { data: questDto });
+    pwExpect(questRes.status()).toBe(201);
+    const quest = await questRes.json();
+
+    const worldBefore = await apiContext.get('/game-profile/integrationUser/world-state');
+    pwExpect(worldBefore.status()).toBe(200);
+    const worldStateBefore = await worldBefore.json();
+
+    const completeRes = await apiContext.post(`/game-profile/integrationUser/quests/${quest.id}/complete`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    pwExpect(completeRes.status()).toBe(200);
+    const completeBody = await completeRes.json();
+
+    pwExpect(completeBody.quest.status).toBe('complete');
+    pwExpect(completeBody.quest.progress).toBe(100);
+    pwExpect(completeBody.worldState.progress).toBeGreaterThanOrEqual(worldStateBefore.progress);
+    pwExpect(completeBody.profile.userId).toBe('integrationUser');
+
+    const worldAfter = await apiContext.get('/game-profile/integrationUser/world-state');
+    pwExpect(worldAfter.status()).toBe(200);
+    const worldStateAfter = await worldAfter.json();
+    pwExpect(worldStateAfter.seed).toBe(completeBody.worldState.seed);
+    pwExpect(worldStateAfter.progress).toBe(completeBody.worldState.progress);
   });
 
   pwTest('process restart persistence for game profile flows', async () => {

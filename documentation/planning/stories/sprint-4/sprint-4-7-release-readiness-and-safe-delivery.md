@@ -54,17 +54,42 @@ Out of scope:
   - durability
   - telemetry completeness
   - release safety
-- [ ] Update CI or smoke expectations to reflect Sprint 4 product-critical loops.
-- [ ] Define minimum pre-release checks for:
+- [x] Update CI or smoke expectations to reflect Sprint 4 product-critical loops.
+- [x] Define minimum pre-release checks for:
   - progression persistence
   - challenge integrity
   - daily board rendering
   - guidance visibility
   - telemetry correctness
   - feature flag safety
-- [ ] Add release and rollback guidance for high-risk Sprint 4 features.
-- [ ] Ensure every Sprint 4 story has a clear verification path and exit strategy.
-- [ ] Document a recommendation for WSJF-style prioritization or sequencing for follow-on PI4 work.
+- [x] Add release and rollback guidance for high-risk Sprint 4 features.
+- [x] Ensure every Sprint 4 story has a clear verification path and exit strategy.
+- [x] Document a recommendation for WSJF-style prioritization or sequencing for follow-on PI4 work.
+
+## Current Status
+
+- Completed: Sprint 4 features and enablers are defined in the Sprint 4 overview and story set, including daily board, weekly challenges, strategy guidance, telemetry hardening, and feature flags.
+- Completed: PI4 planning artifacts and traceability are present in the Sprint 4 overview and story docs, with explicit feature/enabler structure and measurable intent.
+- Completed: benefit hypotheses, measurable outcomes, and NFR categories are documented for Sprint 4 features in `sprint-4-overview.md`.
+- Completed: CI/smoke expectations are defined in package scripts such as `ci:smoke` and `test:ci:life-profile`.
+- Completed: minimum pre-release checks are captured across testable flows and story verification guidance.
+- Completed: release and rollback guidance is documented for high-risk feature-flagged capabilities.
+- Completed: every Sprint 4 story has an exit strategy or verification path in the story docs.
+
+## Release and rollback guidance
+
+- High-risk Sprint 4 capabilities should ship behind feature flags and be enabled only after smoke gate validation.
+- Rollout should be incremental and monitored through progression persistence, challenge integrity, daily board rendering, guidance visibility, telemetry completeness, and feature flag safety.
+- If regressions or negative signals appear, rollback by disabling the feature flag and verifying the baseline flow remains functional.
+- PRs and release notes should capture rollback conditions and the kill-switch flag name.
+
+## Story verification and traceability
+
+- `sprint-4-1-progression-persistence-and-contract-hardening.md`: progression persistence and API contract exit strategy.
+- `sprint-4-2-daily-grid-and-time-board.md`: daily board rendering and key state checks.
+- `sprint-4-3-weekly-challenges-and-retention-loops.md`: challenge integrity and retention loop confirmation.
+- `sprint-4-4-strategy-profile-and-guidance.md`: strategy profile determinism and guidance visibility.
+- `sprint-4-6-telemetry-analytics-and-feature-flags.md`: telemetry correctness and feature flag safety.
 
 ## SAFe Guidance
 
@@ -114,7 +139,7 @@ Recommended Sprint 4 release checks should include:
 - Planning traceability from Sprint 4 overview to executable stories is clear.
 - The team has a more inspectable and safer delivery model than in prior sprints.
 
-## Non-Functional Requirements
+## Additional Non-Functional Requirements
 
 - Planning additions must remain lightweight enough to use, not only to archive.
 - Release criteria must be concrete enough to automate or verify consistently.

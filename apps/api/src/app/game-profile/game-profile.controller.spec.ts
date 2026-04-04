@@ -18,6 +18,7 @@ describe('GameProfileController', () => {
           provide: GameProfileService,
           useValue: {
             getProfile: jest.fn(),
+            completeQuest: jest.fn(),
             updateAvatarTheme: jest.fn(),
             createQuest: jest.fn(),
             getQuests: jest.fn(),
@@ -153,6 +154,20 @@ describe('GameProfileController', () => {
     await expect(controller.getSideQuests('')).rejects.toThrow(BadRequestException);
     await expect(controller.claimSideQuest('u1', '') as any).rejects.toThrow(BadRequestException);
     await expect(controller.getWorldState('')).rejects.toThrow(BadRequestException);
+  });
+
+  it('should handle completeQuest endpoint', async () => {
+    const mockOut = {
+      quest: { id: 'q1', userId: 'u1', title: 'Test', lifeArea: 'health', status: 'complete', progress: 100 },
+      worldState: { seed: 30, color: 'green', icon: '🌱', progress: 40 },
+      profile: { userId: 'u1', avatar: 'default', theme: 'default', displayName: '', xp: 0, level: 1, streak: 0 },
+    };
+
+    (service.completeQuest as jest.Mock).mockResolvedValue(mockOut);
+
+    const response = await controller.completeQuest('u1', 'q1');
+    expect(response).toEqual(mockOut);
+    expect(service.completeQuest).toHaveBeenCalledWith('u1', 'q1');
   });
 });
 // ...existing code...

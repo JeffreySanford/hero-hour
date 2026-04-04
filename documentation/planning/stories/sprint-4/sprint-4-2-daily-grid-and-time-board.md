@@ -47,24 +47,24 @@ Out of scope:
 
 ## Tasks
 
-- [ ] Define the Sprint 4 daily-grid data model and determine whether it is event-based, session-based, or hybrid.
-- [ ] Decide the minimum time granularity for the first release.
-- [ ] Design grid states for:
+- [x] Define the Sprint 4 daily-grid data model and determine whether it is event-based, session-based, or hybrid.
+- [x] Decide the minimum time granularity for the first release.
+- [x] Design grid states for:
   - empty
   - planned
   - active
   - completed
   - recovery/rest
   - challenge-related
-- [ ] Implement the daily-grid/time-board component in Angular.
+- [x] Implement the daily-grid/time-board component in Angular.
 - [ ] Implement the daily-grid/time-board component in Flutter.
-- [ ] Map existing user actions such as activity logging and quest completion into the grid model.
-- [ ] Add readable animation for cell fill, state update, or progress linkage.
-- [ ] Add drill-in context for hover, tap, or focus.
-- [ ] Add empty-state messaging for users with no entries yet.
-- [ ] Add re-entry summary hooks so the board can support “what happened today?” messaging.
-- [ ] Add tests for empty, partial, and active day rendering states.
-- [ ] Document how future focus sessions and weekly challenge overlays should integrate.
+- [x] Map existing user actions such as activity logging and quest completion into the grid model.
+- [x] Add readable animation for cell fill, state update, or progress linkage.
+- [x] Add drill-in context for hover, tap, or focus.
+- [x] Add empty-state messaging for users with no entries yet.
+- [x] Add re-entry summary hooks so the board can support “what happened today?” messaging.
+- [x] Add tests for empty, partial, and active day rendering states.
+- [x] Document how future focus sessions and weekly challenge overlays should integrate.
 
 ## Product Behavior Guidance
 

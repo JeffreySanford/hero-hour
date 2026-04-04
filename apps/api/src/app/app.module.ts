@@ -18,6 +18,8 @@ import { GameProfileService } from './game-profile/game-profile.service';
 import { GameProfileController } from './game-profile/game-profile.controller';
 import { TelemetryService } from './telemetry/telemetry.service';
 import { TelemetryController } from './telemetry/telemetry.controller';
+import { FeatureFlagsService } from './feature-flags/feature-flags.service';
+import { FeatureFlagsController } from './feature-flags/feature-flags.controller';
 import { TelemetryAuditRepository } from '@org/domain';
 import { JwtGuard } from './auth/jwt.guard';
 
@@ -37,6 +39,7 @@ import { JwtGuard } from './auth/jwt.guard';
     LifeProfileController,
     GameProfileController,
     TelemetryController,
+    FeatureFlagsController,
   ],
   providers: [
     AppService,
@@ -46,6 +49,7 @@ import { JwtGuard } from './auth/jwt.guard';
     LifeProfileService,
     GameProfileService,
     TelemetryService,
+    FeatureFlagsService,
     TelemetryAuditRepository,
     JwtGuard,
   ],

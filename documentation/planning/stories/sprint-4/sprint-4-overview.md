@@ -21,8 +21,8 @@ The codebase already shows several positive foundations:
 - clear game-inspired product language: quests, side quests, world state, growth map, identity loadout, realm activity
 - an initial cross-platform strategy with Angular for admin/web and Flutter for higher-fidelity interaction
 - shared contract work via `api-interfaces`
-- growing documentation and sprint planning discipline
-- early telemetry, offline queueing, and CI/readiness work
+- growing documentation and sprint planning discipline, including dedicated Sprint 4 story docs in `documentation/planning/stories/sprint-4`
+- early telemetry, offline queueing, and CI/readiness work, including `ci:smoke`, `test:ci:life-profile`, and Playwright e2e smoke paths
 
 At the same time, there are several visible constraints that should influence Sprint 4 planning:
 
@@ -31,7 +31,7 @@ At the same time, there are several visible constraints that should influence Sp
 - Angular and Flutter have similar concepts but not yet a truly shared interaction model
 - the game layer is emotionally promising but mechanically shallow
 - telemetry exists, but not yet as a trustworthy analytics foundation
-- planning artifacts are SAFe-flavored, but implementation and measurement are not yet consistently organized as SAFe-style features, enablers, NFRs, and flow metrics
+- planning artifacts are SAFe-flavored, but implementation and measurement are not yet consistently organized as SAFe-style features, enablers, NFRs, and flow metrics; recent work is making release readiness and verification paths more explicit
 
 ## What the Product Already Does Well
 
@@ -112,6 +112,16 @@ The current app has strong thematic space for time visualization but limited con
 - more visible distinction between planning, doing, and reflecting
 
 That will make the application feel less like a static dashboard and more like an active game board for the day.
+
+## Current Sprint 4 Delivery Lens
+
+This overview is supported by the current Sprint 4 story set under `documentation/planning/stories/sprint-4`. The main delivery focus areas are:
+
+- Feature work: progression persistence, daily grid/time board, weekly challenge loops, strategy profile and guidance, rewards/rewards polish, and stronger game-based progression.
+- Enabler work: durable persistence, telemetry/analytics hardening, feature flags, release gating, and shared contract consistency.
+- NFR work: performance, accessibility, durability, telemetry completeness, release safety, and cross-platform consistency.
+
+These areas should be tied directly to verification paths, smoke suites, and documentation that can be executed rather than only described. Existing testable paths include the contract-level test suites and smoke scripts such as `pnpm run test:ci:contract`, and Playwright e2e coverage under `apps/admin-console-e2e`.
 
 ## 2. Make the UX More Polished and More Coherent Across Angular and Flutter
 
@@ -463,13 +473,14 @@ This overview should be followed by:
 
 - `documentation/planning/epics/PI-4-Epics.md`
 - `documentation/planning/features/PI-4-Features.md`
-- individual Sprint 4 story docs for:
-  - progression persistence
-  - daily grid/time board
-  - weekly challenges
-  - strategy profile and guidance
-  - telemetry hardening
-  - feature flags and release gate improvements
+- individual Sprint 4 story docs in `documentation/planning/stories/sprint-4/` for:
+  - `sprint-4-1-progression-persistence-and-contract-hardening.md`
+  - `sprint-4-2-daily-grid-and-time-board.md`
+  - `sprint-4-3-weekly-challenges-and-retention-loops.md`
+  - `sprint-4-4-strategy-profile-and-guidance.md`
+  - `sprint-4-5-cross-platform-engagement-polish.md`
+  - `sprint-4-6-telemetry-analytics-and-feature-flags.md`
+  - `sprint-4-7-release-readiness-and-safe-delivery.md`
 
 ## Summary
 

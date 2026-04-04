@@ -4,6 +4,8 @@
       <span class="eyebrow">Midnight Forge</span>
       <h2>Dashboard</h2>
       <p class="dashboard-subtitle">One command surface for health, work, recovery, and short-form wins.</p>
+      <p *ngIf="isReturningUser" class="reentry-guidance">Welcome back! Re-entry guidance shows where to restart.</p>
+      <p *ngIf="isReducedMotion" class="reduced-motion-indicator">Reduced motion mode is active</p>
     </div>
 
     <div class="dashboard-actions">
@@ -74,6 +76,19 @@
       <div class="daily-grid-wrapper">
         <h4>Daily Time Grid</h4>
         <app-daily-grid [cells]="dailyGridCells" [reducedMotion]="isReducedMotion"></app-daily-grid>
+      </div>
+
+      <div class="weekly-challenge-wrapper" *ngIf="weeklyChallenge">
+        <h4>Weekly Challenge</h4>
+        <p class="weekly-challenge-title">{{ weeklyChallenge.title }}</p>
+        <p class="weekly-challenge-desc">{{ weeklyChallenge.description }}</p>
+        <div class="progress-container">
+          <div class="progress-track" aria-label="challenge progress">
+            <div class="progress-fill" [style.width.%]="(weeklyChallenge.progress / weeklyChallenge.target) * 100"></div>
+          </div>
+          <span class="progress-label">{{ weeklyChallenge.progress }}/{{ weeklyChallenge.target }} ({{ weeklyChallenge.status }})</span>
+        </div>
+        <p>Reward: {{ weeklyChallenge.rewardXp }} XP</p>
       </div>
     </article>
 

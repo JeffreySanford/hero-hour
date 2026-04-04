@@ -17,6 +17,8 @@ const _success = Color(0xFF22C55E);
 const _warning = Color(0xFFF59E0B);
 const _danger = Color(0xFFEF4444);
 
+const _apiBaseUrl = String.fromEnvironment('API_BASE', defaultValue: 'http://localhost:3000/api');
+
 void main() {
   runApp(const HeroHourApp());
 }
@@ -373,15 +375,25 @@ class HeroHourAppState extends ChangeNotifier {
     this.offlineStatus = 'online',
     this.apiStatus = 'ok',
     this.hasApiError = false,
+    this.questSyncState = 'idle',
+    this.questSyncError,
     this.queueCount = 2,
     this.reduceMotion = false,
     WorldState? worldState,
     List<QuestItem>? quests,
     List<SideQuestItem>? sideQuests,
+    WeeklyChallenge? weeklyChallenge,
     LifeProfileFormValue? profile,
   }) : worldState =
            worldState ??
            WorldState(seed: 2407, color: 'Amber', icon: 'Forge', progress: 62),
+       weeklyChallenge = weeklyChallenge ??
+         WeeklyChallenge(
+           id: 'weekly-1',
+           title: 'Win 5 weekly quests',
+           description: 'Complete 5 quests this week to earn bonus XP',
+           target: 5,
+         ),
        quests =
            quests ??
            [
@@ -431,6 +443,8 @@ class HeroHourAppState extends ChangeNotifier {
   String offlineStatus;
   String apiStatus;
   bool hasApiError;
+  String questSyncState;
+  String? questSyncError;
 
   // Animation-tracking state for completion celebration.
   String? recentlyCompletedQuestId;
@@ -458,6 +472,7 @@ class HeroHourAppState extends ChangeNotifier {
   ];
   final List<QuestItem> quests;
   final List<SideQuestItem> sideQuests;
+  final WeeklyChallenge weeklyChallenge;
   LifeProfileFormValue profile;
 
   bool prologueComplete = false;
@@ -529,6 +544,39 @@ class HeroHourAppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<DailyTimeGridCell> get dailyTimeGridCells {
+    final slots = List<DailyTimeGridCell>.generate(
+      24,
+      (index) => DailyTimeGridCell(index: index, activity: 'idle', completed: false),
+    );
+
+    final completedSlots = (worldState.progress / 4).floor().clamp(0, 24);
+    for (var i = 0; i < completedSlots; i++) {
+      slots[i] = DailyTimeGridCell(index: i, activity: 'work', completed: true);
+    }
+
+    for (var quest in quests.where((q) => q.status == 'complete')) {
+      final pos = quest.id.hashCode.abs() % 24;
+      slots[pos] = DailyTimeGridCell(
+        index: pos,
+        activity: quest.lifeArea,
+        completed: true,
+      );
+    }
+
+    for (var i = 0; i < 24; i++) {
+      if (slots[i].completed) continue;
+      final activity = (i % 4 == 0)
+          ? 'rest'
+          : (i % 3 == 0)
+              ? 'exercise'
+              : 'social';
+      slots[i] = DailyTimeGridCell(index: i, activity: activity, completed: false);
+    }
+
+    return slots;
+  }
+
   void refreshStatus() {
     hasApiError = false;
     apiStatus = 'ok';
@@ -597,19 +645,89 @@ class HeroHourAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void completeQuest(QuestItem quest) {
+  Future<void> completeQuest(QuestItem quest, {http.Client? client}) async {
+    quest.status = 'in-progress';
+    quest.syncStatus = 'pending';
     quest.progress = 100;
-    quest.status = 'complete';
-    activateCompletionAnimation(questId: quest.id);
+    questSyncState = 'pending';
     notifyListeners();
+
+    final http.Client httpClient = client ?? http.Client();
+    try {
+      final response = await httpClient.post(
+        Uri.parse('$_apiBaseUrl/game-profile/demo-user/quests/${Uri.encodeComponent(quest.id)}/complete'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({}),
+      );
+      if (response.statusCode == 200) {
+        final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        quest.status = payload['status'] as String? ?? 'complete';
+        quest.progress = payload['progress'] as int? ?? 100;
+        quest.syncStatus = 'confirmed';
+        questSyncState = 'confirmed';
+
+        final worldStateResp = await httpClient.get(Uri.parse('$_apiBaseUrl/game-profile/demo-user/world-state'));
+        if (worldStateResp.statusCode == 200) {
+          final worldJson = jsonDecode(worldStateResp.body) as Map<String, dynamic>;
+          worldState.seed = worldJson['seed'] as int? ?? worldState.seed;
+          worldState.color = worldJson['color'] as String? ?? worldState.color;
+          worldState.icon = worldJson['icon'] as String? ?? worldState.icon;
+          worldState.progress = worldJson['progress'] as int? ?? worldState.progress;
+        }
+
+        if (quest.status == 'complete') {
+          weeklyChallenge.progress = (weeklyChallenge.progress + 1).clamp(0, weeklyChallenge.target);
+          if (weeklyChallenge.progress >= weeklyChallenge.target) {
+            weeklyChallenge.status = 'complete';
+            worldState.progress = (worldState.progress + 10).clamp(0, 100);
+          }
+        }
+
+        activateCompletionAnimation(questId: quest.id);
+      } else {
+        quest.status = 'failed';
+        quest.syncStatus = 'failed';
+        questSyncState = 'failed';
+        questSyncError = 'Complete quest failed status ${response.statusCode}';
+      }
+    } catch (err) {
+      quest.status = 'failed';
+      quest.syncStatus = 'failed';
+      questSyncState = 'failed';
+      questSyncError = err.toString();
+    } finally {
+      notifyListeners();
+    }
   }
 
-  void claimSideQuest(String id) {
+  Future<void> claimSideQuest(String id) async {
     final sideQuest = sideQuests.firstWhere((item) => item.id == id);
     sideQuest.completed = true;
-    activateCompletionAnimation(sideQuestId: sideQuest.id);
-    worldState.progress = (worldState.progress + 8).clamp(0, 100);
+    questSyncState = 'pending';
+    worldState.progress = (worldState.progress + 8).clamp(0, 100); // optimistic local progress
     notifyListeners();
+
+    try {
+      final client = http.Client();
+      final response = await client.post(
+        Uri.parse('$_apiBaseUrl/game-profile/demo-user/side-quests/${Uri.encodeComponent(id)}/claim'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        questSyncState = 'confirmed';
+        worldState.progress = (worldState.progress + 8).clamp(0, 100);
+        activateCompletionAnimation(sideQuestId: sideQuest.id);
+      } else {
+        questSyncState = 'failed';
+        questSyncError = 'Claim failed status ${response.statusCode}';
+      }
+    } catch (err) {
+      questSyncState = 'failed';
+      questSyncError = err.toString();
+      // keep local completed state as optimistic and allow user retry
+    } finally {
+      notifyListeners();
+    }
   }
 
   void saveProfile(LifeProfileFormValue value) {
@@ -1002,6 +1120,77 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _selectedLifeArea = 'health';
   String? _formError;
 
+  List<Map<String, Object>> computeStrategyDimensions(HeroHourAppState appState) {
+    final completedQuests = appState.quests.where((q) => q.status == 'complete').length;
+    final totalQuests = appState.quests.isEmpty ? 1 : appState.quests.length;
+    final planningScore = ((completedQuests / totalQuests) * 100).round().clamp(0, 100);
+
+    final areaCounts = <String, int>{'health': 0, 'career': 0, 'relationships': 0, 'fun': 0};
+    for (var q in appState.quests) {
+      if (areaCounts.containsKey(q.lifeArea)) {
+        areaCounts[q.lifeArea] = areaCounts[q.lifeArea]! + 1;
+      }
+    }
+    final average = appState.quests.isEmpty ? 0.0 : appState.quests.length / areaCounts.length;
+    final variance = areaCounts.values.fold<double>(0.0, (sum, v) => sum + ((v - average) / (average == 0 ? 1 : average)).abs());
+    final balanceScore = (100 - (variance * 12)).round().clamp(0, 100);
+
+    final recoveryScore = appState.sideQuests.isEmpty
+        ? 50
+        : ((appState.sideQuests.where((s) => s.completed).length / appState.sideQuests.length) * 100).round();
+    final focusScore = appState.worldState.progress.clamp(0, 100);
+
+    return [
+      {'name': 'Planning consistency', 'score': planningScore, 'detail': '$completedQuests/$totalQuests quests complete'},
+      {'name': 'Life-area balance', 'score': balanceScore, 'detail': '${areaCounts['health']}/${areaCounts['career']}/${areaCounts['relationships']}/${areaCounts['fun']}'},
+      {'name': 'Recovery quality', 'score': recoveryScore, 'detail': '${appState.sideQuests.where((s) => s.completed).length}/${appState.sideQuests.length} side quests'},
+      {'name': 'Focus depth', 'score': focusScore, 'detail': 'World progress ${appState.worldState.progress}%'}
+    ];
+  }
+
+  List<Map<String, String>> computeStrategyRecommendations(HeroHourAppState appState) {
+    final dims = computeStrategyDimensions(appState);
+    final planning = dims[0]['score'] as int;
+    final balance = dims[1]['score'] as int;
+    final focus = dims[3]['score'] as int;
+
+    final recs = <Map<String, String>>[];
+    if (planning < 60) {
+      recs.add({
+        'text': 'Set 1-2 priority quests to improve planning consistency.',
+        'rationale': 'Less than 60% completion suggests planning ramp-up needed.',
+        'type': 'completion',
+      });
+    }
+    if (balance < 70) {
+      recs.add({
+        'text': 'Add one quest in a less used life area for better balance.',
+        'rationale': 'Low balance score indicates focus spill into one category.',
+        'type': 'balance',
+      });
+    }
+    if (focus > 70) {
+      recs.add({
+        'text': 'Keep momentum: execute a small task now and maintain progress.',
+        'rationale': 'High focus suggests momentum leverage.',
+        'type': 'momentum',
+      });
+    }
+    if (recs.isEmpty) {
+      recs.add({
+        'text': 'Your strategy is stable—maintain your current progress path.',
+        'rationale': 'No critical gaps detected.',
+        'type': 'momentum',
+      });
+    }
+    return recs;
+  }
+
+  String buildReentrySummary(HeroHourAppState appState) {
+    final completed = appState.quests.where((q) => q.status == 'complete').length;
+    return 'You completed $completed quests and your world is ${appState.worldState.progress}% progressed.';
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = HeroHourScope.of(context);
@@ -1166,6 +1355,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
               'social',
               'rest',
             ].map((activity) => _ActivityChip(activity: activity)).toList(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        _InfoCard(
+          title: 'Daily Time Grid',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Visualize your day like a quest board. Completed world progress and quests fill the grid.',
+                style: theme.textTheme.bodySmall,
+              ),
+              const SizedBox(height: 10),
+              DailyTimeGrid(
+                cells: appState.dailyTimeGridCells,
+                reducedMotion: appState.reduceMotion,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          key: const ValueKey('strategy-profile-card'),
+          child: _InfoCard(
+            title: 'Strategy Profile',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Re-entry summary: ${buildReentrySummary(appState)}', style: theme.textTheme.bodySmall),
+                const SizedBox(height: 8),
+                ...computeStrategyDimensions(appState).map((dim) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(child: Text('${dim['name']}', style: theme.textTheme.bodySmall)),
+                        Text('${dim['score']}%', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 6),
+                const Divider(),
+                const SizedBox(height: 6),
+                Text('Recommendations', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 6),
+                ...computeStrategyRecommendations(appState).map((rec) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('• ${rec['text']}', style: theme.textTheme.bodySmall),
+                        Text('  (${rec['rationale']})', style: theme.textTheme.bodySmall?.copyWith(color: _mutedText, fontSize: 11)),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -2136,6 +2386,83 @@ class _GlowOrb extends StatelessWidget {
   }
 }
 
+class DailyTimeGridCell {
+  DailyTimeGridCell({
+    required this.index,
+    required this.activity,
+    required this.completed,
+  });
+
+  final int index;
+  final String activity;
+  final bool completed;
+}
+
+class DailyTimeGrid extends StatelessWidget {
+  const DailyTimeGrid({super.key, required this.cells, this.reducedMotion = false});
+
+  final List<DailyTimeGridCell> cells;
+  final bool reducedMotion;
+
+  @override
+  Widget build(BuildContext context) {
+    if (cells.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: Text('No grid entries yet. Log an activity or complete a quest.'),
+        ),
+      );
+    }
+
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 6,
+      crossAxisSpacing: 4,
+      mainAxisSpacing: 4,
+      childAspectRatio: 1,
+      children: cells.map((cell) {
+        final color = cell.completed
+            ? Colors.green.shade400
+            : cell.activity == 'rest'
+                ? Colors.blue.shade200
+                : cell.activity == 'exercise'
+                    ? Colors.orange.shade200
+                    : cell.activity == 'social'
+                        ? Colors.purple.shade200
+                        : Colors.grey.shade200;
+
+        return AnimatedContainer(
+          duration: reducedMotion ? const Duration(milliseconds: 120) : const Duration(milliseconds: 300),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: cell.completed ? Colors.white : Colors.grey.shade300, width: 1.2),
+            boxShadow: cell.completed
+                ? [BoxShadow(color: Colors.green.shade600.withOpacity(0.2), blurRadius: 4, spreadRadius: 0)]
+                : [],
+          ),
+          child: Center(
+            child: Text(
+              '${cell.index + 1}',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: cell.completed ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
 class _GridPainter extends CustomPainter {
   const _GridPainter({required this.lineColor});
 
@@ -2197,9 +2524,9 @@ class WorldState {
     required this.progress,
   });
 
-  final int seed;
-  final String color;
-  final String icon;
+  int seed;
+  String color;
+  String icon;
   int progress;
 }
 
@@ -2217,6 +2544,7 @@ class QuestItem {
     required this.lifeArea,
     required this.progress,
     this.status = 'pending',
+    this.syncStatus = 'confirmed',
   });
 
   final String id;
@@ -2224,6 +2552,7 @@ class QuestItem {
   final String lifeArea;
   int progress;
   String status;
+  String syncStatus;
 }
 
 class SideQuestItem {
@@ -2240,6 +2569,26 @@ class SideQuestItem {
   final String type;
   final int rewardXp;
   bool completed;
+}
+
+class WeeklyChallenge {
+  WeeklyChallenge({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.target,
+    this.progress = 0,
+    this.status = 'active',
+    this.rewardXp = 50,
+  });
+
+  final String id;
+  final String title;
+  final String description;
+  final int target;
+  int progress;
+  String status;
+  int rewardXp;
 }
 
 class LifeProfileFormValue {

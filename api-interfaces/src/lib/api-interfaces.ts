@@ -63,7 +63,7 @@ export type LifeProfileResponse = LifeProfile & {
 
 export type LifeArea = 'health' | 'career' | 'relationships' | 'fun';
 
-export type QuestStatus = 'pending' | 'complete' | 'failed';
+export type QuestStatus = 'pending' | 'in-progress' | 'complete' | 'failed';
 
 export interface Quest {
   id: string;
@@ -92,6 +92,21 @@ export interface WorldState {
   progress: number;
 }
 
+export type WeeklyChallengeStatus = 'active' | 'complete' | 'expired';
+
+export interface WeeklyChallenge {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  target: number;
+  progress: number;
+  status: WeeklyChallengeStatus;
+  rewardXp: number;
+  startDate: string;
+  endDate: string;
+}
+
 export interface GameProfile {
   userId: string;
   avatar: string;
@@ -117,7 +132,70 @@ export interface VillageState {
   updatedAt: string;
 }
 
-export type TelemetryEventType = 'lifeProfileUpdated' | 'questCompleted' | 'focusSessionCompleted';
+export type TelemetryEventType =
+  | 'lifeProfileUpdated'
+  | 'questCompleted'
+  | 'focusSessionCompleted'
+  | 'strategyProfileViewed'
+  | 'recommendationClicked'
+  | 'weeklyChallengeCompleted'
+  | 'challengeAssigned'
+  | 'challengeProgressed'
+  | 'challengeCompleted'
+  | 'dailyBoardViewed'
+  | 'progressionMilestoneReached';
+
+export type TelemetrySource = 'angular' | 'flutter' | 'backend';
+
+export interface TelemetryEventPayload {
+  userId: string;
+  details: Record<string, any>;
+  source?: TelemetrySource;
+  sessionId?: string;
+  version?: string;
+}
+
+export interface TelemetryAggregateMetric {
+  name: string;
+  description: string;
+  eventTypes: TelemetryEventType[];
+}
+
+export type FeatureFlagName =
+  | 'weeklyChallenges'
+  | 'strategyProfile'
+  | 'reentryGuidance'
+  | 'richerProgression';
+
+export interface FeatureFlags {
+  [key: string]: boolean;
+}
+
+export interface FeatureFlagUpdate {
+  name: FeatureFlagName;
+  enabled: boolean;
+}
+
+export interface StrategyDimension {
+  name: string;
+  score: number;
+  detail: string;
+}
+
+export interface StrategyRecommendation {
+  id: string;
+  text: string;
+  type: 'completion' | 'balance' | 'momentum';
+  rationale: string;
+}
+
+export interface StrategyProfile {
+  userId: string;
+  updatedAt: string;
+  dimensions: StrategyDimension[];
+  recommendations: StrategyRecommendation[];
+  reentrySummary: string;
+}
 
 export interface TelemetryEventPayload {
   userId: string;

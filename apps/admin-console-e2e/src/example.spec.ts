@@ -30,6 +30,37 @@ test.describe('Admin console end-to-end', () => {
       });
     });
 
+    await page.route('**/api/telemetry/metrics', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          { name: 'Weekly challenge start rate', description: 'Percentage of users who start a weekly challenge after it is assigned.', eventTypes: ['challengeAssigned', 'weeklyChallengeCompleted'] },
+          { name: 'Weekly challenge completion rate', description: 'Percentage of weekly challenges completed by users who began a challenge.', eventTypes: ['weeklyChallengeCompleted'] },
+          { name: 'Dashboard return rate after re-entry guidance exposure', description: 'Rate of returning users who revisit the dashboard after guidance is shown.', eventTypes: ['dailyBoardViewed', 'strategyProfileViewed'] },
+          { name: 'Side quest completion frequency', description: 'Number of side quests completed per user session.', eventTypes: ['questCompleted'] },
+          { name: 'Life profile completion and update rate', description: 'Share of users who complete or update their life profile.', eventTypes: ['lifeProfileUpdated'] },
+        ]),
+      }),
+    );
+
+    const featureFlags = { weeklyChallenges: true };
+    await page.route('**/api/feature-flags', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(featureFlags),
+      }),
+    );
+
+    await page.route('**/api/feature-flags/**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(featureFlags),
+      }),
+    );
+
     await page.route('**/api/life-profile**', async (route) => {
       const request = route.request();
       if (request.method() === 'POST') {
@@ -92,7 +123,7 @@ test.describe('Admin console end-to-end', () => {
     const quests = [] as Array<{ id: string; userId: string; title: string; lifeArea: string; status: string; progress: number }>;
 
 
-    await page.route('**/api/game-profile/demo-user/quests', async (route) => {
+    await page.route('**/api/game-profile/demo-user/quests*', async (route) => {
       if (route.request().method() === 'POST') {
         const payload = route.request().postDataJSON();
         console.log('[QUICK-QUEST-POST-BODY]', payload);
@@ -130,7 +161,7 @@ test.describe('Admin console end-to-end', () => {
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(quests) });
     });
 
-    await page.route('**/api/game-profile/demo-user/world-state', (route) =>
+    await page.route('**/api/game-profile/demo-user/world-state*', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(worldState) }),
     );
 
@@ -139,7 +170,26 @@ test.describe('Admin console end-to-end', () => {
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(sideQuests) });
     });
 
-    await page.route('**/api/game-profile/demo-user/village', (route) => {
+    await page.route('**/api/game-profile/demo-user/weekly-challenges*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            id: 'weekly-1',
+            userId: 'demo-user',
+            title: 'Maintain focus streak',
+            description: 'Complete your daily goals for three consecutive days.',
+            progress: 1,
+            target: 3,
+            status: 'active',
+            rewardXp: 40,
+          },
+        ]),
+      }),
+    );
+
+    await page.route('**/api/game-profile/demo-user/village*', (route) => {
       console.log('[VILLAGE-ROUTE] GET', route.request().method(), route.request().url());
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ village: 'forge', level: 1 }) });
     });
@@ -669,9 +719,14 @@ test.describe('Admin console end-to-end', () => {
     const baseUrl = await page.evaluate(() => window.location.origin);
 
     const onboardingResponse = await page.evaluate(async (baseUrl) => {
+      const token = localStorage.getItem('hero-hour-token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
       const res = await fetch(`${baseUrl}/api/onboarding/complete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ userId: 'demo-user' }),
       });
       return res.status;
@@ -679,9 +734,14 @@ test.describe('Admin console end-to-end', () => {
     expect(onboardingResponse).toBe(200);
 
     const lifeProfileResponse = await page.evaluate(async (baseUrl) => {
+      const token = localStorage.getItem('hero-hour-token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
       const res = await fetch(`${baseUrl}/api/life-profile`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ userId: 'demo-user', firstName: 'Joy', lastName: 'Bell', age: 29, preferredRole: 'member' }),
       });
       return res.status;
@@ -689,9 +749,14 @@ test.describe('Admin console end-to-end', () => {
     expect(lifeProfileResponse).toBe(201);
 
     const claimResponse = await page.evaluate(async (baseUrl) => {
+      const token = localStorage.getItem('hero-hour-token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
       const res = await fetch(`${baseUrl}/api/game-profile/demo-user/side-quests/sq-1/claim`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
       });
       return res.status;
     }, baseUrl);
@@ -701,7 +766,12 @@ test.describe('Admin console end-to-end', () => {
     expect(eventTypes).toEqual(expect.arrayContaining(['lifeProfileUpdated', 'questCompleted']));
 
     const telemetryResponse = await page.evaluate(async () => {
-      const res = await fetch('/api/telemetry');
+      const token = localStorage.getItem('hero-hour-token');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const res = await fetch('/api/telemetry', { headers });
       return { status: res.status, body: await res.text() };
     });
     expect(telemetryResponse.status).toBe(200);
@@ -709,6 +779,28 @@ test.describe('Admin console end-to-end', () => {
     expect(Array.isArray(telemetryPayload)).toBe(true);
     expect(telemetryPayload.length).toBeGreaterThanOrEqual(2);
     expect(telemetryPayload.map((item) => item.type)).toEqual(expect.arrayContaining(['lifeProfileUpdated', 'questCompleted']));
+  });
+
+  test('telemetry metrics endpoint returns the initial aggregate metric definitions', async ({ page }) => {
+    await page.goto('/login');
+    const metricsResponse = await page.evaluate(async () => {
+      const res = await fetch('/api/telemetry/metrics');
+      return { status: res.status, body: await res.text() };
+    });
+
+    expect(metricsResponse.status).toBe(200);
+    const metrics = JSON.parse(metricsResponse.body);
+    expect(Array.isArray(metrics)).toBe(true);
+    expect(metrics.length).toBe(5);
+    expect(metrics.map((metric: any) => metric.name)).toEqual(
+      expect.arrayContaining([
+        'Weekly challenge start rate',
+        'Weekly challenge completion rate',
+        'Dashboard return rate after re-entry guidance exposure',
+        'Side quest completion frequency',
+        'Life profile completion and update rate',
+      ]),
+    );
   });
 
   test('life-profile contract includes status/privacy and role enums', async ({ page }) => {
@@ -752,11 +844,115 @@ test.describe('Admin console end-to-end', () => {
     const baseUrl = await page.evaluate(() => window.location.origin);
 
     const claimStatus = await page.evaluate(async (baseUrl) => {
-      const res = await fetch(`${baseUrl}/api/game-profile/demo-user/side-quests/sq-1/claim`, { method: 'POST' });
+      const token = localStorage.getItem('hero-hour-token');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const res = await fetch(`${baseUrl}/api/game-profile/demo-user/side-quests/sq-1/claim`, {
+        method: 'POST',
+        headers,
+      });
       return res.status;
     }, baseUrl);
 
     expect(claimStatus).toBe(200);
     expect(telemetryEvents).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'questCompleted' })]));
+  });
+
+  const loginViaUi = async (page) => {
+    await page.context().addInitScript(() => {
+      localStorage.setItem('hero-hour-token', 'fake-token');
+      localStorage.setItem('hero-hour-refresh-token', 'fake-refresh');
+      localStorage.setItem('hero-hour-authenticated', 'true');
+      localStorage.setItem('hero-hour-user', JSON.stringify({ fullName: 'Demo User', email: 'demo@example.com' }));
+      localStorage.setItem('hero-hour-returning-user', 'true');
+      localStorage.setItem('hero-hour-reduced-motion', 'true');
+    });
+
+    // Directly use dashboard route once auth tokens are provisioned.
+    await page.goto('http://localhost:4200/dashboard');
+    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    await expect(page.locator('h2', { hasText: 'Dashboard' })).toBeVisible({ timeout: 15000 });
+  };
+
+  const setLoggedInUserOnly = async (page) => {
+    await page.context().addInitScript(() => {
+      localStorage.setItem('hero-hour-token', 'fake-token');
+      localStorage.setItem('hero-hour-refresh-token', 'fake-refresh');
+      localStorage.setItem('hero-hour-authenticated', 'true');
+      localStorage.setItem('hero-hour-user', JSON.stringify({ fullName: 'Demo User', email: 'demo@example.com' }));
+      localStorage.setItem('hero-hour-returning-user', 'true');
+      localStorage.setItem('hero-hour-reduced-motion', 'true');
+    });
+  };
+
+
+  test('re-entry guidance appears for existing user map flow', async ({ page }) => {
+    await setLoggedInUserOnly(page);
+    await page.route('**/api/game-profile/demo-user/quests*', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+    );
+    await page.route('**/api/game-profile/demo-user/world-state*', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ seed: 1, color: 'blue', icon: '🌱', progress: 0 }) }),
+    );
+
+    await page.goto('http://localhost:4200/dashboard');
+    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    await expect(page.locator('h2', { hasText: 'Dashboard' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('p.reentry-guidance')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('p.reentry-guidance')).toHaveText('Welcome back! Re-entry guidance shows where to restart.');
+  });
+
+  test('empty state message appears when no quests assigned', async ({ page }) => {
+    await setLoggedInUserOnly(page);
+    await page.route('**/api/game-profile/demo-user/quests*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([]),
+      });
+    });
+    await page.route('**/api/game-profile/demo-user/world-state*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seed: 1, color: 'blue', icon: '🌱', progress: 0 }),
+      });
+    });
+
+    const questsResponse = page.waitForResponse('**/api/game-profile/demo-user/quests*', { timeout: 15000 });
+    await page.goto('http://localhost:4200/dashboard');
+    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    await questsResponse;
+
+    await expect(page.locator('article.quest-management')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('article.quest-management .empty-state')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('article.quest-management .empty-state h4', { hasText: 'No quests yet' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('article.quest-management .empty-state p', { hasText: 'Start by adding your first quest for life progress tracking.' })).toBeVisible({ timeout: 15000 });
+  });
+
+  test('reduced motion mode visual indicator exists when reduced motion preference is on', async ({ page }) => {
+    await setLoggedInUserOnly(page);
+    await page.route('**/api/game-profile/demo-user/quests*', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.route('**/api/game-profile/demo-user/world-state*', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ seed: 1, color: 'blue', icon: '🌱', progress: 0 }) }),
+    );
+
+    await page.goto('http://localhost:4200/dashboard');
+    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    await expect(page.locator('p.reduced-motion-indicator')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('p.reduced-motion-indicator')).toHaveText('Reduced motion mode is active');
+  });
+
+  test('feature flag flow: disable weekly challenge hides weekly card', async ({ page, request }) => {
+    const api = 'http://localhost:3000';
+    await request.patch(`${api}/api/feature-flags/weeklyChallenges`, {
+      data: { name: 'weeklyChallenges', enabled: false },
+    });
+
+    await loginViaUi(page);
+    await page.goto('http://localhost:4200/dashboard');
+    await expect(page.locator('h4', { hasText: 'Weekly Challenge' })).toHaveCount(0);
   });
 });

@@ -1,6 +1,7 @@
 import { Controller, Get, Query, Post, Body } from '@nestjs/common';
 import { TelemetryService } from './telemetry.service';
-import type { TelemetryEvent, TelemetryEventType, TelemetryEventPayload } from '@org/api-interfaces';
+import type { TelemetryEvent, TelemetryEventType, TelemetryEventPayload, TelemetryAggregateMetric } from '@org/api-interfaces';
+import { AGGREGATE_TELEMETRY_METRICS } from './telemetry-metrics';
 
 @Controller('telemetry')
 export class TelemetryController {
@@ -9,6 +10,11 @@ export class TelemetryController {
   @Get()
   list(@Query('type') type?: TelemetryEventType, @Query('userId') userId?: string): TelemetryEvent[] {
     return this.telemetryService.list(type, userId);
+  }
+
+  @Get('metrics')
+  metrics(): TelemetryAggregateMetric[] {
+    return AGGREGATE_TELEMETRY_METRICS;
   }
 
   @Post('clear')

@@ -43,29 +43,29 @@ Out of scope:
 
 ## Tasks
 
-- [ ] Define shared cross-platform interaction principles:
+- [x] Define shared cross-platform interaction principles:
   - acknowledge action immediately
   - show visible state transition
   - reflect progress change clearly
   - preserve honest failure states
-- [ ] Audit Angular and Flutter for mismatched progression or feedback behavior.
-- [ ] Improve onboarding clarity in both frontends:
+- [x] Audit Angular and Flutter for mismatched progression or feedback behavior.
+- [x] Improve onboarding clarity in both frontends:
   - first-use framing
   - profile completion expectations
   - next-step guidance
-- [ ] Improve empty-state quality in both frontends so blank states feel intentional and motivating.
-- [ ] Improve returning-user re-entry surfaces and “what should I do next?” behavior.
-- [ ] Ensure core progression widgets and summaries map to the same conceptual model across platforms.
-- [ ] Add reduced-motion and accessibility-safe interaction standards across both frontends.
-- [ ] Apply Flutter-specific premium polish where appropriate:
+- [x] Improve empty-state quality in both frontends so blank states feel intentional and motivating.
+- [x] Improve returning-user re-entry surfaces and “what should I do next?” behavior.
+- [x] Ensure core progression widgets and summaries map to the same conceptual model across platforms.
+- [x] Add reduced-motion and accessibility-safe interaction standards across both frontends.
+- [x] Apply Flutter-specific premium polish where appropriate:
   - richer transitions
   - smoother progression reveal
   - stronger emotional feedback
-- [ ] Apply Angular-specific strengths where appropriate:
+- [x] Apply Angular-specific strengths where appropriate:
   - scannability
   - operational clarity
   - richer desktop planning layout
-- [ ] Add tests or regression checks for critical onboarding and progression paths.
+- [x] Add tests or regression checks for critical onboarding and progression paths.
 
 ## Design Guidance
 

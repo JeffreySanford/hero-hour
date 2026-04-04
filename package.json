@@ -21,7 +21,7 @@
     "graph": "pnpm nx graph",
     "projects": "pnpm nx show projects",
     "test:mobile": "cd apps/mobile_flutter && flutter test",
-    "test:mobile:integration": "cd apps/mobile_flutter && flutter test --dart-define=ENABLE_FLUTTER_API_INTEGRATION=true",
+    "test:mobile:integration": "cd apps/mobile_flutter && flutter test --dart-define=ENABLE_FLUTTER_API_INTEGRATION=true --dart-define=LIFE_PROFILE_API_BASE=http://localhost:3000/api",
     "test:ci:contract": "pnpm exec nx test api-interfaces && pnpm exec nx test api && pnpm exec nx test admin-console",
     "test:ci:life-profile": "pnpm run test:ci:contract && pnpm exec nx e2e admin-console-e2e --verbose",
     "test:ci:flutter": "npm run test:mobile && npm run test:mobile:integration",
@@ -30,7 +30,8 @@
     "ci:post-deploy-contract": "pnpm run test:ci:life-profile && pnpm exec nx e2e api-e2e --verbose",
     "test:tsd": "cd api-interfaces && tsd --config tsd.json",
     "test:contract-types": "cd api-interfaces && npx tsc --noEmit -p tsconfig.spec.json",
-    "ci:contract-schema": "pnpm exec nx test api-interfaces && pnpm run test:contract-types"
+    "ci:contract-schema": "pnpm exec nx test api-interfaces && pnpm run test:contract-types",
+    "test:cross-device": "pnpm exec tsd --config api-interfaces/tsd.json && pnpm nx test api-e2e"
   },
   "private": true,
   "devDependencies": {

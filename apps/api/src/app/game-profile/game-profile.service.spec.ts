@@ -126,7 +126,8 @@ describe('GameProfileService', () => {
       expect(updatedQuest.progress).toBe(30);
       expect(updatedQuest.status).toBe('in-progress');
 
-      const worldBefore = await service.getWorldState(userId);
+      const worldBeforeState = await service.getWorldState(userId);
+      const worldBefore = { ...worldBeforeState }; // clone to avoid alias mutation by updateQuest
       await service.updateQuest(userId, quest.id, { progress: 100, status: 'complete' });
       const worldAfter = await service.getWorldState(userId);
       expect(worldAfter.progress).toBeGreaterThanOrEqual(worldBefore.progress);
@@ -171,11 +172,55 @@ describe('GameProfileService', () => {
       expect(reloadedVillage.totalProgress).toBeGreaterThanOrEqual(0);
     });
 
+    it('should completeQuest and return updated world state and profile', async () => {
+      const userId = 'user14';
+      await service.initProfile(userId);
+      const quest = await service.createQuest(userId, { title: 'Finish report', lifeArea: 'career', status: 'pending', progress: 10 });
+
+      const preWorld = await service.getWorldState(userId);
+      const result = await service.completeQuest(userId, quest.id);
+
+      expect(result.quest.status).toBe('complete');
+      expect(result.quest.progress).toBe(100);
+      expect(result.worldState.progress).toBeGreaterThanOrEqual(preWorld.progress);
+      expect(result.profile.userId).toBe(userId);
+      expect(result.profile.xp).toBeDefined();
+    });
+
+    it('should build strategy profile with dimensions and recommendations', async () => {
+      const userId = 'user-strategy-1';
+      await service.initProfile(userId);
+      await service.createQuest(userId, { title: 'Q1', lifeArea: 'health', status: 'complete', progress: 100 });
+      await service.createQuest(userId, { title: 'Q2', lifeArea: 'career', status: 'pending', progress: 50 });
+      await service.createQuest(userId, { title: 'Q3', lifeArea: 'fun', status: 'pending', progress: 0 });
+
+      const strategy = await service.getStrategyProfile(userId);
+
+      expect(strategy.userId).toBe(userId);
+      expect(strategy.dimensions.length).toBeGreaterThanOrEqual(3);
+      expect(strategy.recommendations.length).toBeGreaterThanOrEqual(1);
+      expect(strategy.reentrySummary).toContain('You have 1 completed quests');
+    });
+
     it('should throw for non-existent quest update and invalid side-quest claim', async () => {
       const userId = 'user11';
       await service.initProfile(userId);
-      await expect(service.updateQuest(userId, 'unknown-quest', { status: 'done' })).rejects.toThrow('Quest not found');
+      await expect(service.updateQuest(userId, 'unknown-quest', { status: 'complete', progress: 50 })).rejects.toThrow('Quest not found');
       await expect(service.claimSideQuest(userId, 'invalid')).rejects.toThrow('Side quest not found');
+    });
+
+    it('should reject invalid quest update values', async () => {
+      const userId = 'user13';
+      await service.initProfile(userId);
+      const quest = await service.createQuest(userId, {
+        title: 'Validation Quest',
+        lifeArea: 'fun',
+        status: 'pending',
+        progress: 10,
+      });
+
+      await expect(service.updateQuest(userId, quest.id, { progress: -10 })).rejects.toThrow('Quest progress must be between 0 and 100');
+      await expect(service.updateQuest(userId, quest.id, { status: 'foo' as any })).rejects.toThrow('Invalid quest status');
     });
 
   afterAll(async () => {

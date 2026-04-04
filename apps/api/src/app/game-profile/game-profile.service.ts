@@ -1,5 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Quest, WorldState, SideQuest, SideQuestType, LifeArea, VillageState } from './game-profile.types';
+import {
+  Quest,
+  WorldState,
+  SideQuest,
+  SideQuestType,
+  LifeArea,
+  VillageState,
+  QuestStatus,
+  WeeklyChallenge,
+  StrategyDimension,
+  StrategyRecommendation,
+  StrategyProfile,
+} from './game-profile.types';
 import type { TelemetryEventPayload } from '@org/api-interfaces';
 import { TelemetryService } from '../telemetry/telemetry.service';
 import { promises as fs } from 'fs';
@@ -38,6 +50,7 @@ export class GameProfileService {
   private sideQuests: Map<string, SideQuest[]> = new Map();
   private worldStates: Map<string, WorldState> = new Map();
   private villageStates: Map<string, VillageState> = new Map();
+  private weeklyChallenges: Map<string, WeeklyChallenge[]> = new Map();
 
   private loadPromise: Promise<void> = Promise.resolve();
   private loaded = false;
@@ -66,6 +79,7 @@ export class GameProfileService {
       if (parsed.sideQuests) this.sideQuests = new Map(Object.entries(parsed.sideQuests));
       if (parsed.worldStates) this.worldStates = new Map(Object.entries(parsed.worldStates));
       if (parsed.villageStates) this.villageStates = new Map(Object.entries(parsed.villageStates));
+      if (parsed.weeklyChallenges) this.weeklyChallenges = new Map(Object.entries(parsed.weeklyChallenges));
       this.logger.log(`Loaded progression state from ${GameProfileService.dataFilePath}`);
     } catch (error: any) {
       if (error.code === 'ENOENT') {
@@ -93,6 +107,7 @@ export class GameProfileService {
         sideQuests: Object.fromEntries(this.sideQuests),
         worldStates: Object.fromEntries(this.worldStates),
         villageStates: Object.fromEntries(this.villageStates),
+        weeklyChallenges: Object.fromEntries(this.weeklyChallenges),
       });
       await fs.mkdir(dirname(GameProfileService.dataFilePath), { recursive: true });
       await fs.writeFile(GameProfileService.dataFilePath, payload, 'utf-8');
@@ -176,10 +191,8 @@ export class GameProfileService {
   }
 
   async getProfile(userId: string): Promise<GameProfile> {
-    await this.ensureLoaded();
-    const profile = this.profiles.get(userId);
-    if (!profile) throw new Error('Game profile not found');
-    return profile;
+    // Ensure the profile exists (create if missing) for any user query path.
+    return this.initProfile(userId);
   }
 
   async updateAvatarTheme(dto: { userId: string; avatar?: string; theme?: string }): Promise<GameProfile> {
@@ -194,6 +207,86 @@ export class GameProfileService {
   async getQuests(userId: string): Promise<Quest[]> {
     await this.initProfile(userId);
     return this.quests.get(userId) ?? [];
+  }
+
+  async getWeeklyChallenges(userId: string): Promise<WeeklyChallenge[]> {
+    await this.initProfile(userId);
+    return this.weeklyChallenges.get(userId) ?? [];
+  }
+
+  async getOrCreateWeeklyChallenge(userId: string): Promise<WeeklyChallenge> {
+    await this.initProfile(userId);
+    const existing = this.weeklyChallenges.get(userId) ?? [];
+    const now = new Date();
+    const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - now.getUTCDay() + 1));
+    const weekEnd = new Date(weekStart);
+    weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
+
+    const active = existing.find((c) => c.status === 'active' && new Date(c.startDate) <= now && new Date(c.endDate) >= now);
+    if (active) return active;
+
+    const firstDay = new Date(weekStart);
+    const id = `${userId}-weekly-${firstDay.toISOString().substring(0, 10)}`;
+    const newChallenge: WeeklyChallenge = {
+      id,
+      userId,
+      title: 'Complete 5 weekly quests',
+      description: 'Complete 5 quests this week to gain 50 XP.',
+      target: 5,
+      progress: 0,
+      status: 'active',
+      rewardXp: 50,
+      startDate: weekStart.toISOString(),
+      endDate: weekEnd.toISOString(),
+    };
+
+    const updated = [...existing.filter((c) => c.status !== 'active'), newChallenge];
+    this.weeklyChallenges.set(userId, updated);
+    await this.saveState();
+    return newChallenge;
+  }
+
+  private async updateWeeklyChallengeProgress(userId: string, increment = 1): Promise<WeeklyChallenge | undefined> {
+    const challenges = await this.getWeeklyChallenges(userId);
+    const now = new Date();
+    const active = challenges.find((c) => c.status === 'active' && new Date(c.startDate) <= now && new Date(c.endDate) >= now);
+    if (!active) return undefined;
+
+    active.progress = Math.min(active.target, active.progress + increment);
+    if (active.progress >= active.target) {
+      active.status = 'complete';
+      const profile = await this.getProfile(userId);
+      profile.xp += active.rewardXp;
+      this.profiles.set(userId, profile);
+      this.telemetryService.record({
+        type: 'weeklyChallengeCompleted',
+        userId,
+        payload: { userId, details: { challengeId: active.id, rewardXp: active.rewardXp } } as TelemetryEventPayload,
+      });
+    }
+
+    this.weeklyChallenges.set(userId, challenges);
+    await this.saveState();
+    return active;
+  }
+
+  async createWeeklyChallenge(userId: string, challenge: Omit<WeeklyChallenge, 'id' | 'userId' | 'status'>): Promise<WeeklyChallenge> {
+    await this.initProfile(userId);
+    const compiled: WeeklyChallenge = {
+      ...challenge,
+      id: `${userId}-weekly-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      userId,
+      status: 'active',
+    } as WeeklyChallenge;
+    const existing = this.weeklyChallenges.get(userId) ?? [];
+    this.weeklyChallenges.set(userId, [...existing, compiled]);
+    await this.saveState();
+    return compiled;
+  }
+
+  async incrementWeeklyProgressForQuest(userId: string): Promise<WeeklyChallenge | undefined> {
+    await this.getOrCreateWeeklyChallenge(userId);
+    return this.updateWeeklyChallengeProgress(userId, 1);
   }
 
   async createQuest(userId: string, questData: Omit<Quest, 'id' | 'userId'>): Promise<Quest> {
@@ -214,18 +307,29 @@ export class GameProfileService {
   }
 
   async updateQuest(userId: string, questId: string, updates: Partial<Omit<Quest, 'id' | 'userId'>>): Promise<Quest> {
+    if (!userId || !questId) throw new Error('Missing required IDs for quest update');
+    if (updates.progress !== undefined && (updates.progress < 0 || updates.progress > 100)) {
+      throw new Error('Quest progress must be between 0 and 100');
+    }
+
     const userQuests = this.quests.get(userId) ?? [];
     const index = userQuests.findIndex((q) => q.id === questId);
     if (index < 0) throw new Error('Quest not found');
     const quest = userQuests[index];
+
     const updated: Quest = {
       ...quest,
       ...updates,
     };
+
+    if (!Object.values(QuestStatus).includes(updated.status as QuestStatus)) {
+      throw new Error('Invalid quest status');
+    }
+
     userQuests[index] = updated;
     this.quests.set(userId, userQuests);
 
-    if (updated.status === 'complete') {
+    if (updated.status === QuestStatus.COMPLETE) {
       this.telemetryService.record({
         type: 'questCompleted',
         userId,
@@ -244,10 +348,20 @@ export class GameProfileService {
       world.seed += 10;
       world.progress = Math.min(100, world.progress + 10);
       this.worldStates.set(userId, world);
+
+      await this.incrementWeeklyProgressForQuest(userId);
     }
 
     await this.saveState();
     return updated;
+  }
+
+  async completeQuest(userId: string, questId: string): Promise<{ quest: Quest; worldState: WorldState; profile: GameProfile }> {
+    const quest = await this.updateQuest(userId, questId, { status: QuestStatus.COMPLETE, progress: 100 });
+    const worldState = await this.getWorldState(userId);
+    const profile = await this.getProfile(userId);
+
+    return { quest, worldState, profile };
   }
 
   async getSideQuests(userId: string): Promise<SideQuest[]> {
@@ -298,6 +412,8 @@ export class GameProfileService {
     world.seed += sideQuest.rewardXp;
     this.worldStates.set(userId, world);
 
+    await this.incrementWeeklyProgressForQuest(userId);
+
     await this.saveState();
     return sideQuest;
   }
@@ -323,6 +439,9 @@ export class GameProfileService {
     world.progress = Math.min(100, (world.seed % 101));
 
     this.worldStates.set(userId, world);
+
+    await this.updateWeeklyChallengeProgress(userId, 1);
+
     await this.saveState();
     return world;
   }
@@ -330,6 +449,93 @@ export class GameProfileService {
   async getWorldState(userId: string): Promise<WorldState> {
     await this.initProfile(userId);
     return this.worldStates.get(userId) ?? this.getDefaultWorldState();
+  }
+
+  async getStrategyProfile(userId: string): Promise<StrategyProfile> {
+    await this.initProfile(userId);
+
+    const quests = await this.getQuests(userId);
+    const sideQuests = await this.getSideQuests(userId);
+    const world = await this.getWorldState(userId);
+    const profile = await this.getProfile(userId);
+
+    const completedQuests = quests.filter((q) => q.status === QuestStatus.COMPLETE).length;
+    const totalQuests = Math.max(1, quests.length);
+    const planningScore = Math.round((completedQuests / totalQuests) * 100);
+
+    const areas = ['health', 'career', 'relationships', 'fun'];
+    const areaCounts = areas.reduce<Record<string, number>>((acc, area) => ({ ...acc, [area]: 0 }), {} as Record<string, number>);
+    quests.forEach((q) => {
+      if (areaCounts[q.lifeArea] !== undefined) {
+        areaCounts[q.lifeArea] += 1;
+      }
+    });
+    const avgCount = quests.length > 0 ? quests.length / areas.length : 0;
+    const variance = quests.length > 0 ? areas.reduce((sum, area) => sum + Math.pow((areaCounts[area] - avgCount) / Math.max(1, avgCount), 2), 0) / areas.length : 0;
+    const balanceScore = Math.max(0, Math.min(100, Math.round(100 - variance * 50)));
+
+    const recoveryScore = Math.min(100, Math.round((sideQuests.filter((s) => s.completed).length / Math.max(1, sideQuests.length)) * 100));
+    const focusScore = world.progress;
+
+    const dimensions: StrategyDimension[] = [
+      { name: 'Planning consistency', score: planningScore, detail: `${completedQuests}/${totalQuests} quests completed` },
+      { name: 'Life-area balance', score: balanceScore, detail: `://${areaCounts.health}/${areaCounts.career}/${areaCounts.relationships}/${areaCounts.fun}` },
+      { name: 'Recovery quality', score: recoveryScore, detail: `${sideQuests.filter((s) => s.completed).length}/${Math.max(1, sideQuests.length)} sidequests` },
+      { name: 'Focus depth', score: focusScore, detail: `World progress ${world.progress}%` },
+    ];
+
+    const recommendations: StrategyRecommendation[] = [];
+    if (planningScore < 60) {
+      recommendations.push({
+        id: 'rec-plan-1',
+        text: 'Set 1-2 priority quests for your next session to stabilize planning consistency.',
+        type: 'completion',
+        rationale: 'Low completed quest ratio suggests planning drift.',
+      });
+    }
+    if (balanceScore < 70) {
+      recommendations.push({
+        id: 'rec-balance-1',
+        text: 'Try adding a quest in a less-used life area (health/fun/relationships).',
+        type: 'balance',
+        rationale: 'Your life area distribution is uneven, which can harm holistic progress.',
+      });
+    }
+    if (world.progress > 60) {
+      recommendations.push({
+        id: 'rec-momentum-1',
+        text: 'You have momentum—complete one quick quest now to lock in progress.',
+        type: 'momentum',
+        rationale: 'Strong world progress supports aggressive next steps.',
+      });
+    }
+    if (recommendations.length === 0) {
+      recommendations.push({
+        id: 'rec-hold',
+        text: 'Keep your consistent pace, and check in tomorrow for a fresh momentum boost.',
+        type: 'momentum',
+        rationale: 'Your metrics are in a stable range.',
+      });
+    }
+
+    const reentrySummary = `${profile.displayName || 'You'} have ${completedQuests} completed quests and ${world.progress}% world progress.`;
+
+    this.telemetryService.record({
+      type: 'strategyProfileViewed',
+      userId,
+      payload: {
+        userId,
+        details: { completedQuests, totalQuests, worldProgress: world.progress },
+      } as any,
+    });
+
+    return {
+      userId,
+      updatedAt: new Date().toISOString(),
+      dimensions,
+      recommendations,
+      reentrySummary,
+    };
   }
 
   async completeFocusSession(userId: string, durationMinutes: number, focusArea: string): Promise<{ userId: string; durationMinutes: number; focusArea: string; completedAt: string }> {

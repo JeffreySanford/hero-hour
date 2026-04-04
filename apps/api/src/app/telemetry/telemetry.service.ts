@@ -9,10 +9,18 @@ export class TelemetryService {
   constructor(private readonly auditRepo: TelemetryAuditRepository) {}
 
   record(event: Omit<TelemetryEvent, 'id' | 'createdAt'>): TelemetryEvent {
+    const payload = {
+      ...event.payload,
+      source: event.payload.source || 'backend',
+      sessionId: event.payload.sessionId || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      version: event.payload.version || '1.0',
+    };
+
     const telemetry: TelemetryEvent = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       createdAt: new Date().toISOString(),
       ...event,
+      payload,
     };
 
     this.events.push(telemetry);

@@ -40,8 +40,8 @@ Out of scope:
 
 ## Tasks
 
-- [ ] Inventory current telemetry events and event-producing flows.
-- [ ] Define the canonical product event taxonomy for Sprint 4:
+- [x] Inventory current telemetry events and event-producing flows.
+- [x] Define the canonical product event taxonomy for Sprint 4:
   - challenge assigned
   - challenge progressed
   - challenge completed
@@ -49,15 +49,28 @@ Out of scope:
   - strategy profile viewed
   - recommendation acted on
   - progression milestone reached
-- [ ] Normalize event payload shape and versioning expectations.
-- [ ] Add source tagging such as Angular, Flutter, or backend-generated.
-- [ ] Add session or correlation information where appropriate.
-- [ ] Ensure event storage is durable and queryable for later aggregate analysis.
-- [ ] Define a small initial set of aggregate metrics for product use and retention analysis.
-- [ ] Introduce a feature flag model for higher-risk engagement features.
-- [ ] Add frontend and backend wiring so feature availability can be controlled safely.
-- [ ] Add tests for event schema integrity and feature-flag-driven behavior.
-- [ ] Document rollout guidance and which Sprint 4 features should be flag-protected.
+- [x] Normalize event payload shape and versioning expectations.
+- [x] Add source tagging such as Angular, Flutter, or backend-generated.
+- [x] Add session or correlation information where appropriate.
+- [x] Ensure event storage is durable and queryable for later aggregate analysis.
+- [x] Define a small initial set of aggregate metrics for product use and retention analysis.
+  - weekly challenge start rate
+  - weekly challenge completion rate
+  - dashboard return rate after re-entry guidance exposure
+  - side quest completion frequency
+  - life profile completion and update rate
+- [x] Introduce a feature flag model for higher-risk engagement features.
+- [x] Add frontend and backend wiring so feature availability can be controlled safely.
+- [x] Add tests for event schema integrity and feature-flag-driven behavior.
+- [x] Document rollout guidance and which Sprint 4 features should be flag-protected.
+
+## Current Status
+
+- Completed: telemetry model hardening, source/session tagging, API telemetry persistence and retrieval, feature flag API and UI wiring, Angular dashboard gating for weekly challenge and guidance features.
+- Completed: automated coverage added for API telemetry, feature flag service, and admin-console Playwright scenarios.
+- Completed: initial aggregate metric definitions for product use and retention analysis.
+- In progress: stabilizing one admin-console e2e empty-state flow in headless Chromium and ensuring side-quest mock coverage remains reliable.
+- Remaining: resolve the one failing empty-state assertion in `apps/admin-console-e2e/src/example.spec.ts`.
 
 ## Event Quality Guidance
 
