@@ -62,6 +62,9 @@ describe('GameProfileService', () => {
     expect(profile.xp).toBe(0);
     expect(profile.level).toBe(1);
     expect(profile.streak).toBe(0);
+    expect(profile.avatarStage).toBe('initiate');
+    expect(profile.identityTitle).toBe('Forge Initiate');
+    expect(profile.unlockedAvatars).toEqual(['default']);
   });
 
   it('should update selected game profile fields safely', async () => {
@@ -72,6 +75,27 @@ describe('GameProfileService', () => {
     expect(updated.level).toBe(2);
     // Other fields remain unchanged
     expect(updated.streak).toBe(0);
+    expect(updated.avatarStage).toBe('pathfinder');
+    expect(updated.unlockedThemes).toContain('ember');
+  });
+
+  it('should unlock identity milestones and emit telemetry when XP crosses a threshold', async () => {
+    const userId = 'user-identity-1';
+    await service.initProfile(userId);
+
+    const updated = await service.updateProfile(userId, { xp: 45 });
+
+    expect(updated.avatarStage).toBe('pathfinder');
+    expect(updated.identityTitle).toBe('Quest Pathfinder');
+    expect(updated.unlockedAvatars).toEqual(['default', 'pathfinder']);
+    expect(updated.nextMilestoneLabel).toBe('Tempo Captain');
+
+    const events = telemetry.list().filter((event) => event.type === 'progressionMilestoneReached');
+    expect(events).toHaveLength(1);
+    expect(events[0].payload.details).toMatchObject({
+      avatarStage: 'pathfinder',
+      identityTitle: 'Quest Pathfinder',
+    });
   });
 
   it('should provide village state and progress updates', async () => {
@@ -165,7 +189,8 @@ describe('GameProfileService', () => {
       const reloadedProfile = await restartedService.getProfile(userId);
       expect(reloadedProfile.userId).toBe(userId);
       expect(reloadedProfile.xp).toBe(123);
-      expect(reloadedProfile.level).toBe(5);
+      expect(reloadedProfile.level).toBe(2);
+      expect(reloadedProfile.avatarStage).toBe('captain');
       expect(reloadedProfile.avatar).toBe('phoenix');
 
       const reloadedVillage = await restartedService.getVillageState(userId);
@@ -184,7 +209,8 @@ describe('GameProfileService', () => {
       expect(result.quest.progress).toBe(100);
       expect(result.worldState.progress).toBeGreaterThanOrEqual(preWorld.progress);
       expect(result.profile.userId).toBe(userId);
-      expect(result.profile.xp).toBeDefined();
+      expect(result.profile.xp).toBe(20);
+      expect(result.profile.avatarStage).toBe('initiate');
     });
 
     it('should build strategy profile with dimensions and recommendations', async () => {

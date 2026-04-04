@@ -45,10 +45,10 @@ Out of scope:
 
 ## Tasks
 
-- [ ] Define Sprint 4 features and enablers explicitly from the overview and story set.
-- [ ] Add or update PI4 planning artifacts so Sprint 4 work is traceable to epics and features.
-- [ ] Define benefit hypotheses and measurable outcomes for each major Sprint 4 feature.
-- [ ] Define NFRs for each major Sprint 4 feature:
+- [x] Define Sprint 4 features and enablers explicitly from the overview and story set.
+- [x] Add or update PI4 planning artifacts so Sprint 4 work is traceable to epics and features.
+- [x] Define benefit hypotheses and measurable outcomes for each major Sprint 4 feature.
+- [x] Define NFRs for each major Sprint 4 feature:
   - performance
   - accessibility
   - durability

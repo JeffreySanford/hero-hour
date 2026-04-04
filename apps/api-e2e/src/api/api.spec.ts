@@ -55,7 +55,6 @@ describe('GET /api', () => {
     const token = loginRes.data.accessToken;
 
     let activityRes = await axios.post(`${baseUrl1}/game-profile/${username}/activity`, {
-      userId: username,
       activityType: 'work',
       intensity: 4,
     }, { headers: { Authorization: `Bearer ${token}` } });

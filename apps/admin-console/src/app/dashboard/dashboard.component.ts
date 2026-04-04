@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HealthService } from '../services/health.service';
-import type { HealthResponse, TelemetryEvent, Quest, LifeArea, WorldState, SideQuest, WeeklyChallenge } from '@org/api-interfaces';
+import type { HealthResponse, TelemetryEvent, Quest, LifeArea, WorldState, SideQuest, WeeklyChallenge, GameProfile } from '@org/api-interfaces';
 import { QuestService } from '../services/quest.service';
 import { OfflineService } from '../services/offline.service';
 import { AuthService } from '../services/auth.service';
@@ -34,6 +34,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   recentlyClaimedSideQuestId: string | null = null;
   isReducedMotion = false;
   featureFlags: Record<string, boolean> = {};
+  profile?: GameProfile;
+  isLoadingProfile = true;
   private completionAnimationTimer: ReturnType<typeof setTimeout> | null = null;
   private reducedMotionMediaQuery: MediaQueryList | null = null;
 
@@ -106,6 +108,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loadSideQuests();
     this.loadWeeklyChallenge();
     this.loadWorldState();
+    this.loadProfile();
     this.loadTelemetryEvents();
 
     this.featureFlagService.getFlags().subscribe((flags) => {
@@ -127,8 +130,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     if (matchMedia) {
       this.reducedMotionMediaQuery = (window as any).matchMedia('(prefers-reduced-motion: reduce)');
-      this.isReducedMotion = this.reducedMotionMediaQuery!.matches;
-      this.reducedMotionMediaQuery!.addEventListener('change', this.handleReducedMotionChange);
+      this.isReducedMotion = this.reducedMotionMediaQuery?.matches ?? false;
+      this.reducedMotionMediaQuery?.addEventListener('change', this.handleReducedMotionChange);
     } else {
       this.isReducedMotion = false;
     }
@@ -320,6 +323,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
     });
   }
+
+  loadProfile(): void {
+    this.isLoadingProfile = true;
+    this.questService.getProfile(this.userId).subscribe({
+      next: (profile) => {
+        this.profile = profile;
+        this.isLoadingProfile = false;
+      },
+      error: () => {
+        this.profile = undefined;
+        this.isLoadingProfile = false;
+      },
+      complete: () => {
+        this.isLoadingProfile = false;
+      },
+    });
+  }
+
+  get profileMilestoneWidth(): number {
+    return this.profile?.progressToNextMilestone ?? 0;
+  }
+
   loadTelemetryEvents(): void {
     this.isLoadingTelemetry = true;
     this.telemetryService.getTelemetryEvents().subscribe({
@@ -343,6 +368,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.activateCompletionAnimation(undefined, sideQuestId);
         this.loadSideQuests();
         this.loadWorldState();
+        this.loadProfile();
       },
       error: () => console.warn('Failed to claim side quest'),
     });
@@ -354,6 +380,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.activateCompletionAnimation(quest.id, undefined);
         this.loadQuests();
         this.loadWorldState();
+        this.loadProfile();
       },
       error: () => console.warn('Failed to complete quest'),
     });

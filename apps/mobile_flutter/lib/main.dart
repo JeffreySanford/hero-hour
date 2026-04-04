@@ -370,6 +370,12 @@ class HeroHourAppState extends ChangeNotifier {
     this.currentUser,
     this.accessToken,
     this.profileCompleted = false,
+    this.avatar = 'default',
+    this.themeName = 'default',
+    this.displayName = '',
+    this.xp = 35,
+    this.level = 1,
+    this.streak = 0,
     this.darkMode = true,
     this.selectedActivity = '',
     this.offlineStatus = 'online',
@@ -433,11 +439,19 @@ class HeroHourAppState extends ChangeNotifier {
              lastName: '',
              age: 0,
              preferredRole: 'member',
-           );
+           ) {
+    _reconcileIdentity(notify: false);
+  }
 
   HeroUser? currentUser;
   String? accessToken;
   bool profileCompleted;
+  String avatar;
+  String themeName;
+  String displayName;
+  int xp;
+  int level;
+  int streak;
   bool darkMode;
   String selectedActivity;
   String offlineStatus;
@@ -477,6 +491,48 @@ class HeroHourAppState extends ChangeNotifier {
 
   bool prologueComplete = false;
 
+  IdentityMilestone get currentIdentityMilestone {
+    return _identityMilestones.lastWhere(
+      (milestone) => xp >= milestone.requiredXp,
+      orElse: () => _identityMilestones.first,
+    );
+  }
+
+  IdentityMilestone? get nextIdentityMilestone {
+    for (final milestone in _identityMilestones) {
+      if (milestone.requiredXp > xp) {
+        return milestone;
+      }
+    }
+    return null;
+  }
+
+  List<String> get unlockedAvatars => _identityMilestones
+      .where((milestone) => xp >= milestone.requiredXp)
+      .map((milestone) => milestone.avatar)
+      .toSet()
+      .toList();
+
+  List<String> get unlockedThemes => _identityMilestones
+      .where((milestone) => xp >= milestone.requiredXp)
+      .map((milestone) => milestone.theme)
+      .toSet()
+      .toList();
+
+  int get nextIdentityXp => nextIdentityMilestone?.requiredXp ?? currentIdentityMilestone.requiredXp;
+
+  String get nextIdentityLabel => nextIdentityMilestone?.title ?? 'Max identity reached';
+
+  int get identityProgressPercent {
+    final currentXpFloor = currentIdentityMilestone.requiredXp;
+    final nextXp = nextIdentityMilestone?.requiredXp;
+    if (nextXp == null) {
+      return 100;
+    }
+    final range = (nextXp - currentXpFloor).clamp(1, 9999);
+    return ((((xp - currentXpFloor) / range) * 100).round()).clamp(0, 100) as int;
+  }
+
   Duration get prologueDuration {
     if (reduceMotion) return const Duration(milliseconds: 350);
     if (isAuthenticated && profileCompleted) return const Duration(milliseconds: 600);
@@ -515,6 +571,9 @@ class HeroHourAppState extends ChangeNotifier {
 
     accessToken = 'hero-hour-demo-token';
     currentUser = HeroUser(fullName: 'Anne Lee', email: cleanEmail);
+    if (displayName.isEmpty) {
+      displayName = currentUser!.fullName;
+    }
     if (!profileCompleted) {
       profile = const LifeProfileFormValue(
         firstName: '',
@@ -612,6 +671,11 @@ class HeroHourAppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void awardXp(int amount) {
+    xp += amount;
+    _reconcileIdentity();
+  }
+
   void activateCompletionAnimation({
     String? questId,
     String? sideQuestId,
@@ -659,12 +723,20 @@ class HeroHourAppState extends ChangeNotifier {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({}),
       );
-      if (response.statusCode == 200) {
-        final payload = jsonDecode(response.body) as Map<String, dynamic>;
-        quest.status = payload['status'] as String? ?? 'complete';
-        quest.progress = payload['progress'] as int? ?? 100;
+        if (response.statusCode == 200) {
+          final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        final questPayload = payload['quest'] as Map<String, dynamic>?;
+        quest.status = questPayload?['status'] as String? ?? 'complete';
+        quest.progress = questPayload?['progress'] as int? ?? 100;
         quest.syncStatus = 'confirmed';
         questSyncState = 'confirmed';
+
+        final profilePayload = payload['profile'] as Map<String, dynamic>?;
+        if (profilePayload != null) {
+          _mergeProfilePayload(profilePayload);
+        } else {
+          awardXp(20);
+        }
 
         final worldStateResp = await httpClient.get(Uri.parse('$_apiBaseUrl/game-profile/demo-user/world-state'));
         if (worldStateResp.statusCode == 200) {
@@ -705,6 +777,7 @@ class HeroHourAppState extends ChangeNotifier {
     sideQuest.completed = true;
     questSyncState = 'pending';
     worldState.progress = (worldState.progress + 8).clamp(0, 100); // optimistic local progress
+    awardXp(sideQuest.rewardXp);
     notifyListeners();
 
     try {
@@ -733,7 +806,36 @@ class HeroHourAppState extends ChangeNotifier {
   void saveProfile(LifeProfileFormValue value) {
     profile = value;
     profileCompleted = true;
+    displayName = '${value.firstName} ${value.lastName}'.trim();
     notifyListeners();
+  }
+
+  void _mergeProfilePayload(Map<String, dynamic> payload) {
+    avatar = payload['avatar'] as String? ?? avatar;
+    themeName = payload['theme'] as String? ?? themeName;
+    displayName = payload['displayName'] as String? ?? displayName;
+    xp = payload['xp'] as int? ?? xp;
+    level = payload['level'] as int? ?? level;
+    streak = payload['streak'] as int? ?? streak;
+    _reconcileIdentity();
+  }
+
+  void _reconcileIdentity({bool notify = true}) {
+    xp = xp < 0 ? 0 : xp;
+    final computedLevel = (xp ~/ 75) + 1;
+    level = computedLevel < 1 ? 1 : (computedLevel > 99 ? 99 : computedLevel);
+
+    final active = currentIdentityMilestone;
+    if (!unlockedAvatars.contains(avatar)) {
+      avatar = active.avatar;
+    }
+    if (!unlockedThemes.contains(themeName)) {
+      themeName = active.theme;
+    }
+
+    if (notify) {
+      notifyListeners();
+    }
   }
 
   @override
@@ -1339,6 +1441,101 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: const Text('Sync queued actions'),
                   ),
                 ],
+              ),
+            ),
+            Container(
+              key: const ValueKey('identity-card'),
+              child: _InfoCard(
+                width: 360,
+                title: 'Identity Progression',
+                badge: _StatusBadge(
+                  label: appState.currentIdentityMilestone.stage,
+                  tone: BadgeTone.success,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: _gold.withValues(alpha: 0.12),
+                            border: Border.all(color: _gold.withValues(alpha: 0.28)),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            appState.avatar.substring(0, 1).toUpperCase(),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: const Color(0xFFF6D77A),
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(appState.currentIdentityMilestone.title, style: theme.textTheme.titleMedium),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${appState.avatar} avatar • ${appState.themeName} theme',
+                                style: theme.textTheme.bodySmall?.copyWith(color: _mutedText),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _StatTile(value: '${appState.xp}', label: 'XP'),
+                        _StatTile(value: '${appState.level}', label: 'Level'),
+                        _StatTile(value: '${appState.streak}', label: 'Streak'),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: LinearProgressIndicator(
+                        minHeight: 10,
+                        value: appState.identityProgressPercent / 100,
+                        backgroundColor: Colors.white.withValues(alpha: 0.08),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${appState.identityProgressPercent}% to ${appState.nextIdentityLabel}',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
+                    Text('Unlocked avatars', style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: appState.unlockedAvatars
+                          .map((item) => _ProfilePill(label: item))
+                          .toList(),
+                    ),
+                    const SizedBox(height: 10),
+                    Text('Unlocked themes', style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: appState.unlockedThemes
+                          .map((item) => _ProfilePill(label: item))
+                          .toList(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -2322,6 +2519,31 @@ class _ProfileBullet extends StatelessWidget {
   }
 }
 
+class _ProfilePill extends StatelessWidget {
+  const _ProfilePill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: _gold.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _gold.withValues(alpha: 0.24)),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: const Color(0xFFF6D77A),
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
 class _NoticeBanner extends StatelessWidget {
   const _NoticeBanner({required this.message, required this.tone});
 
@@ -2508,6 +2730,53 @@ BoxDecoration _cardDecoration({Color? accent}) {
     ],
   );
 }
+
+class IdentityMilestone {
+  const IdentityMilestone({
+    required this.requiredXp,
+    required this.stage,
+    required this.title,
+    required this.avatar,
+    required this.theme,
+  });
+
+  final int requiredXp;
+  final String stage;
+  final String title;
+  final String avatar;
+  final String theme;
+}
+
+const List<IdentityMilestone> _identityMilestones = [
+  IdentityMilestone(
+    requiredXp: 0,
+    stage: 'initiate',
+    title: 'Forge Initiate',
+    avatar: 'default',
+    theme: 'default',
+  ),
+  IdentityMilestone(
+    requiredXp: 40,
+    stage: 'pathfinder',
+    title: 'Quest Pathfinder',
+    avatar: 'pathfinder',
+    theme: 'ember',
+  ),
+  IdentityMilestone(
+    requiredXp: 120,
+    stage: 'captain',
+    title: 'Tempo Captain',
+    avatar: 'sentinel',
+    theme: 'aurora',
+  ),
+  IdentityMilestone(
+    requiredXp: 240,
+    stage: 'legend',
+    title: 'Clockwork Legend',
+    avatar: 'legend',
+    theme: 'midnight',
+  ),
+];
 
 class HeroUser {
   HeroUser({required this.fullName, required this.email});

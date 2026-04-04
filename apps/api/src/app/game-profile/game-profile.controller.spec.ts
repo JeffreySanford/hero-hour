@@ -160,7 +160,22 @@ describe('GameProfileController', () => {
     const mockOut = {
       quest: { id: 'q1', userId: 'u1', title: 'Test', lifeArea: 'health', status: 'complete', progress: 100 },
       worldState: { seed: 30, color: 'green', icon: '🌱', progress: 40 },
-      profile: { userId: 'u1', avatar: 'default', theme: 'default', displayName: '', xp: 0, level: 1, streak: 0 },
+      profile: {
+        userId: 'u1',
+        avatar: 'default',
+        theme: 'default',
+        displayName: '',
+        xp: 20,
+        level: 1,
+        streak: 0,
+        avatarStage: 'initiate',
+        identityTitle: 'Forge Initiate',
+        unlockedAvatars: ['default'],
+        unlockedThemes: ['default'],
+        nextMilestoneXp: 40,
+        nextMilestoneLabel: 'Quest Pathfinder',
+        progressToNextMilestone: 50,
+      },
     };
 
     (service.completeQuest as jest.Mock).mockResolvedValue(mockOut);

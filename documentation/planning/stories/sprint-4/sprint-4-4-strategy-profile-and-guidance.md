@@ -2,7 +2,7 @@
 
 ## Goal
 
-Give users a lightweight but meaningful strategy profile and guidance layer that interprets their behavior, helps them re-enter productively, and increases the sense that HeroHour is coaching rather than merely recording.
+Give users a lightweight but meaningful strategy profile and guidance layer that interprets their behavior, helps tailor quests from the life profile, supports re-entry, and increases the sense that HeroHour is coaching rather than merely recording.
 
 ## User Story
 
@@ -35,8 +35,11 @@ In scope:
 - explainable dimensions such as planning, completion, focus, balance, and recovery
 - one to three user-facing recommendations
 - returning-user or re-entry snapshot behavior
+- life-profile-informed quest recommendation or tailoring inputs
 - Angular and Flutter presentation
 - telemetry and backend support for derived guidance inputs
+
+This should include explicit mapping from life-profile signals such as `preferredRole`, `priorities`, `habitAnchors`, and `frictionPoints` to realm/category quest suggestions. Guidance should be able to explain why a specific quest or category was recommended by referencing the user’s profile and current strategy dimensions.
 
 Out of scope:
 
@@ -48,6 +51,7 @@ Out of scope:
 
 - [x] Define the first strategy-profile dimensions and how they are calculated.
 - [x] Define the minimum data requirements for each dimension.
+- [x] Define which life-profile inputs should influence quest tailoring and recommendation quality.
 - [x] Implement API/domain support for returning strategy-profile data.
 - [x] Create Angular presentation for the strategy-profile summary and recommendations.
 - [x] Create Flutter presentation for the strategy-profile summary and recommendations.
@@ -56,6 +60,7 @@ Out of scope:
   - where momentum was gained or lost
   - one suggested next action
 - [x] Ensure recommendations are explainable and tied to visible user behavior.
+- [x] Ensure guidance can influence or explain realm/category quest suggestions for the logged-in user.
 - [x] Add supportive copy and tone guidelines so the feature remains encouraging rather than judgmental.
 - [x] Add tests for strategy metric calculation and recommendation selection.
 - [x] Add telemetry to measure strategy-profile views and recommendation interaction.
@@ -92,6 +97,7 @@ Re-entry summary ideas:
 
 - Users can view a strategy-profile summary with at least several understandable dimensions.
 - Users receive at least one explainable recommendation tied to real behavior.
+- Quest guidance and tailoring can reference life-profile inputs in a deterministic and understandable way.
 - Returning users can see a lightweight re-entry or momentum summary.
 - Angular and Flutter surfaces present the guidance coherently, with appropriate platform differences.
 - Recommendation and profile behavior are backed by deterministic logic and tests.

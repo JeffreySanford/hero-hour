@@ -59,4 +59,30 @@ describe('QuestService', () => {
     expect(req.request.method).toBe('GET');
     req.flush({ seed: 123, color: 'blue', icon: '🌱', progress: 42 });
   });
+
+  it('should request the game profile', () => {
+    service.getProfile('demo-user').subscribe((profile) => {
+      expect(profile.avatarStage).toBe('pathfinder');
+      expect(profile.identityTitle).toBe('Quest Pathfinder');
+    });
+
+    const req = http.expectOne('/api/game-profile/demo-user');
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      userId: 'demo-user',
+      avatar: 'pathfinder',
+      theme: 'ember',
+      displayName: 'Anne Lee',
+      xp: 45,
+      level: 1,
+      streak: 2,
+      avatarStage: 'pathfinder',
+      identityTitle: 'Quest Pathfinder',
+      unlockedAvatars: ['default', 'pathfinder'],
+      unlockedThemes: ['default', 'ember'],
+      nextMilestoneXp: 120,
+      nextMilestoneLabel: 'Tempo Captain',
+      progressToNextMilestone: 6,
+    });
+  });
 });

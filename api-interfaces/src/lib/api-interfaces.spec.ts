@@ -60,7 +60,22 @@ describe('apiInterfaces', () => {
   });
 
   it('should validate new game progression contracts', () => {
-    const profile: GameProfile = { userId: 'u1', avatar: 'mage', theme: 'dark', displayName: 'Hero', xp: 200, level: 2, streak: 5 };
+    const profile: GameProfile = {
+      userId: 'u1',
+      avatar: 'mage',
+      theme: 'dark',
+      displayName: 'Hero',
+      xp: 200,
+      level: 2,
+      streak: 5,
+      avatarStage: 'initiate',
+      identityTitle: 'Rising Hero',
+      unlockedAvatars: ['mage'],
+      unlockedThemes: ['dark'],
+      nextMilestoneXp: 250,
+      nextMilestoneLabel: 'Pathfinder',
+      progressToNextMilestone: 80,
+    };
     const quest: Quest = { id: 'q1', userId: 'u1', title: 'Test quest', lifeArea: 'career', status: 'pending', progress: 20 };
     const sideQuest: SideQuest = { id: 'sq1', userId: 'u1', title: 'Quick win', type: 'daily', completed: false, rewardXp: 10 };
     const world: WorldState = { seed: 5, color: 'green', icon: '⚡', progress: 15 };

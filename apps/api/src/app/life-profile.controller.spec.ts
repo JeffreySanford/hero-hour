@@ -1,4 +1,3 @@
-import { ConflictException } from '@nestjs/common';
 import { LifeProfileController } from './life-profile.controller';
 import { LifeProfileService } from './life-profile.service';
 

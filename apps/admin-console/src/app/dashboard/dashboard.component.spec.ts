@@ -6,6 +6,10 @@ import { DashboardComponent } from './dashboard.component';
 import { DailyGridComponent } from './daily-grid.component';
 import { HealthService } from '../services/health.service';
 import { QuestService } from '../services/quest.service';
+import { OfflineService } from '../services/offline.service';
+import { AuthService } from '../services/auth.service';
+import { TelemetryService } from '../services/telemetry.service';
+import { FeatureFlagService } from '../services/feature-flag.service';
 import { Router } from '@angular/router';
 
 describe('DashboardComponent', () => {
@@ -14,8 +18,28 @@ describe('DashboardComponent', () => {
   let healthService: { getHealth: () => any };
   let questService: any;
   let router: { navigate: (commands: string[]) => Promise<boolean> };
+  let telemetryService: { getTelemetryEvents: () => any };
+  let featureFlagService: { getFlags: () => any };
+  let authService: { getCurrentUserInitials: () => string | undefined };
+  let offlineService: { getStatus: () => 'online' | 'offline' | 'syncing'; online$: any; syncing$: any };
   let claimSideQuestCalled = false;
   let sideQuestsState: Array<{ id: string; userId: string; title: string; type: string; completed: boolean; rewardXp: number }>;
+  const profileState = {
+    userId: 'demo-user',
+    avatar: 'pathfinder',
+    theme: 'ember',
+    displayName: 'Anne Lee',
+    xp: 45,
+    level: 1,
+    streak: 2,
+    avatarStage: 'pathfinder' as const,
+    identityTitle: 'Quest Pathfinder',
+    unlockedAvatars: ['default', 'pathfinder'],
+    unlockedThemes: ['default', 'ember'],
+    nextMilestoneXp: 120,
+    nextMilestoneLabel: 'Tempo Captain',
+    progressToNextMilestone: 6,
+  };
 
   beforeEach(async () => {
     healthService = {
@@ -34,6 +58,7 @@ describe('DashboardComponent', () => {
         { id: 'wc1', userId: 'demo-user', title: 'weekly', description: 'Do 5 quests', target: 5, progress: 2, status: 'active', rewardXp: 30, startDate: new Date().toISOString(), endDate: new Date(Date.now() + 7*24*60*60*1000).toISOString() },
       ]),
       getSideQuests: () => of(sideQuestsState),
+      getProfile: () => of(profileState),
       createQuest: () => of(null),
       updateQuest: () => of(null),
       claimSideQuest: () => {
@@ -47,6 +72,24 @@ describe('DashboardComponent', () => {
       getWorldState: () => of({ seed: 1, color: 'blue', icon: '🌱', progress: 0 }),
     };
 
+    telemetryService = {
+      getTelemetryEvents: () => of([]),
+    };
+
+    featureFlagService = {
+      getFlags: () => of({ weeklyChallenges: true, strategyProfile: true, reentryGuidance: true, richerProgression: true }),
+    };
+
+    authService = {
+      getCurrentUserInitials: () => 'AL',
+    };
+
+    offlineService = {
+      getStatus: () => 'online',
+      online$: of(undefined),
+      syncing$: of(undefined),
+    };
+
     router = {
       navigate: () => Promise.resolve(true),
     };
@@ -58,6 +101,10 @@ describe('DashboardComponent', () => {
       providers: [
         { provide: HealthService, useValue: healthService },
         { provide: QuestService, useValue: questService },
+        { provide: TelemetryService, useValue: telemetryService },
+        { provide: FeatureFlagService, useValue: featureFlagService },
+        { provide: AuthService, useValue: authService },
+        { provide: OfflineService, useValue: offlineService },
         { provide: Router, useValue: router },
       ],
     }).compileComponents();
@@ -247,7 +294,17 @@ describe('DashboardComponent', () => {
     expect(titles[0]).toBe('API Status');
     expect(titles[1]).toBe('World Seed State');
     expect(titles[2]).toBe('Telemetry Events');
-    expect(titles[3]).toBe('Sync Status');
+    expect(titles[3]).toBe('Identity Progression');
+  });
+
+  it('should render identity progression details from the game profile', () => {
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Identity Progression');
+    expect(fixture.nativeElement.textContent).toContain('Quest Pathfinder');
+    expect(fixture.nativeElement.textContent).toContain('pathfinder avatar');
+    expect(fixture.nativeElement.textContent).toContain('45');
+    expect(fixture.nativeElement.textContent).toContain('Tempo Captain');
   });
 
   it('should navigate to life profile from the dashboard action', async () => {

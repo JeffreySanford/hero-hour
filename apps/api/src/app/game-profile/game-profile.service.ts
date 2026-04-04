@@ -25,7 +25,29 @@ export interface GameProfile {
   xp: number;
   level: number;
   streak: number;
+  avatarStage: 'initiate' | 'pathfinder' | 'captain' | 'legend';
+  identityTitle: string;
+  unlockedAvatars: string[];
+  unlockedThemes: string[];
+  nextMilestoneXp: number;
+  nextMilestoneLabel: string;
+  progressToNextMilestone: number;
 }
+
+type IdentityMilestone = {
+  requiredXp: number;
+  avatarStage: GameProfile['avatarStage'];
+  identityTitle: string;
+  avatar: string;
+  theme: string;
+};
+
+const IDENTITY_MILESTONES: IdentityMilestone[] = [
+  { requiredXp: 0, avatarStage: 'initiate', identityTitle: 'Forge Initiate', avatar: 'default', theme: 'default' },
+  { requiredXp: 40, avatarStage: 'pathfinder', identityTitle: 'Quest Pathfinder', avatar: 'pathfinder', theme: 'ember' },
+  { requiredXp: 120, avatarStage: 'captain', identityTitle: 'Tempo Captain', avatar: 'sentinel', theme: 'aurora' },
+  { requiredXp: 240, avatarStage: 'legend', identityTitle: 'Clockwork Legend', avatar: 'legend', theme: 'midnight' },
+];
 
 @Injectable()
 export class GameProfileService {
@@ -129,7 +151,18 @@ export class GameProfileService {
         xp: 0,
         level: 1,
         streak: 0,
+        avatarStage: 'initiate',
+        identityTitle: 'Forge Initiate',
+        unlockedAvatars: ['default'],
+        unlockedThemes: ['default'],
+        nextMilestoneXp: 40,
+        nextMilestoneLabel: 'Quest Pathfinder',
+        progressToNextMilestone: 0,
       };
+      profile = this.reconcileProfile(profile);
+      this.profiles.set(userId, profile);
+    } else {
+      profile = this.reconcileProfile(profile);
       this.profiles.set(userId, profile);
     }
     if (!this.worldStates.has(userId)) {
@@ -170,15 +203,18 @@ export class GameProfileService {
 
   async updateProfile(userId: string, updates: Partial<Omit<GameProfile, 'userId'>>): Promise<GameProfile> {
     const profile = await this.initProfile(userId);
+    const previous = this.cloneProfile(profile);
     if (updates.avatar !== undefined) profile.avatar = updates.avatar;
     if (updates.theme !== undefined) profile.theme = updates.theme;
     if (updates.displayName !== undefined) profile.displayName = updates.displayName;
     if (updates.xp !== undefined) profile.xp = updates.xp;
     if (updates.level !== undefined) profile.level = updates.level;
     if (updates.streak !== undefined) profile.streak = updates.streak;
-    this.profiles.set(userId, profile);
+    const nextProfile = this.reconcileProfile(profile);
+    this.profiles.set(userId, nextProfile);
+    this.recordIdentityMilestoneEvents(userId, previous, nextProfile, 'profile-update');
     await this.saveState();
-    return profile;
+    return nextProfile;
   }
 
   private getDefaultWorldState(): WorldState {
@@ -199,9 +235,10 @@ export class GameProfileService {
     const profile = await this.getProfile(dto.userId);
     if (dto.avatar !== undefined) profile.avatar = dto.avatar;
     if (dto.theme !== undefined) profile.theme = dto.theme;
-    this.profiles.set(dto.userId, profile);
+    const nextProfile = this.reconcileProfile(profile);
+    this.profiles.set(dto.userId, nextProfile);
     await this.saveState();
-    return profile;
+    return nextProfile;
   }
 
   async getQuests(userId: string): Promise<Quest[]> {
@@ -255,9 +292,10 @@ export class GameProfileService {
     active.progress = Math.min(active.target, active.progress + increment);
     if (active.progress >= active.target) {
       active.status = 'complete';
-      const profile = await this.getProfile(userId);
-      profile.xp += active.rewardXp;
-      this.profiles.set(userId, profile);
+      await this.awardXp(userId, active.rewardXp, 'weekly-challenge-complete', {
+        challengeId: active.id,
+        rewardXp: active.rewardXp,
+      });
       this.telemetryService.record({
         type: 'weeklyChallengeCompleted',
         userId,
@@ -329,7 +367,7 @@ export class GameProfileService {
     userQuests[index] = updated;
     this.quests.set(userId, userQuests);
 
-    if (updated.status === QuestStatus.COMPLETE) {
+    if (updated.status === QuestStatus.COMPLETE && quest.status !== QuestStatus.COMPLETE) {
       this.telemetryService.record({
         type: 'questCompleted',
         userId,
@@ -349,6 +387,10 @@ export class GameProfileService {
       world.progress = Math.min(100, world.progress + 10);
       this.worldStates.set(userId, world);
 
+      await this.awardXp(userId, 20, 'quest-complete', {
+        questId: updated.id,
+        title: updated.title,
+      });
       await this.incrementWeeklyProgressForQuest(userId);
     }
 
@@ -403,9 +445,11 @@ export class GameProfileService {
       } as TelemetryEventPayload,
     });
 
-    const profile = await this.initProfile(userId);
-    profile.xp += sideQuest.rewardXp;
-    this.profiles.set(userId, profile);
+    await this.awardXp(userId, sideQuest.rewardXp, 'side-quest-claim', {
+      questId: sideQuest.id,
+      title: sideQuest.title,
+      rewardXp: sideQuest.rewardXp,
+    });
 
     const world = await this.getWorldState(userId);
     world.progress = Math.min(100, world.progress + 5);
@@ -558,5 +602,77 @@ export class GameProfileService {
     await this.saveState();
 
     return { userId, durationMinutes, focusArea, completedAt: new Date().toISOString() };
+  }
+
+  private cloneProfile(profile: GameProfile): GameProfile {
+    return JSON.parse(JSON.stringify(profile)) as GameProfile;
+  }
+
+  private reconcileProfile(profile: GameProfile): GameProfile {
+    const normalizedXp = Math.max(0, profile.xp ?? 0);
+    const activeMilestone = [...IDENTITY_MILESTONES].reverse().find((milestone) => normalizedXp >= milestone.requiredXp) ?? IDENTITY_MILESTONES[0];
+    const nextMilestone = IDENTITY_MILESTONES.find((milestone) => milestone.requiredXp > normalizedXp);
+    const unlockedMilestones = IDENTITY_MILESTONES.filter((milestone) => normalizedXp >= milestone.requiredXp);
+
+    const unlockedAvatars = Array.from(new Set(unlockedMilestones.map((milestone) => milestone.avatar)));
+    const unlockedThemes = Array.from(new Set(unlockedMilestones.map((milestone) => milestone.theme)));
+
+    const baselineXp = activeMilestone.requiredXp;
+    const nextXp = nextMilestone?.requiredXp ?? activeMilestone.requiredXp;
+    const range = Math.max(1, nextXp - baselineXp);
+    const progressToNextMilestone = nextMilestone
+      ? Math.max(0, Math.min(100, Math.round(((normalizedXp - baselineXp) / range) * 100)))
+      : 100;
+
+    return {
+      ...profile,
+      xp: normalizedXp,
+      level: Math.max(1, Math.floor(normalizedXp / 75) + 1),
+      avatarStage: activeMilestone.avatarStage,
+      identityTitle: activeMilestone.identityTitle,
+      unlockedAvatars,
+      unlockedThemes,
+      avatar: profile.avatar || activeMilestone.avatar,
+      theme: profile.theme || activeMilestone.theme,
+      nextMilestoneXp: nextMilestone?.requiredXp ?? activeMilestone.requiredXp,
+      nextMilestoneLabel: nextMilestone?.identityTitle ?? 'Max identity reached',
+      progressToNextMilestone,
+    };
+  }
+
+  private recordIdentityMilestoneEvents(userId: string, previous: GameProfile, current: GameProfile, source: string): void {
+    const previousUnlocks = new Set(previous.unlockedAvatars ?? []);
+    const newUnlocks = current.unlockedAvatars.filter((avatar) => !previousUnlocks.has(avatar));
+    if (previous.avatarStage === current.avatarStage && newUnlocks.length === 0) {
+      return;
+    }
+
+    this.telemetryService.record({
+      type: 'progressionMilestoneReached',
+      userId,
+      payload: {
+        userId,
+        source: 'backend',
+        details: {
+          source,
+          avatarStage: current.avatarStage,
+          identityTitle: current.identityTitle,
+          unlockedAvatars: newUnlocks,
+          unlockedThemes: current.unlockedThemes.filter((theme) => !(previous.unlockedThemes ?? []).includes(theme)),
+          xp: current.xp,
+          level: current.level,
+        },
+      } as TelemetryEventPayload,
+    });
+  }
+
+  private async awardXp(userId: string, amount: number, source: string, details: Record<string, unknown>): Promise<GameProfile> {
+    const profile = await this.initProfile(userId);
+    const previous = this.cloneProfile(profile);
+    profile.xp += amount;
+    const nextProfile = this.reconcileProfile(profile);
+    this.profiles.set(userId, nextProfile);
+    this.recordIdentityMilestoneEvents(userId, previous, nextProfile, `${source}:${Object.keys(details).join(',')}`);
+    return nextProfile;
   }
 }

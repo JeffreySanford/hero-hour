@@ -115,6 +115,13 @@ export interface GameProfile {
   xp: number;
   level: number;
   streak: number;
+  avatarStage: 'initiate' | 'pathfinder' | 'captain' | 'legend';
+  identityTitle: string;
+  unlockedAvatars: string[];
+  unlockedThemes: string[];
+  nextMilestoneXp: number;
+  nextMilestoneLabel: string;
+  progressToNextMilestone: number;
 }
 
 export interface VillageStructure {
@@ -195,11 +202,6 @@ export interface StrategyProfile {
   dimensions: StrategyDimension[];
   recommendations: StrategyRecommendation[];
   reentrySummary: string;
-}
-
-export interface TelemetryEventPayload {
-  userId: string;
-  details: Record<string, any>;
 }
 
 export interface TelemetryEvent {

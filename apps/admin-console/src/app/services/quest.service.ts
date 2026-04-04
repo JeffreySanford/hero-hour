@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { OfflineService } from './offline.service';
-import { Quest, WorldState, SideQuest, WeeklyChallenge } from '@org/api-interfaces';
+import { Quest, WorldState, SideQuest, WeeklyChallenge, GameProfile } from '@org/api-interfaces';
 
 export enum SideQuestType {
   QUICK_WIN = 'quick-win',
@@ -104,6 +104,10 @@ export class QuestService {
 
   getWeeklyChallenges(userId: string): Observable<WeeklyChallenge[]> {
     return this.http.get<WeeklyChallenge[]>(`/api/game-profile/${encodeURIComponent(userId)}/weekly-challenges`);
+  }
+
+  getProfile(userId: string): Observable<GameProfile> {
+    return this.http.get<GameProfile>(`/api/game-profile/${encodeURIComponent(userId)}`);
   }
 
   createWeeklyChallenge(userId: string, challenge: Omit<WeeklyChallenge, 'id' | 'userId' | 'status'>): Observable<WeeklyChallenge> {

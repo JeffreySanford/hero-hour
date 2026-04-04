@@ -1,13 +1,14 @@
-# Sprint 4 Overview: Product engagement, architectural runway, and SAFe-ready delivery improvements
+# Sprint 4 Overview: Gameplay foundation, product engagement, and SAFe-ready delivery improvements
 
 ## Purpose
 
 This document captures a Sprint 4 improvement plan based on analysis of the current HeroHour codebase, planning artifacts, and product direction. It is intended to serve as a working overview for backlog refinement, sprint planning, and PI4 preparation.
 
-Sprint 4 should not be treated as "just more features." The current repository is at a stage where product engagement improvements, platform consistency, delivery discipline, and architecture hardening all need to move forward together. The application already has a compelling direction, but many of its strongest ideas are still at prototype depth.
+Sprint 4 should not be treated as "just more features." The current repository is at a stage where gameplay-loop corrections, product engagement improvements, platform consistency, delivery discipline, and architecture hardening all need to move forward together. The application already has a compelling direction, but many of its strongest ideas are still at prototype depth.
 
-Sprint 4 is therefore best framed as a convergence sprint with four simultaneous objectives:
+Sprint 4 is therefore best framed as a convergence sprint with five simultaneous objectives:
 
+- make the quest/category/world loop actually behave like gameplay
 - make the experience more fun and more emotionally engaging
 - make the product more useful and habit-forming
 - make the codebase more agile and safer to extend
@@ -30,6 +31,8 @@ At the same time, there are several visible constraints that should influence Sp
 - some frontend behavior is still UI-local rather than driven by stronger domain models
 - Angular and Flutter have similar concepts but not yet a truly shared interaction model
 - the game layer is emotionally promising but mechanically shallow
+- category or realm switching does not yet function as a real quest-generation system
+- life profile exists, but does not yet materially shape the quests a user receives
 - telemetry exists, but not yet as a trustworthy analytics foundation
 - planning artifacts are SAFe-flavored, but implementation and measurement are not yet consistently organized as SAFe-style features, enablers, NFRs, and flow metrics; recent work is making release readiness and verification paths more explicit
 
@@ -49,7 +52,53 @@ Sprint 4 should extend these strengths rather than dilute them into a generic pr
 
 ## Key Improvement Themes for Sprint 4
 
-## 1. Make the Product More Fun and More User-Engaging
+## 1. Make the Product More Like a Real Game-Based Time Tracker
+
+The biggest product gap is not polish. It is the absence of a real gameplay loop.
+
+Right now the app behaves more like:
+
+- a dashboard with quest-themed language
+
+It needs to move toward:
+
+- a time tracking system where entering a realm changes the content you play through
+
+Sprint 4 should therefore make the following true:
+
+- category selection changes the quests available
+- the logged-in user receives quests shaped by their life profile
+- completing a quest changes the world in category-aware ways
+- the user understands what changed and what to do next
+
+### 1.1 Make category switching real
+
+Realm or category switching should no longer be cosmetic. It should:
+
+- select a real realm state
+- query or generate a different quest deck
+- carry different reward emphasis
+- change what progress means in the world
+
+### 1.2 Tailor quests to the logged-in user
+
+The life profile should become a real gameplay input. It should inform the kinds of quests the user gets based on:
+
+- priorities
+- preferred role
+- friction points
+- habit anchors
+- schedule tendencies
+
+This is not too much of a lift if implemented as deterministic rules in Sprint 4. It is a medium-sized product/system feature, not an AI rewrite.
+
+### 1.3 Make world consequences category-aware
+
+Quest completion should not only increment a generic seed counter. It should mutate different parts of the world based on what kind of quest was completed.
+
+That is what will make the system feel like a game rather than a styled to-do list.
+
+## 2. Make the Product More Fun and More User-Engaging
 
 The largest opportunity is not just "more animation." The larger opportunity is to deepen the feedback loop between action, reward, identity, and progression.
 
@@ -117,13 +166,13 @@ That will make the application feel less like a static dashboard and more like a
 
 This overview is supported by the current Sprint 4 story set under `documentation/planning/stories/sprint-4`. The main delivery focus areas are:
 
-- Feature work: progression persistence, daily grid/time board, weekly challenge loops, strategy profile and guidance, rewards/rewards polish, and stronger game-based progression.
+- Feature work: progression persistence, realm/category quest gameplay, daily grid/time board, weekly challenge loops, strategy profile and guidance, rewards/rewards polish, and stronger game-based progression.
 - Enabler work: durable persistence, telemetry/analytics hardening, feature flags, release gating, and shared contract consistency.
 - NFR work: performance, accessibility, durability, telemetry completeness, release safety, and cross-platform consistency.
 
 These areas should be tied directly to verification paths, smoke suites, and documentation that can be executed rather than only described. Existing testable paths include the contract-level test suites and smoke scripts such as `pnpm run test:ci:contract`, and Playwright e2e coverage under `apps/admin-console-e2e`.
 
-## 2. Make the UX More Polished and More Coherent Across Angular and Flutter
+## 3. Make the UX More Polished and More Coherent Across Angular and Flutter
 
 Angular and Flutter currently share concepts, but the interaction model is still uneven. Flutter already feels more like the product’s premium expression. Angular is useful, but still more like a web admin shell with game styling layered onto it.
 
@@ -161,7 +210,7 @@ Current flows exist for login, dashboard, and life-profile, but Sprint 4 should 
 
 This would likely increase engagement more than purely decorative improvements.
 
-## 3. Deepen the Product Intelligence Layer
+## 4. Deepen the Product Intelligence Layer
 
 The current planning docs already move toward guidance, recommendations, and analytics. Sprint 4 should make those ideas useful in product terms, not just as future aspirations.
 
@@ -201,11 +250,11 @@ Telemetry exists, but Sprint 4 should improve event trustworthiness and usefulne
 
 This will support future admin and product decision-making.
 
-## 4. Improve the Technical Architecture So the Product Can Actually Scale
+## 5. Improve the Technical Architecture So the Product Can Actually Scale
 
 This is a critical Sprint 4 theme. The product has enough richness now that prototype shortcuts will start to hurt velocity if left alone.
 
-### 4.1 Replace in-memory state with durable application storage
+### 5.1 Replace in-memory state with durable application storage
 
 Several current services still store meaningful data in memory:
 
@@ -224,7 +273,7 @@ Priority persistence targets:
 - world state and village state
 - telemetry event storage
 
-### 4.2 Strengthen domain boundaries
+### 5.2 Strengthen domain boundaries
 
 The repository already has `api-interfaces`, `domain`, `shared-types`, and `util`, but some areas still behave like app-local prototypes rather than shared product systems.
 
@@ -235,7 +284,7 @@ Sprint 4 should move toward:
 - clearer separation between DTOs, domain entities, and view models
 - shared enums and payload schemas where cross-platform behavior matters
 
-### 4.3 Make telemetry production-grade enough for roadmap decisions
+### 5.3 Make telemetry production-grade enough for roadmap decisions
 
 Current telemetry is useful as an early foundation, but not yet trustworthy enough to support PI4 analytics or recommendation quality at scale.
 
@@ -247,7 +296,7 @@ Needed improvements:
 - explicit source surface tagging: Angular vs Flutter vs backend-generated
 - dashboard-ready aggregate queries
 
-### 4.4 Reduce fragile local-state behavior
+### 5.4 Reduce fragile local-state behavior
 
 Examples visible in the codebase suggest that some flows remain tightly coupled to local storage, immediate component state, or simple in-process mutation.
 
@@ -259,7 +308,7 @@ Sprint 4 should strengthen:
 - offline conflict handling
 - error states that preserve user confidence
 
-## 5. Make the Codebase More Agile to Change
+## 6. Make the Codebase More Agile to Change
 
 "Agile" here should not mean only process language. It should mean the codebase is easier to change safely and the team can move faster with less regression risk.
 
@@ -314,7 +363,7 @@ As progression, animation, and intelligence systems get deeper, feature flags be
 - incremental release
 - A/B style comparison later if needed
 
-## 6. SAFe Methodology Recommendations for Sprint 4 and PI4
+## 7. SAFe Methodology Recommendations for Sprint 4 and PI4
 
 The planning docs already use SAFe vocabulary, but Sprint 4 can make the implementation model more explicitly SAFe-aligned.
 

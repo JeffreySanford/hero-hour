@@ -121,6 +121,65 @@
       </div>
     </article>
 
+    <article class="hero-card identity-card" aria-labelledby="identity-title" role="region">
+      <div class="hero-card__header">
+        <h3 id="identity-title" class="hero-card__title">Identity Progression</h3>
+        <span class="status-chip status-success" *ngIf="profile">{{ profile.avatarStage }}</span>
+      </div>
+      <div class="hero-card__content">
+        <div *ngIf="isLoadingProfile" class="skeleton loading-block" role="status" aria-label="Loading identity progression"></div>
+        <div *ngIf="!isLoadingProfile && profile" class="identity-content">
+          <div class="identity-hero">
+            <div class="identity-avatar">{{ profile.avatar | slice:0:1 | uppercase }}</div>
+            <div>
+              <p class="identity-title">{{ profile.identityTitle }}</p>
+              <p class="identity-meta">{{ profile.avatar }} avatar · {{ profile.theme }} theme</p>
+            </div>
+          </div>
+
+          <div class="identity-stats">
+            <div class="identity-stat">
+              <span class="identity-stat__value">{{ profile.xp }}</span>
+              <span class="identity-stat__label">XP</span>
+            </div>
+            <div class="identity-stat">
+              <span class="identity-stat__value">{{ profile.level }}</span>
+              <span class="identity-stat__label">Level</span>
+            </div>
+            <div class="identity-stat">
+              <span class="identity-stat__value">{{ profile.streak }}</span>
+              <span class="identity-stat__label">Streak</span>
+            </div>
+          </div>
+
+          <div class="progress-container">
+            <div class="progress-track" aria-label="identity milestone progress">
+              <div class="progress-fill" [style.width.%]="profileMilestoneWidth"></div>
+            </div>
+            <span class="progress-label">{{ profile.progressToNextMilestone }}% to {{ profile.nextMilestoneLabel }}</span>
+          </div>
+
+          <div class="identity-unlocks">
+            <div>
+              <h4>Unlocked avatars</h4>
+              <div class="identity-chip-list">
+                <span class="identity-chip" *ngFor="let avatar of profile.unlockedAvatars">{{ avatar }}</span>
+              </div>
+            </div>
+            <div>
+              <h4>Unlocked themes</h4>
+              <div class="identity-chip-list">
+                <span class="identity-chip" *ngFor="let theme of profile.unlockedThemes">{{ theme }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!isLoadingProfile && !profile" class="empty-state">
+          Identity progression is unavailable right now.
+        </div>
+      </div>
+    </article>
+
     <article class="hero-card priority-card">
       <div class="hero-card__header">
         <h3 class="hero-card__title">Sync Status</h3>

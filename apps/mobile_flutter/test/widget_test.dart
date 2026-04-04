@@ -131,12 +131,15 @@ void main() {
     final appState = HeroHourAppState();
 
     final beforeProgress = appState.worldState.progress;
+    final beforeXp = appState.xp;
     expect(appState.sideQuests.first.completed, isFalse);
 
     appState.claimSideQuest('recover');
 
     expect(appState.sideQuests.first.completed, isTrue);
     expect(appState.worldState.progress, equals((beforeProgress + 8).clamp(0, 100)));
+    expect(appState.xp, beforeXp + 15);
+    expect(appState.currentIdentityMilestone.stage, 'pathfinder');
   });
 
   test('completing a quest uses complete endpoint and syncs world state', () async {
@@ -164,10 +167,10 @@ void main() {
             },
             'profile': {
               'userId': 'demo-user',
-              'avatar': 'default',
-              'theme': 'default',
-              'displayName': '',
-              'xp': 0,
+              'avatar': 'pathfinder',
+              'theme': 'ember',
+              'displayName': 'Anne Lee',
+              'xp': 55,
               'level': 1,
               'streak': 0,
             },
@@ -194,6 +197,8 @@ void main() {
     expect(quest.status, 'complete');
     expect(quest.syncStatus, 'confirmed');
     expect(appState.worldState.progress, (initialWorld + 10).clamp(0, 100));
+    expect(appState.xp, 55);
+    expect(appState.currentIdentityMilestone.title, 'Quest Pathfinder');
   });
 
   test('daily time grid cells list generation includes completed entries', () {
@@ -261,6 +266,36 @@ void main() {
     expect(foundTexts.contains('Daily Time Grid'), isTrue);
     expect(find.byType(DailyTimeGrid), findsOneWidget);
     expect(find.byType(GridView), findsOneWidget);
+  });
+
+  testWidgets('identity progression card is visible with milestone details', (WidgetTester tester) async {
+    final appState = HeroHourAppState(
+      profileCompleted: true,
+      accessToken: 'token',
+      currentUser: HeroUser(fullName: 'Anne Lee', email: 'a@example.com'),
+      xp: 45,
+    );
+
+    await tester.pumpWidget(
+      HeroHourScope(
+        appState: appState,
+        child: MaterialApp(home: DashboardScreen(onOpenProfile: () {})),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('identity-card')),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Identity Progression'), findsOneWidget);
+    expect(find.text('Quest Pathfinder'), findsOneWidget);
+    expect(find.text('pathfinder'), findsWidgets);
+    expect(find.textContaining('Unlocked avatars'), findsOneWidget);
+    expect(find.textContaining('Tempo Captain'), findsOneWidget);
   });
 
   testWidgets('strategy profile section shows recommendations and dimensions', (WidgetTester tester) async {
@@ -449,16 +484,16 @@ void main() {
   test('triple activation uses last trigger and clears previous', () async {
     final appState = HeroHourAppState();
 
-    appState.activateCompletionAnimation(questId: 'q1', duration: const Duration(milliseconds: 400));
-    appState.activateCompletionAnimation(questId: 'q2', duration: const Duration(milliseconds: 400));
-    appState.activateCompletionAnimation(questId: 'q3', duration: const Duration(milliseconds: 400));
+    appState.activateCompletionAnimation(questId: 'q1', duration: const Duration(milliseconds: 600));
+    appState.activateCompletionAnimation(questId: 'q2', duration: const Duration(milliseconds: 600));
+    appState.activateCompletionAnimation(questId: 'q3', duration: const Duration(milliseconds: 600));
 
     expect(appState.recentlyCompletedQuestId, 'q3');
 
-    await Future.delayed(const Duration(milliseconds: 399));
+    await Future.delayed(const Duration(milliseconds: 200));
     expect(appState.recentlyCompletedQuestId, 'q3');
 
-    await Future.delayed(const Duration(milliseconds: 1));
+    await Future.delayed(const Duration(milliseconds: 500));
     expect(appState.recentlyCompletedQuestId, isNull);
   });
 

@@ -57,7 +57,7 @@ Out of scope:
   - recovery/rest
   - challenge-related
 - [x] Implement the daily-grid/time-board component in Angular.
-- [ ] Implement the daily-grid/time-board component in Flutter.
+- [x] Implement the daily-grid/time-board component in Flutter.
 - [x] Map existing user actions such as activity logging and quest completion into the grid model.
 - [x] Add readable animation for cell fill, state update, or progress linkage.
 - [x] Add drill-in context for hover, tap, or focus.
@@ -65,6 +65,8 @@ Out of scope:
 - [x] Add re-entry summary hooks so the board can support “what happened today?” messaging.
 - [x] Add tests for empty, partial, and active day rendering states.
 - [x] Document how future focus sessions and weekly challenge overlays should integrate.
+
+> Note: The Flutter mobile app already includes a `DailyTimeGrid` component and a `dailyTimeGridCells` model in `apps/mobile_flutter/lib/main.dart`, along with widget tests that verify the dashboard renders the grid and supports empty/active day states.
 
 ## Product Behavior Guidance
 

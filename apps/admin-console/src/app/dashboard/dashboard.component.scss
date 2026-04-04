@@ -165,6 +165,96 @@
     font-weight: 600;
   }
 
+  .identity-content {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .identity-hero {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .identity-avatar {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 1rem;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.12));
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    color: #fde68a;
+    font-size: 1.15rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .identity-title {
+    margin: 0;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  .identity-meta {
+    margin: 0.2rem 0 0;
+    color: #94a3b8;
+    font-size: 0.9rem;
+  }
+
+  .identity-stats {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .identity-stat {
+    padding: 0.85rem;
+    border-radius: 1rem;
+    background: rgba(15, 23, 42, 0.34);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .identity-stat__value {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #fde68a;
+  }
+
+  .identity-stat__label {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .identity-unlocks h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+  }
+
+  .identity-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .identity-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.24);
+    color: #fde68a;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
   .realm-chip {
     padding: 0.25rem 0.65rem;
     border-radius: 999px;
